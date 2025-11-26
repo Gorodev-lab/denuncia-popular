@@ -1,9 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import { DenunciaDraft } from '../../types';
-import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, ExternalLink } from 'lucide-react';
+import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X } from 'lucide-react';
 import L from 'leaflet';
-import { getAddressFromCoordinates } from '../../services/geminiService';
 
 // Fix Leaflet icon issue in React
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -33,8 +32,8 @@ const MapRealigner = () => {
 };
 
 // Subcomponent to handle click events on the map (Logic)
-const MapClickHandler: React.FC<{ 
-  setPosition: (pos: L.LatLng) => void 
+const MapClickHandler: React.FC<{
+  setPosition: (pos: L.LatLng) => void
 }> = ({ setPosition }) => {
   const map = useMapEvents({
     click(e) {
@@ -47,50 +46,50 @@ const MapClickHandler: React.FC<{
 
 // Subcomponent to handle click feedback visuals (Ripple Effect)
 const ClickFeedbackLayer = () => {
-    const [ripples, setRipples] = useState<{id: number, pos: L.LatLng}[]>([]);
-    
-    useMapEvents({
-      click(e) {
-        const id = Date.now();
-        setRipples(prev => [...prev, { id, pos: e.latlng }]);
-        setTimeout(() => {
-          setRipples(prev => prev.filter(r => r.id !== id));
-        }, 800); // Match animation duration
-      }
-    });
-  
-    const rippleIcon = L.divIcon({
-        className: 'bg-transparent',
-        html: `<div class="absolute inset-0 rounded-full border-2 border-pink-500 shadow-[0_0_15px_#ec4899] animate-ripple box-border"></div>`,
-        iconSize: [40, 40],
-        iconAnchor: [20, 20]
-    });
-  
-    return (
-      <>
-        {ripples.map(r => (
-          <Marker 
-            key={r.id} 
-            position={r.pos} 
-            icon={rippleIcon} 
-            zIndexOffset={-10} // Keep below the main pin
-            interactive={false}
-          />
-        ))}
-      </>
-    );
-  };
+  const [ripples, setRipples] = useState<{ id: number, pos: L.LatLng }[]>([]);
+
+  useMapEvents({
+    click(e) {
+      const id = Date.now();
+      setRipples(prev => [...prev, { id, pos: e.latlng }]);
+      setTimeout(() => {
+        setRipples(prev => prev.filter(r => r.id !== id));
+      }, 800); // Match animation duration
+    }
+  });
+
+  const rippleIcon = L.divIcon({
+    className: 'bg-transparent',
+    html: `<div class="absolute inset-0 rounded-full border-2 border-pink-500 shadow-[0_0_15px_#ec4899] animate-ripple box-border"></div>`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+  });
+
+  return (
+    <>
+      {ripples.map(r => (
+        <Marker
+          key={r.id}
+          position={r.pos}
+          icon={rippleIcon}
+          zIndexOffset={-10} // Keep below the main pin
+          interactive={false}
+        />
+      ))}
+    </>
+  );
+};
 
 
 // Helper to control Map center from external state
 const MapUpdater: React.FC<{ center: L.LatLng | null, zoom: number }> = ({ center, zoom }) => {
-    const map = useMap();
-    useEffect(() => {
-        if (center) {
-            map.flyTo(center, zoom, { duration: 1.5 });
-        }
-    }, [center, zoom, map]);
-    return null;
+  const map = useMap();
+  useEffect(() => {
+    if (center) {
+      map.flyTo(center, zoom, { duration: 1.5 });
+    }
+  }, [center, zoom, map]);
+  return null;
 }
 
 export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }) => {
@@ -98,59 +97,79 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     draft.location ? new L.LatLng(draft.location.lat, draft.location.lng) : null
   );
   const [addressDisplay, setAddressDisplay] = useState<string>(draft.location?.address || '');
-  const [mapUri, setMapUri] = useState<string | undefined>();
   const [loadingAddress, setLoadingAddress] = useState(false);
   const [loadingGPS, setLoadingGPS] = useState(false);
-  
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+
   // Default center (Mexico City Zocalo) - Acts as fallback
   const defaultCenter = useMemo(() => ({ lat: 19.4326, lng: -99.1332 }), []);
 
   // Auto-locate on mount if no location set
   useEffect(() => {
     if (!draft.location) {
-        handleLocateUser();
+      handleLocateUser();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (position) {
       // Validate coordinates (Simple Bounding Box for Mexico)
-      const isValid = 
-        position.lat >= 14.5 && position.lat <= 32.7 && 
+      const isValid =
+        position.lat >= 14.5 && position.lat <= 32.7 &&
         position.lng >= -118.4 && position.lng <= -86.7;
 
       if (!isValid) {
-        alert("La ubicación seleccionada parece estar fuera de México. Por favor verifica.");
-        return; 
+        // Optional: Warn user but don't block, as bounding boxes can be tricky
+        // alert("La ubicación seleccionada parece estar fuera de México. Por favor verifica.");
       }
 
       const fetchAddress = async () => {
         setLoadingAddress(true);
-        setMapUri(undefined);
         // Set a temporary "loading" message in the draft
-        updateDraft({
-            location: {
-              lat: position.lat,
-              lng: position.lng,
-              address: 'Consultando servicio de mapas...'
-            }
-        });
-
-        const result = await getAddressFromCoordinates(position.lat, position.lng);
-        
-        setAddressDisplay(result.address);
-        setMapUri(result.uri);
-        setLoadingAddress(false);
-        
-        // Update draft with the final, accurate address
         updateDraft({
           location: {
             lat: position.lat,
             lng: position.lng,
-            address: result.address
+            address: 'Consultando dirección...'
           }
         });
+
+        try {
+          // Use Nominatim for Reverse Geocoding (Free, Open Source)
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}&zoom=18&addressdetails=1`,
+            { headers: { 'User-Agent': 'DenunciaPopularApp/1.0' } }
+          );
+          const data = await response.json();
+
+          const address = data.display_name || "Dirección desconocida";
+
+          setAddressDisplay(address);
+          setLoadingAddress(false);
+
+          // Update draft with the final, accurate address
+          updateDraft({
+            location: {
+              lat: position.lat,
+              lng: position.lng,
+              address: address
+            }
+          });
+        } catch (error) {
+          console.error("Error fetching address:", error);
+          setAddressDisplay("Error al obtener la dirección. Puedes continuar con las coordenadas.");
+          setLoadingAddress(false);
+          // Still update with coordinates
+          updateDraft({
+            location: {
+              lat: position.lat,
+              lng: position.lng,
+              address: `Coordenadas: ${position.lat.toFixed(5)}, ${position.lng.toFixed(5)}`
+            }
+          });
+        }
       };
 
       fetchAddress();
@@ -163,25 +182,55 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-            const newPos = new L.LatLng(pos.coords.latitude, pos.coords.longitude);
-            setPosition(newPos);
-            setLoadingGPS(false);
+          const newPos = new L.LatLng(pos.coords.latitude, pos.coords.longitude);
+          setPosition(newPos);
+          setLoadingGPS(false);
         },
         (err) => {
-            console.error(err);
-            setLoadingGPS(false);
-            // Fallback to default center if denied but stop loading
-            if (!position) {
-              setPosition(new L.LatLng(defaultCenter.lat, defaultCenter.lng));
-            }
+          console.error(err);
+          setLoadingGPS(false);
+          // Fallback to default center if denied but stop loading
+          if (!position) {
+            setPosition(new L.LatLng(defaultCenter.lat, defaultCenter.lng));
+          }
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
       );
     } else {
-        setLoadingGPS(false);
-        if (!position) {
-          setPosition(new L.LatLng(defaultCenter.lat, defaultCenter.lng));
-        }
+      setLoadingGPS(false);
+      if (!position) {
+        setPosition(new L.LatLng(defaultCenter.lat, defaultCenter.lng));
+      }
+    }
+  };
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+
+    setIsSearching(true);
+    try {
+      // Use Nominatim for Search (Free, Open Source)
+      // Limit to Mexico (countrycodes=mx)
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=mx&limit=1`,
+        { headers: { 'User-Agent': 'DenunciaPopularApp/1.0' } }
+      );
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        const result = data[0];
+        const newPos = new L.LatLng(parseFloat(result.lat), parseFloat(result.lon));
+        setPosition(newPos);
+        setAddressDisplay(result.display_name);
+      } else {
+        alert("No se encontraron resultados. Intenta ser más específico.");
+      }
+    } catch (error) {
+      console.error("Search error:", error);
+      alert("Error al buscar. Intenta de nuevo.");
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -199,7 +248,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] relative bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800">
       {/* Inject Leaflet CSS directly to ensure it loads */}
-       <style>
+      <style>
         {`
           .leaflet-container {
             height: 100%;
@@ -231,48 +280,75 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
           }
         `}
       </style>
-      
-      {/* Floating Header */}
-      <div className="absolute top-4 left-4 right-4 z-[500] pointer-events-none">
-        <div className="flex items-center justify-between pointer-events-auto bg-zinc-900/90 backdrop-blur-md p-3 md:p-4 rounded-xl border border-zinc-800 shadow-2xl">
-          <div>
-            <h2 className="text-md md:text-lg font-bold text-white flex items-center gap-2">
-               <MapPin size={18} className="text-pink-500" />
-               <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-500">
-                 Paso 1: Ubicación
-               </span>
-            </h2>
-            <p className="text-[10px] md:text-xs text-zinc-400 uppercase tracking-wider hidden md:block">Toca el mapa para afinar la posición</p>
-          </div>
-          <button 
+
+      {/* Search Bar & Controls Overlay */}
+      <div className="absolute top-4 left-4 right-4 z-[500] flex flex-col gap-2 pointer-events-none">
+
+        {/* Header Title */}
+        <div className="pointer-events-auto bg-zinc-900/90 backdrop-blur-md p-3 rounded-xl border border-zinc-800 shadow-2xl flex justify-between items-center mb-2">
+          <h2 className="text-md md:text-lg font-bold text-white flex items-center gap-2">
+            <MapPin size={18} className="text-pink-500" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-500">
+              Paso 1: Ubicación
+            </span>
+          </h2>
+          <button
             onClick={handleLocateUser}
             disabled={loadingGPS}
-            className="group p-2 md:p-3 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-pink-900/20 hover:border-pink-500/50 text-zinc-300 hover:text-pink-400 shadow-sm transition-all disabled:opacity-50"
+            className="p-2 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-pink-900/20 hover:border-pink-500/50 text-zinc-300 hover:text-pink-400 transition-all disabled:opacity-50"
             title="Usar mi ubicación actual"
           >
-            {loadingGPS ? <Loader2 size={20} className="animate-spin text-pink-500" /> : <Crosshair size={20} className="group-hover:rotate-90 transition-transform duration-500" />}
+            {loadingGPS ? <Loader2 size={18} className="animate-spin text-pink-500" /> : <Crosshair size={18} />}
           </button>
         </div>
+
+        {/* Search Input */}
+        <form onSubmit={handleSearch} className="pointer-events-auto relative flex items-center shadow-xl">
+          <div className="absolute left-3 text-zinc-400">
+            <Search size={16} />
+          </div>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Buscar calle, colonia o ciudad..."
+            className="w-full bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 pl-10 pr-10 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => setSearchQuery('')}
+              className="absolute right-3 text-zinc-500 hover:text-white"
+            >
+              <X size={16} />
+            </button>
+          )}
+          {isSearching && (
+            <div className="absolute right-10">
+              <Loader2 size={16} className="animate-spin text-pink-500" />
+            </div>
+          )}
+        </form>
       </div>
 
       <div className="flex-1 w-full h-full z-0 relative">
-        <MapContainer 
-          center={position || defaultCenter} 
-          zoom={13} 
+        <MapContainer
+          center={position || defaultCenter}
+          zoom={13}
           scrollWheelZoom={true}
           className="h-full w-full bg-zinc-950 outline-none"
         >
           <MapRealigner />
           <MapUpdater center={position} zoom={16} />
           <TileLayer
-            attribution='&copy; CARTO'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <ClickFeedbackLayer />
           {position && <Marker position={position} icon={tacticalIcon} />}
           <MapClickHandler setPosition={setPosition} />
         </MapContainer>
-        
+
         {/* Vignette Effect */}
         <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.9)] z-[400]"></div>
       </div>
@@ -280,39 +356,29 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
       {/* Bottom Panel */}
       <div className="p-4 md:p-6 bg-zinc-950 border-t border-zinc-900 z-[500]" aria-live="polite">
         {position && (
-            <div className="mb-4 md:mb-6 bg-zinc-900 p-3 md:p-4 rounded-xl border border-zinc-800 flex items-start gap-4 animate-fade-in">
-                <div className={`mt-1 p-2 rounded-lg ${loadingAddress ? 'bg-zinc-800 text-zinc-500' : 'bg-pink-900/20 text-pink-500'}`}>
-                   {loadingAddress ? <Loader2 className="animate-spin" size={16} /> : <MapPin size={16} />}
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                    <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-1">Dirección Detectada</p>
-                    <p className={`text-xs md:text-sm ${loadingAddress ? 'text-zinc-600 italic' : 'text-zinc-200 line-clamp-2'}`}>
-                        {loadingAddress ? 'Analizando satélite...' : addressDisplay}
-                    </p>
-                    {!loadingAddress && mapUri && (
-                        <a 
-                          href={mapUri} 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-[10px] text-pink-400 hover:text-pink-300 hover:underline mt-1 inline-flex items-center gap-1 transition-colors"
-                        >
-                            Ver en Google Maps <ExternalLink size={10} />
-                        </a>
-                    )}
-                </div>
+          <div className="mb-4 md:mb-6 bg-zinc-900 p-3 md:p-4 rounded-xl border border-zinc-800 flex items-start gap-4 animate-fade-in">
+            <div className={`mt-1 p-2 rounded-lg ${loadingAddress ? 'bg-zinc-800 text-zinc-500' : 'bg-pink-900/20 text-pink-500'}`}>
+              {loadingAddress ? <Loader2 className="animate-spin" size={16} /> : <MapPin size={16} />}
             </div>
+
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-1">Dirección Detectada</p>
+              <p className={`text-xs md:text-sm ${loadingAddress ? 'text-zinc-600 italic' : 'text-zinc-200 line-clamp-2'}`}>
+                {loadingAddress ? 'Obteniendo dirección...' : addressDisplay}
+              </p>
+            </div>
+          </div>
         )}
 
         <div className="flex justify-between items-center">
           {onBack && (
-              <button
-                onClick={onBack}
-                className="text-zinc-500 hover:text-white font-medium flex items-center gap-2 px-4 py-2 transition-colors uppercase text-xs tracking-widest"
-              >
-                <ChevronLeft size={14} />
-                Volver
-              </button>
+            <button
+              onClick={onBack}
+              className="text-zinc-500 hover:text-white font-medium flex items-center gap-2 px-4 py-2 transition-colors uppercase text-xs tracking-widest"
+            >
+              <ChevronLeft size={14} />
+              Volver
+            </button>
           )}
           <div className={onBack ? '' : 'w-full flex justify-end'}>
             <button
