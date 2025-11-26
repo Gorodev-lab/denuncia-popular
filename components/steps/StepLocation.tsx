@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import { DenunciaDraft } from '../../types';
-import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X } from 'lucide-react';
+import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X, Edit2, Check } from 'lucide-react';
 import L from 'leaflet';
 
 // Fix Leaflet icon issue in React
@@ -102,6 +102,10 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
 
+  // Manual address editing state
+  const [isManualMode, setIsManualMode] = useState(false);
+  const [manualAddress, setManualAddress] = useState('');
+
   // Default center (Mexico City Zocalo) - Acts as fallback
   const defaultCenter = useMemo(() => ({ lat: 19.4326, lng: -99.1332 }), []);
 
@@ -112,6 +116,13 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sync manual address with display address when not in manual mode
+  useEffect(() => {
+    if (!isManualMode) {
+      setManualAddress(addressDisplay);
+    }
+  }, [addressDisplay, isManualMode]);
 
   useEffect(() => {
     if (position) {
@@ -125,60 +136,78 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
         // alert("La ubicación seleccionada parece estar fuera de México. Por favor verifica.");
       }
 
-      const fetchAddress = async () => {
-        setLoadingAddress(true);
-        // Set a temporary "loading" message in the draft
+      // Only fetch address if NOT in manual mode to avoid overwriting user input immediately
+      // However, usually if user moves map, they expect address update. 
+      // We will allow update, but if they are actively typing (isManualMode), we might want to pause?
+      // For now, let's assume map movement overrides everything unless we are strictly in manual mode.
+      if (!isManualMode) {
+        const fetchAddress = async () => {
+          setLoadingAddress(true);
+          // Set a temporary "loading" message in the draft
+          updateDraft({
+            location: {
+              lat: position.lat,
+              lng: position.lng,
+              address: 'Consultando dirección...'
+            }
+          });
+
+          try {
+            // Use Nominatim for Reverse Geocoding (Free, Open Source)
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}&zoom=18&addressdetails=1`,
+              { headers: { 'User-Agent': 'DenunciaPopularApp/1.0' } }
+            );
+            const data = await response.json();
+
+            const address = data.display_name || "Dirección desconocida";
+
+            setAddressDisplay(address);
+            setLoadingAddress(false);
+
+            // Update draft with the final, accurate address
+            updateDraft({
+              location: {
+                lat: position.lat,
+                lng: position.lng,
+                address: address
+              }
+            });
+          } catch (error) {
+            console.error("Error fetching address:", error);
+            setAddressDisplay("Error al obtener la dirección. Puedes continuar con las coordenadas.");
+            setLoadingAddress(false);
+            // Still update with coordinates
+            updateDraft({
+              location: {
+                lat: position.lat,
+                lng: position.lng,
+                address: `Coordenadas: ${position.lat.toFixed(5)}, ${position.lng.toFixed(5)}`
+              }
+            });
+          }
+        };
+
+        fetchAddress();
+      } else {
+        // If in manual mode, just update coordinates in draft, keep manual address
         updateDraft({
           location: {
             lat: position.lat,
             lng: position.lng,
-            address: 'Consultando dirección...'
+            address: manualAddress
           }
         });
-
-        try {
-          // Use Nominatim for Reverse Geocoding (Free, Open Source)
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}&zoom=18&addressdetails=1`,
-            { headers: { 'User-Agent': 'DenunciaPopularApp/1.0' } }
-          );
-          const data = await response.json();
-
-          const address = data.display_name || "Dirección desconocida";
-
-          setAddressDisplay(address);
-          setLoadingAddress(false);
-
-          // Update draft with the final, accurate address
-          updateDraft({
-            location: {
-              lat: position.lat,
-              lng: position.lng,
-              address: address
-            }
-          });
-        } catch (error) {
-          console.error("Error fetching address:", error);
-          setAddressDisplay("Error al obtener la dirección. Puedes continuar con las coordenadas.");
-          setLoadingAddress(false);
-          // Still update with coordinates
-          updateDraft({
-            location: {
-              lat: position.lat,
-              lng: position.lng,
-              address: `Coordenadas: ${position.lat.toFixed(5)}, ${position.lng.toFixed(5)}`
-            }
-          });
-        }
-      };
-
-      fetchAddress();
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [position]);
+  }, [position]); // Removed isManualMode from deps to avoid loop, but we need to be careful
 
   const handleLocateUser = () => {
     setLoadingGPS(true);
+    // Reset manual mode when locating
+    setIsManualMode(false);
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -209,6 +238,9 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     if (!searchQuery.trim()) return;
 
     setIsSearching(true);
+    // Reset manual mode on search
+    setIsManualMode(false);
+
     try {
       // Use Nominatim for Search (Free, Open Source)
       // Limit to Mexico (countrycodes=mx)
@@ -231,6 +263,24 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
       alert("Error al buscar. Intenta de nuevo.");
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  const toggleManualMode = () => {
+    if (isManualMode) {
+      // Saving
+      setAddressDisplay(manualAddress);
+      updateDraft({
+        location: {
+          ...draft.location!,
+          address: manualAddress
+        }
+      });
+      setIsManualMode(false);
+    } else {
+      // Editing
+      setManualAddress(addressDisplay);
+      setIsManualMode(true);
     }
   };
 
@@ -261,6 +311,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
             background: rgba(0,0,0,0.8) !important;
             color: #71717a !important;
             font-size: 10px !important;
+            display: none; /* Hide attribution for cleaner UI if permitted, or style it better */
           }
           .leaflet-bar a {
             background-color: #18181b !important;
@@ -362,10 +413,35 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
             </div>
 
             <div className="flex-1 min-w-0">
-              <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold mb-1">Dirección Detectada</p>
-              <p className={`text-xs md:text-sm ${loadingAddress ? 'text-zinc-600 italic' : 'text-zinc-200 line-clamp-2'}`}>
-                {loadingAddress ? 'Obteniendo dirección...' : addressDisplay}
-              </p>
+              <div className="flex justify-between items-center mb-1">
+                <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
+                  {isManualMode ? 'Editar Dirección Manualmente' : 'Dirección Detectada'}
+                </p>
+                {!loadingAddress && (
+                  <button
+                    onClick={toggleManualMode}
+                    className="text-zinc-500 hover:text-pink-500 transition-colors p-1"
+                    title={isManualMode ? "Guardar dirección" : "Editar dirección manualmente"}
+                  >
+                    {isManualMode ? <Check size={14} /> : <Edit2 size={14} />}
+                  </button>
+                )}
+              </div>
+
+              {isManualMode ? (
+                <textarea
+                  value={manualAddress}
+                  onChange={(e) => setManualAddress(e.target.value)}
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-sm text-zinc-200 focus:ring-2 focus:ring-pink-500 outline-none resize-none"
+                  rows={2}
+                  placeholder="Escribe la dirección exacta aquí..."
+                  autoFocus
+                />
+              ) : (
+                <p className={`text-xs md:text-sm ${loadingAddress ? 'text-zinc-600 italic' : 'text-zinc-200 line-clamp-2'}`}>
+                  {loadingAddress ? 'Obteniendo dirección...' : addressDisplay}
+                </p>
+              )}
             </div>
           </div>
         )}
@@ -383,7 +459,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
           <div className={onBack ? '' : 'w-full flex justify-end'}>
             <button
               onClick={onNext}
-              disabled={!position || loadingAddress}
+              disabled={!position || loadingAddress || (isManualMode && !manualAddress.trim())}
               className="
                 group relative px-6 py-3 rounded-full font-bold text-white overflow-hidden text-xs md:text-sm
                 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-pink-900/20
