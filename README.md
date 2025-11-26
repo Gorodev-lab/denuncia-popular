@@ -33,10 +33,21 @@ Una aplicación web moderna para facilitar la presentación de denuncias popular
 
 3. **Configurar variables de entorno**
    
-   Crea un archivo `.env.local` en la raíz del proyecto y añade tu clave API de Gemini:
+   Crea un archivo `.env.local` en la raíz del proyecto y añade tus claves API:
    ```env
-   GEMINI_API_KEY=tu_clave_api_aqui
+   # Google Maps API (REQUERIDO - ver documentación de migración)
+   VITE_GOOGLE_MAPS_API_KEY=tu_google_maps_api_key_aqui
+   
+   # Supabase
+   VITE_SUPABASE_URL=tu_supabase_url
+   VITE_SUPABASE_ANON_KEY=tu_supabase_anon_key
+   
+   # Gemini AI (opcional)
+   GEMINI_API_KEY=tu_gemini_api_key_aqui
    ```
+   
+   **📖 Para obtener tu Google Maps API key**, consulta la guía completa:
+   - [`GOOGLE_MAPS_MIGRATION.md`](./GOOGLE_MAPS_MIGRATION.md) - Guía paso a paso
 
 4. **Ejecutar el servidor de desarrollo**
    ```bash
@@ -53,7 +64,8 @@ Una aplicación web moderna para facilitar la presentación de denuncias popular
 - **Vite**: Build tool y servidor de desarrollo
 - **Tailwind CSS**: Estilos y diseño responsive
 - **Google Gemini API**: Asistencia con IA
-- **Leaflet**: Integración de mapas interactivos
+- **Google Maps API**: Mapas interactivos y geocodificación
+- **Supabase**: Base de datos y almacenamiento
 
 ## 📦 Deploy a Vercel
 
@@ -83,6 +95,34 @@ Este proyecto es de código abierto y está disponible bajo la licencia MIT.
 
 Las contribuciones son bienvenidas. Por favor, abre un issue o pull request para sugerencias y mejoras.
 
----
+```
 
-**Nota**: Esta aplicación es una herramienta de asistencia para la presentación de denuncias populares. Asegúrate de seguir los procedimientos legales oficiales de SEMARNAT.
+## 📚 Documentación Completa
+
+Este proyecto incluye documentación exhaustiva sobre la migración a Google Maps:
+
+### Guías de Migración
+- **[`COMPLETE_MIGRATION_SUMMARY.md`](./COMPLETE_MIGRATION_SUMMARY.md)** - Resumen completo de la migración
+- **[`MIGRATION_SUMMARY.md`](./MIGRATION_SUMMARY.md)** - Referencia rápida
+- **[`GOOGLE_MAPS_MIGRATION.md`](./GOOGLE_MAPS_MIGRATION.md)** - Guía técnica detallada
+- **[`ARCHITECTURE_COMPARISON.md`](./ARCHITECTURE_COMPARISON.md)** - Comparación antes/después
+- **[`POST_MIGRATION_CHECKLIST.md`](./POST_MIGRATION_CHECKLIST.md)** - Lista de verificación
+- **[`MANUAL_INPUT_FEATURE.md`](./MANUAL_INPUT_FEATURE.md)** - Explicación de la función de entrada manual
+
+### Características Destacadas
+
+#### 🗺️ Integración con Google Maps
+- **Geocodificación precisa**: Convierte coordenadas a direcciones y viceversa
+- **Búsqueda inteligente**: Autocompletado con Google Places API
+- **Entrada manual de dirección**: Los usuarios pueden personalizar la dirección detectada
+- **Modo oscuro premium**: Estilos personalizados para mejor experiencia visual
+
+#### ⭐ Entrada Manual de Dirección
+Una característica clave que permite a los usuarios:
+- Ver la dirección auto-detectada por Google
+- Editar manualmente para agregar detalles locales
+- Mantener coordenadas GPS precisas mientras personalizan la descripción
+- Ejemplo: "En frente de la farmacia del Dr. Simi" en lugar de "Av. Reforma 222"
+
+## 📄 Licencia
+

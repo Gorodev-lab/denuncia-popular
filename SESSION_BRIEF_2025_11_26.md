@@ -11,15 +11,15 @@
 - **Deployment**: Initiated Vercel deployment process (connected to GitHub).
 
 ### 2. Feature: Focus Group Tools
-- **Supabase Integration**: Installed `@supabase/supabase-js` and configured the client.
-- **Feedback Widget**: Implemented a floating "Feedback" button (bottom-left) for focus group users to report bugs or suggestions directly.
-- **Database Schema**: Prepared `supabase_schema.sql` to create the necessary tables in Supabase.
+- **Supabase Integration**: Installed `@supabase/supabase-js`, configured the client, and set up the database.
+- **Feedback Widget**: Implemented a floating "Feedback" button connected to the live Supabase database.
+- **Database Schema**: Created the `feedback` table with proper RLS policies.
 
 ### 3. Feature: Map & Geolocation (Free/Open Source)
 - **Nominatim Integration**: Replaced paid/API-key-dependent geocoding with OpenStreetMap's **Nominatim** service.
 - **Search Functionality**: Added a search bar to the map step to find addresses manually.
-- **Reverse Geocoding**: Clicking the map now fetches the address using free open-source tools.
-- **UI Improvements**: Updated the map interface to accommodate the new search controls.
+- **Manual Override**: Added a "Manual Mode" to allow users to type/edit the address directly if the auto-detection is inaccurate.
+- **UI Improvements**: Updated the map interface to accommodate the new search and edit controls.
 
 ### 4. Feature: Professional PDF Export
 - **PDF Generation**: Integrated `jspdf` library.
@@ -31,10 +31,10 @@
 ## 🚧 Current State
 
 - **Codebase**: React + Vite + TypeScript + Tailwind CSS.
-- **Status**: Ready for focus group testing.
+- **Status**: Ready for production deployment.
 - **Infrastructure**:
-    - **Frontend**: Hosted on Vercel (pending final verification).
-    - **Backend/DB**: Supabase (code ready, needs project setup).
+    - **Frontend**: Hosted on Vercel (pending final push).
+    - **Backend/DB**: Supabase (Fully configured and connected).
     - **Maps**: Leaflet + OpenStreetMap (Fully functional, no API keys needed).
     - **AI**: Gemini API (Configured for text analysis).
 
@@ -42,23 +42,15 @@
 
 ## 📋 Next Steps
 
-1.  **Supabase Setup**:
-    - Go to [Supabase](https://supabase.com) and create a new project.
-    - Run the SQL commands from `supabase_schema.sql` in the SQL Editor.
-    - Copy the `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
+1.  **Deployment**:
+    - Push changes to GitHub: `git push origin main`.
+    - **CRITICAL**: Add the Supabase keys (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) to your Vercel Project Settings.
+    - Verify the deployment on Vercel.
 
-2.  **Environment Variables**:
-    - Add the Supabase keys to your local `.env.local`.
-    - Add the Supabase keys to your Vercel Project Settings.
-
-3.  **Final Testing**:
-    - Verify the "Feedback" widget successfully saves data to Supabase.
-    - Test the entire flow from Map selection to PDF download on a mobile device.
-
-4.  **Focus Group Launch**:
+2.  **Focus Group Launch**:
     - Share the Vercel URL with your test group.
     - Monitor the `feedback` table in Supabase for user reports.
 
 ---
 
-**Great job! The application is now robust, uses free tools for mapping, and is ready for real-world testing.**
+**Great job! The application is now robust, uses free tools for mapping, includes manual location override, and is fully integrated with Supabase for feedback.**
