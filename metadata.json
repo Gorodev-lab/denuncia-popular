@@ -1,0 +1,8 @@
+{
+  "name": "Denuncia Popular",
+  "description": "Plataforma ciudadana para la generación de denuncias administrativas con asistencia de IA para determinar competencia y redacción legal.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ]
+}
