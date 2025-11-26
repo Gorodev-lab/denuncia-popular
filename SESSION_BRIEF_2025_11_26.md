@@ -40,17 +40,24 @@
 
 ---
 
+### 5. Feature: Market Research & Data Collection
+- **Demographic Data**: Added optional fields for Age, Gender, Occupation, and Referral Source in the "Info" step.
+- **Database Expansion**: Created `denuncias` table in Supabase to store the full complaint record along with the new demographic data.
+- **Submission Logic**: Connected the "Firmar y Presentar" action to the Supabase database.
+
+---
+
 ## 📋 Next Steps
 
 1.  **Deployment**:
-    - Push changes to GitHub: `git push origin main`.
-    - **CRITICAL**: Add the Supabase keys (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) to your Vercel Project Settings.
+    - Push changes to GitHub: `git push origin main` (Done).
+    - **CRITICAL**: Add the Supabase keys (`VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`) to your Vercel Project Settings if not already done.
     - Verify the deployment on Vercel.
 
 2.  **Focus Group Launch**:
     - Share the Vercel URL with your test group.
-    - Monitor the `feedback` table in Supabase for user reports.
+    - Monitor the `feedback` and `denuncias` tables in Supabase.
 
 ---
 
-**Great job! The application is now robust, uses free tools for mapping, includes manual location override, and is fully integrated with Supabase for feedback.**
+**Great job! The application is now robust, uses free tools for mapping, includes manual location override, collects market research data, and is fully integrated with Supabase for both feedback and complaint submission.**
