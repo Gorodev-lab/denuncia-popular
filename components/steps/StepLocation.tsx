@@ -1,28 +1,16 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
+import React, { useEffect, useState, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import { DenunciaDraft } from '../../types';
 import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X, Edit2, Check } from 'lucide-react';
+import L from 'leaflet';
 
-/**
- * STEP-BY-STEP EXPLANATION:
- * 
- * 1. GOOGLE MAPS LIBRARIES
- *    - We're using @react-google-maps/api which provides React components for Google Maps
- *    - We load "places" library for location search autocomplete
- *    - We load "geocoding" library for converting coordinates to addresses
- * 
- * 2. COMPONENT ARCHITECTURE
- *    - Main component: StepLocation handles all state and logic
- *    - Google Maps handles the map rendering
- *    - We keep the same UI/UX as before but with Google's map tiles
- * 
- * 3. KEY FEATURES PRESERVED:
- *    - Click on map to select location
- *    - GPS button to use current location
- *    - Search bar for address lookup
- *    - Manual address input/editing
- *    - Dark mode premium aesthetics
- */
+// Fix Leaflet icon issue in React
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
+});
 
 interface Props {
   draft: DenunciaDraft;
@@ -31,244 +19,208 @@ interface Props {
   onBack?: () => void;
 }
 
-// Define which Google Maps libraries we need
-const libraries: ("places" | "geocoding")[] = ["places", "geocoding"];
-
-// Map container styling - full height and width
-const mapContainerStyle = {
-  width: '100%',
-  height: '100%',
+// CRITICAL FIX: Component to force map resize calculation on mount
+const MapRealigner = () => {
+  const map = useMap();
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      map.invalidateSize();
+    }, 100); // Small delay to ensure container has dimensions
+    return () => clearTimeout(timeout);
+  }, [map]);
+  return null;
 };
 
-// Custom dark mode map styles (Google Maps styling)
-const darkMapStyles = [
-  { elementType: "geometry", stylers: [{ color: "#09090b" }] },
-  { elementType: "labels.text.stroke", stylers: [{ color: "#09090b" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#71717a" }] },
-  {
-    featureType: "administrative.locality",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#a1a1aa" }],
-  },
-  {
-    featureType: "poi",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#71717a" }],
-  },
-  {
-    featureType: "poi.park",
-    elementType: "geometry",
-    stylers: [{ color: "#18181b" }],
-  },
-  {
-    featureType: "poi.park",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#52525b" }],
-  },
-  {
-    featureType: "road",
-    elementType: "geometry",
-    stylers: [{ color: "#27272a" }],
-  },
-  {
-    featureType: "road",
-    elementType: "geometry.stroke",
-    stylers: [{ color: "#18181b" }],
-  },
-  {
-    featureType: "road",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#9ca3af" }],
-  },
-  {
-    featureType: "road.highway",
-    elementType: "geometry",
-    stylers: [{ color: "#3f3f46" }],
-  },
-  {
-    featureType: "road.highway",
-    elementType: "geometry.stroke",
-    stylers: [{ color: "#27272a" }],
-  },
-  {
-    featureType: "road.highway",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#d1d5db" }],
-  },
-  {
-    featureType: "transit",
-    elementType: "geometry",
-    stylers: [{ color: "#18181b" }],
-  },
-  {
-    featureType: "transit.station",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#71717a" }],
-  },
-  {
-    featureType: "water",
-    elementType: "geometry",
-    stylers: [{ color: "#000000" }],
-  },
-  {
-    featureType: "water",
-    elementType: "labels.text.fill",
-    stylers: [{ color: "#3f3f46" }],
-  },
-  {
-    featureType: "water",
-    elementType: "labels.text.stroke",
-    stylers: [{ color: "#000000" }],
-  },
-];
+// Subcomponent to handle click events on the map (Logic)
+const MapClickHandler: React.FC<{
+  setPosition: (pos: L.LatLng) => void
+}> = ({ setPosition }) => {
+  const map = useMapEvents({
+    click(e) {
+      setPosition(e.latlng);
+      map.flyTo(e.latlng, map.getZoom() < 16 ? 16 : map.getZoom(), { duration: 1.0 });
+    },
+  });
+  return null;
+};
+
+// Subcomponent to handle click feedback visuals (Ripple Effect)
+const ClickFeedbackLayer = () => {
+  const [ripples, setRipples] = useState<{ id: number, pos: L.LatLng }[]>([]);
+
+  useMapEvents({
+    click(e) {
+      const id = Date.now();
+      setRipples(prev => [...prev, { id, pos: e.latlng }]);
+      setTimeout(() => {
+        setRipples(prev => prev.filter(r => r.id !== id));
+      }, 800); // Match animation duration
+    }
+  });
+
+  const rippleIcon = L.divIcon({
+    className: 'bg-transparent',
+    html: `<div class="absolute inset-0 rounded-full border-2 border-pink-500 shadow-[0_0_15px_#ec4899] animate-ripple box-border"></div>`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+  });
+
+  return (
+    <>
+      {ripples.map(r => (
+        <Marker
+          key={r.id}
+          position={r.pos}
+          icon={rippleIcon}
+          zIndexOffset={-10} // Keep below the main pin
+          interactive={false}
+        />
+      ))}
+    </>
+  );
+};
+
+
+// Helper to control Map center from external state
+const MapUpdater: React.FC<{ center: L.LatLng | null, zoom: number }> = ({ center, zoom }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (center) {
+      map.flyTo(center, zoom, { duration: 1.5 });
+    }
+  }, [center, zoom, map]);
+  return null;
+}
 
 export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }) => {
-  /**
-   * STATE MANAGEMENT EXPLANATION:
-   * 
-   * - position: Current lat/lng coordinates selected on the map
-   * - addressDisplay: The address shown to the user (from Google Geocoding)
-   * - loadingAddress: Shows loading state while fetching address from coordinates
-   * - loadingGPS: Shows loading state while getting user's GPS location
-   * - searchQuery: User's search input
-   * - isManualMode: Whether user is manually editing the address
-   * - manualAddress: The manually typed address (when in manual mode)
-   * - map: Reference to the Google Map instance
-   */
-
-  const [position, setPosition] = useState<google.maps.LatLngLiteral | null>(
-    draft.location ? { lat: draft.location.lat, lng: draft.location.lng } : null
+  const [position, setPosition] = useState<L.LatLng | null>(
+    draft.location ? new L.LatLng(draft.location.lat, draft.location.lng) : null
   );
   const [addressDisplay, setAddressDisplay] = useState<string>(draft.location?.address || '');
   const [loadingAddress, setLoadingAddress] = useState(false);
   const [loadingGPS, setLoadingGPS] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Manual address editing state
   const [isManualMode, setIsManualMode] = useState(false);
   const [manualAddress, setManualAddress] = useState('');
-  const [map, setMap] = useState<google.maps.Map | null>(null);
 
-  // Search input ref for autocomplete
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  // Default center (Mexico City Zocalo) - Acts as fallback
+  const defaultCenter = useMemo(() => ({ lat: 19.4326, lng: -99.1332 }), []);
 
-  // Default center (Mexico City Zócalo)
-  const defaultCenter = { lat: 19.4326, lng: -99.1332 };
+  // Auto-locate on mount if no location set
+  useEffect(() => {
+    if (!draft.location) {
+      handleLocateUser();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  /**
-   * GOOGLE MAPS API LOADING EXPLANATION:
-   * 
-   * useJsApiLoader is a hook from @react-google-maps/api that:
-   * 1. Loads the Google Maps JavaScript API asynchronously
-   * 2. Loads the specified libraries (places, geocoding)
-   * 3. Only loads once and caches the result
-   * 4. Returns isLoaded when ready to use
-   */
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    libraries,
-  });
+  // Sync manual address with display address when not in manual mode
+  useEffect(() => {
+    if (!isManualMode) {
+      setManualAddress(addressDisplay);
+    }
+  }, [addressDisplay, isManualMode]);
 
-  /**
-   * REVERSE GEOCODING EXPLANATION:
-   * 
-   * Reverse geocoding = converting coordinates (lat, lng) to a human-readable address
-   * 
-   * Process:
-   * 1. Create a Geocoder instance
-   * 2. Call geocode() with the coordinates
-   * 3. Google returns an array of possible addresses (most specific first)
-   * 4. We take the formatted_address from the first result
-   */
-  const getAddressFromCoordinates = useCallback(async (lat: number, lng: number) => {
-    if (!window.google) return;
+  useEffect(() => {
+    if (position) {
+      // Validate coordinates (Simple Bounding Box for Mexico)
+      const isValid =
+        position.lat >= 14.5 && position.lat <= 32.7 &&
+        position.lng >= -118.4 && position.lng <= -86.7;
 
-    setLoadingAddress(true);
-
-    // Temporarily update with loading message
-    updateDraft({
-      location: {
-        lat,
-        lng,
-        address: 'Consultando dirección...'
+      if (!isValid) {
+        // Optional: Warn user but don't block, as bounding boxes can be tricky
+        // alert("La ubicación seleccionada parece estar fuera de México. Por favor verifica.");
       }
-    });
 
-    try {
-      const geocoder = new google.maps.Geocoder();
-      const response = await geocoder.geocode({ location: { lat, lng } });
+      // Only fetch address if NOT in manual mode to avoid overwriting user input immediately
+      // However, usually if user moves map, they expect address update. 
+      // We will allow update, but if they are actively typing (isManualMode), we might want to pause?
+      // For now, let's assume map movement overrides everything unless we are strictly in manual mode.
+      if (!isManualMode) {
+        const fetchAddress = async () => {
+          setLoadingAddress(true);
+          // Set a temporary "loading" message in the draft
+          updateDraft({
+            location: {
+              lat: position.lat,
+              lng: position.lng,
+              address: 'Consultando dirección...'
+            }
+          });
 
-      if (response.results && response.results.length > 0) {
-        const address = response.results[0].formatted_address;
-        setAddressDisplay(address);
-        setLoadingAddress(false);
+          try {
+            // Use Nominatim for Reverse Geocoding (Free, Open Source)
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}&zoom=18&addressdetails=1`,
+              { headers: { 'User-Agent': 'DenunciaPopularApp/1.0' } }
+            );
+            const data = await response.json();
 
-        // Update draft with the actual address
+            const address = data.display_name || "Dirección desconocida";
+
+            setAddressDisplay(address);
+            setLoadingAddress(false);
+
+            // Update draft with the final, accurate address
+            updateDraft({
+              location: {
+                lat: position.lat,
+                lng: position.lng,
+                address: address
+              }
+            });
+          } catch (error) {
+            console.error("Error fetching address:", error);
+            setAddressDisplay("Error al obtener la dirección. Puedes continuar con las coordenadas.");
+            setLoadingAddress(false);
+            // Still update with coordinates
+            updateDraft({
+              location: {
+                lat: position.lat,
+                lng: position.lng,
+                address: `Coordenadas: ${position.lat.toFixed(5)}, ${position.lng.toFixed(5)}`
+              }
+            });
+          }
+        };
+
+        fetchAddress();
+      } else {
+        // If in manual mode, just update coordinates in draft, keep manual address
         updateDraft({
           location: {
-            lat,
-            lng,
-            address
+            lat: position.lat,
+            lng: position.lng,
+            address: manualAddress
           }
         });
-      } else {
-        throw new Error('No address found');
       }
-    } catch (error) {
-      console.error("Error fetching address:", error);
-      const fallbackAddress = `Coordenadas: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-      setAddressDisplay(fallbackAddress);
-      setLoadingAddress(false);
-
-      updateDraft({
-        location: {
-          lat,
-          lng,
-          address: fallbackAddress
-        }
-      });
     }
-  }, [updateDraft]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [position]); // Removed isManualMode from deps to avoid loop, but we need to be careful
 
-  /**
-   * GPS LOCATION EXPLANATION:
-   * 
-   * Uses the browser's Geolocation API:
-   * 1. Call navigator.geolocation.getCurrentPosition()
-   * 2. Browser asks user for permission
-   * 3. If granted, returns current coordinates
-   * 4. We then reverse geocode to get the address
-   * 5. If denied or unavailable, fallback to Mexico City center
-   */
   const handleLocateUser = () => {
     setLoadingGPS(true);
-    setIsManualMode(false); // Exit manual mode when locating
+    // Reset manual mode when locating
+    setIsManualMode(false);
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const newPos = {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude
-          };
+          const newPos = new L.LatLng(pos.coords.latitude, pos.coords.longitude);
           setPosition(newPos);
-          getAddressFromCoordinates(newPos.lat, newPos.lng);
           setLoadingGPS(false);
-
-          // Zoom and center map
-          if (map) {
-            map.panTo(newPos);
-            map.setZoom(16);
-          }
         },
         (err) => {
           console.error(err);
           setLoadingGPS(false);
-
-          // Fallback to default if denied
+          // Fallback to default center if denied but stop loading
           if (!position) {
-            setPosition(defaultCenter);
-            getAddressFromCoordinates(defaultCenter.lat, defaultCenter.lng);
+            setPosition(new L.LatLng(defaultCenter.lat, defaultCenter.lng));
           }
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
@@ -276,116 +228,47 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     } else {
       setLoadingGPS(false);
       if (!position) {
-        setPosition(defaultCenter);
-        getAddressFromCoordinates(defaultCenter.lat, defaultCenter.lng);
+        setPosition(new L.LatLng(defaultCenter.lat, defaultCenter.lng));
       }
     }
   };
 
-  /**
-   * MAP CLICK HANDLER EXPLANATION:
-   * 
-   * When user clicks anywhere on the map:
-   * 1. Google Maps provides the clicked lat/lng in the event
-   * 2. We update our position state
-   * 3. We reverse geocode to get the address
-   * 4. Map smoothly animates to the new position with panTo()
-   */
-  const handleMapClick = useCallback((e: google.maps.MapMouseEvent) => {
-    if (e.latLng) {
-      const newPos = {
-        lat: e.latLng.lat(),
-        lng: e.latLng.lng()
-      };
-      setPosition(newPos);
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
 
-      // Only fetch address if NOT in manual mode
-      if (!isManualMode) {
-        getAddressFromCoordinates(newPos.lat, newPos.lng);
+    setIsSearching(true);
+    // Reset manual mode on search
+    setIsManualMode(false);
+
+    try {
+      // Use Nominatim for Search (Free, Open Source)
+      // Limit to Mexico (countrycodes=mx)
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=mx&limit=1`,
+        { headers: { 'User-Agent': 'DenunciaPopularApp/1.0' } }
+      );
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        const result = data[0];
+        const newPos = new L.LatLng(parseFloat(result.lat), parseFloat(result.lon));
+        setPosition(newPos);
+        setAddressDisplay(result.display_name);
       } else {
-        // In manual mode, just update coordinates but keep manual address
-        updateDraft({
-          location: {
-            lat: newPos.lat,
-            lng: newPos.lng,
-            address: manualAddress
-          }
-        });
+        alert("No se encontraron resultados. Intenta ser más específico.");
       }
-
-      // Smoothly pan to clicked location
-      if (map) {
-        map.panTo(newPos);
-        if (map.getZoom()! < 16) {
-          map.setZoom(16);
-        }
-      }
+    } catch (error) {
+      console.error("Search error:", error);
+      alert("Error al buscar. Intenta de nuevo.");
+    } finally {
+      setIsSearching(false);
     }
-  }, [map, isManualMode, manualAddress, getAddressFromCoordinates, updateDraft]);
+  };
 
-  /**
-   * PLACES AUTOCOMPLETE EXPLANATION:
-   * 
-   * Google Places Autocomplete provides search suggestions as user types:
-   * 1. Attach an Autocomplete instance to the search input
-   * 2. Restrict results to Mexico (componentRestrictions: { country: 'mx' })
-   * 3. When user selects a place, get its geometry (coordinates)
-   * 4. Update map position and fetch the address
-   */
-  useEffect(() => {
-    if (isLoaded && searchInputRef.current && !autocompleteRef.current) {
-      autocompleteRef.current = new google.maps.places.Autocomplete(searchInputRef.current, {
-        componentRestrictions: { country: 'mx' }, // Restrict to Mexico
-        fields: ['geometry', 'formatted_address', 'name'],
-      });
-
-      autocompleteRef.current.addListener('place_changed', () => {
-        const place = autocompleteRef.current?.getPlace();
-
-        if (place?.geometry?.location) {
-          const newPos = {
-            lat: place.geometry.location.lat(),
-            lng: place.geometry.location.lng()
-          };
-
-          setPosition(newPos);
-          setSearchQuery('');
-          setIsManualMode(false);
-
-          // Use the place's formatted address
-          const address = place.formatted_address || place.name || '';
-          setAddressDisplay(address);
-
-          updateDraft({
-            location: {
-              lat: newPos.lat,
-              lng: newPos.lng,
-              address
-            }
-          });
-
-          // Pan and zoom map
-          if (map) {
-            map.panTo(newPos);
-            map.setZoom(16);
-          }
-        }
-      });
-    }
-  }, [isLoaded, map, updateDraft]);
-
-  /**
-   * MANUAL ADDRESS MODE EXPLANATION:
-   * 
-   * Allows users to manually type/edit the address:
-   * 1. Click edit button → enters manual mode
-   * 2. User types in textarea
-   * 3. Click check button → saves manual address
-   * 4. Coordinates stay the same, only address text changes
-   */
   const toggleManualMode = () => {
     if (isManualMode) {
-      // Saving manual address
+      // Saving
       setAddressDisplay(manualAddress);
       updateDraft({
         location: {
@@ -395,74 +278,56 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
       });
       setIsManualMode(false);
     } else {
-      // Entering edit mode
+      // Editing
       setManualAddress(addressDisplay);
       setIsManualMode(true);
     }
   };
 
-  // Sync manual address with display when not editing
-  useEffect(() => {
-    if (!isManualMode) {
-      setManualAddress(addressDisplay);
-    }
-  }, [addressDisplay, isManualMode]);
+  // Memoize the icon to prevent re-creation on every render, which causes Leaflet errors
+  const tacticalIcon = useMemo(() => new L.DivIcon({
+    className: 'bg-transparent',
+    html: `<div class="relative flex items-center justify-center w-10 h-10">
+              <div class="absolute w-full h-full rounded-full bg-red-500/30 animate-ping"></div>
+              <div class="relative w-4 h-4 bg-red-500 border-2 border-white rounded-full shadow-lg shadow-red-500/50"></div>
+           </div>`,
+    iconSize: [40, 40],
+    iconAnchor: [20, 20]
+  }), []);
 
-  // Auto-locate on mount if no location set
-  useEffect(() => {
-    if (!draft.location && isLoaded) {
-      handleLocateUser();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoaded]);
-
-  /**
-   * LOADING AND ERROR STATES
-   */
-  if (loadError) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-180px)] min-h-[500px] bg-zinc-950 rounded-2xl border border-zinc-800">
-        <div className="text-center p-8">
-          <p className="text-red-500 text-lg font-bold mb-2">Error al cargar Google Maps</p>
-          <p className="text-zinc-400 text-sm">Por favor verifica tu API key en el archivo .env.local</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!isLoaded) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-180px)] min-h-[500px] bg-zinc-950 rounded-2xl border border-zinc-800">
-        <div className="text-center">
-          <Loader2 size={48} className="animate-spin text-pink-500 mx-auto mb-4" />
-          <p className="text-zinc-300 text-sm">Cargando Google Maps...</p>
-        </div>
-      </div>
-    );
-  }
-
-  /**
-   * MAIN RENDER
-   */
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] relative bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800">
-      {/* Custom Styles */}
+      {/* Inject Leaflet CSS directly to ensure it loads */}
       <style>
         {`
+          .leaflet-container {
+            height: 100%;
+            width: 100%;
+            background-color: #09090b !important;
+            font-family: 'Inter', sans-serif;
+            border-radius: 1rem;
+          }
+          .leaflet-control-attribution {
+            background: rgba(0,0,0,0.8) !important;
+            color: #71717a !important;
+            font-size: 10px !important;
+            display: none; /* Hide attribution for cleaner UI if permitted, or style it better */
+          }
+          .leaflet-bar a {
+            background-color: #18181b !important;
+            color: #e4e4e7 !important;
+            border-bottom: 1px solid #27272a !important;
+          }
+          .leaflet-bar a:hover {
+            background-color: #27272a !important;
+            color: #fff !important;
+          }
           @keyframes ripple-expand {
-            0% { transform: scale(0.1); opacity: 1; }
-            100% { transform: scale(2.5); opacity: 0; }
+            0% { transform: scale(0.1); opacity: 1; border-width: 4px; }
+            100% { transform: scale(2.5); opacity: 0; border-width: 0px; }
           }
           .animate-ripple {
             animation: ripple-expand 0.8s ease-out forwards;
-          }
-          /* Hide Google Maps default controls for cleaner look */
-          .gm-style .gm-style-iw-c {
-            background-color: #18181b !important;
-            border: 1px solid #27272a !important;
-          }
-          .gm-style .gm-style-iw-t::after {
-            background: #18181b !important;
           }
         `}
       </style>
@@ -489,12 +354,11 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
         </div>
 
         {/* Search Input */}
-        <div className="pointer-events-auto relative flex items-center shadow-xl">
-          <div className="absolute left-3 text-zinc-400 z-10">
+        <form onSubmit={handleSearch} className="pointer-events-auto relative flex items-center shadow-xl">
+          <div className="absolute left-3 text-zinc-400">
             <Search size={16} />
           </div>
           <input
-            ref={searchInputRef}
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -505,48 +369,36 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
             <button
               type="button"
               onClick={() => setSearchQuery('')}
-              className="absolute right-3 text-zinc-500 hover:text-white z-10"
+              className="absolute right-3 text-zinc-500 hover:text-white"
             >
               <X size={16} />
             </button>
           )}
-        </div>
+          {isSearching && (
+            <div className="absolute right-10">
+              <Loader2 size={16} className="animate-spin text-pink-500" />
+            </div>
+          )}
+        </form>
       </div>
 
-      {/* Google Map */}
       <div className="flex-1 w-full h-full z-0 relative">
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
+        <MapContainer
           center={position || defaultCenter}
-          zoom={position ? 16 : 13}
-          onClick={handleMapClick}
-          onLoad={(mapInstance) => setMap(mapInstance)}
-          options={{
-            styles: darkMapStyles,
-            disableDefaultUI: false,
-            zoomControl: true,
-            mapTypeControl: false,
-            streetViewControl: false,
-            fullscreenControl: false,
-            clickableIcons: false,
-          }}
+          zoom={13}
+          scrollWheelZoom={true}
+          className="h-full w-full bg-zinc-950 outline-none"
         >
-          {/* Custom Marker */}
-          {position && (
-            <Marker
-              position={position}
-              icon={{
-                path: google.maps.SymbolPath.CIRCLE,
-                scale: 8,
-                fillColor: '#ef4444',
-                fillOpacity: 1,
-                strokeColor: '#ffffff',
-                strokeWeight: 2,
-              }}
-              animation={google.maps.Animation.DROP}
-            />
-          )}
-        </GoogleMap>
+          <MapRealigner />
+          <MapUpdater center={position} zoom={16} />
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
+          <ClickFeedbackLayer />
+          {position && <Marker position={position} icon={tacticalIcon} />}
+          <MapClickHandler setPosition={setPosition} />
+        </MapContainer>
 
         {/* Vignette Effect */}
         <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.9)] z-[400]"></div>

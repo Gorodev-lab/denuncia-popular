@@ -6,9 +6,11 @@ import { ChatBot } from './components/ChatBot';
 import { MessageCircle, X } from 'lucide-react';
 import { FeedbackWidget } from './components/FeedbackWidget';
 
+import { useLanguage } from './contexts/LanguageContext';
+
 const App: React.FC = () => {
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [language, setLanguage] = useState<'ES' | 'EN'>('ES');
+  const { language, setLanguage } = useLanguage();
 
   // Initialize step to LOCATION (0) - Map is the Home Page
   const [currentStep, setCurrentStep] = useState<Step>(Step.LOCATION);
