@@ -21,6 +21,7 @@ export interface DenunciaDraft {
   description: string;
   category: string;
   evidenceFiles: File[];
+  evidenceUrls?: string[];
   aiAnalysis?: AIAnalysisResult;
 }
 

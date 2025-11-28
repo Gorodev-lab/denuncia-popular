@@ -13,13 +13,43 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+
+    try {
+      const folio = `MX-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+
+      const { error } = await supabase.from('denuncias').insert({
+        folio,
+        is_anonymous: draft.isAnonymous,
+        full_name: draft.fullName,
+        email: draft.email,
+        description: draft.description,
+        category: draft.category,
+        lat: draft.location?.lat,
+        lng: draft.location?.lng,
+        address: draft.location?.address,
+        competency: draft.aiAnalysis?.competency,
+        legal_basis: draft.aiAnalysis?.legalBasis,
+        summary: draft.aiAnalysis?.summary,
+        age: draft.age,
+        gender: draft.gender,
+        occupation: draft.occupation,
+        referral_source: draft.referralSource,
+        evidence_urls: draft.evidenceUrls || []
+      });
+
+      if (error) throw error;
+
+      // Success
       onSubmit();
-    }, 2000);
+
+    } catch (error) {
+      console.error('Error submitting denuncia:', error);
+      alert('Hubo un error al enviar la denuncia. Por favor intente nuevamente.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleDownloadPDF = () => {
