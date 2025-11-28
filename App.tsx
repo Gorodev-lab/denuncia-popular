@@ -34,13 +34,16 @@ const App: React.FC = () => {
 
       {/* Navigation Header */}
       <nav className="w-full py-4 px-6 md:px-12 flex justify-between items-center z-40 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 h-16">
-        <button
-          className="flex items-center gap-1 text-lg font-bold tracking-tight cursor-pointer bg-transparent border-none p-0"
-          aria-label="Go to home"
+        <a
+          href="https://www.esoteriaai.com/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-1 text-lg font-bold tracking-tight cursor-pointer bg-transparent border-none p-0 hover:opacity-80 transition-opacity"
+          aria-label="Visit Esoteria AI"
         >
           <span className="text-white"><span className="text-accent mr-1">&gt;</span>Esoteria AI</span>
           <span className="w-1.5 h-4 bg-pink-500 animate-blink ml-1"></span>
-        </button>
+        </a>
 
         <div className="flex items-center gap-4">
           <span className="hidden md:block text-xs font-mono text-zinc-500">

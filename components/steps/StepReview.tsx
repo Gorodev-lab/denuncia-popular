@@ -38,7 +38,7 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
         gender: draft.gender,
         occupation: draft.occupation,
         referral_source: draft.referralSource,
-        evidence_urls: draft.evidenceFiles.map(f => f.name) // Storing filenames for now
+        evidence_urls: draft.evidenceUrls || []
       });
 
       if (error) throw error;
