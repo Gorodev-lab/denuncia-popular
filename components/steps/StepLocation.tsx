@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap, LayersControl, LayerGroup, Circle, Polygon } from 'react-leaflet';
 import { DenunciaDraft } from '../../types';
 import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X, Edit2, Check } from 'lucide-react';
 import L from 'leaflet';
@@ -391,10 +391,52 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
         >
           <MapRealigner />
           <MapUpdater center={position} zoom={16} />
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+          <LayersControl position="topright">
+            <LayersControl.BaseLayer name="Estándar">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            </LayersControl.BaseLayer>
+
+            <LayersControl.BaseLayer checked name="Oscuro (Recomendado)">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+              />
+            </LayersControl.BaseLayer>
+
+            <LayersControl.BaseLayer name="Satélite">
+              <TileLayer
+                attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              />
+            </LayersControl.BaseLayer>
+
+            <LayersControl.Overlay name="Reportes Recientes">
+              <LayerGroup>
+                {/* Mock Data for other reports */}
+                <Circle center={[19.4326, -99.1332]} pathOptions={{ color: 'red', fillColor: 'red', fillOpacity: 0.2 }} radius={500} />
+                <Circle center={[19.42, -99.14]} pathOptions={{ color: 'orange', fillColor: 'orange', fillOpacity: 0.2 }} radius={300} />
+              </LayerGroup>
+            </LayersControl.Overlay>
+
+            <LayersControl.Overlay name="Zonas de Riesgo">
+              <LayerGroup>
+                {/* Mock Polygon for a risk zone */}
+                <Polygon
+                  pathOptions={{ color: 'purple', fillColor: 'purple', fillOpacity: 0.1, dashArray: '5, 5' }}
+                  positions={[
+                    [19.41, -99.15],
+                    [19.415, -99.145],
+                    [19.405, -99.14],
+                    [19.40, -99.15]
+                  ]}
+                />
+              </LayerGroup>
+            </LayersControl.Overlay>
+          </LayersControl>
+
           <ClickFeedbackLayer />
           {position && <Marker position={position} icon={tacticalIcon} />}
           <MapClickHandler setPosition={setPosition} />
