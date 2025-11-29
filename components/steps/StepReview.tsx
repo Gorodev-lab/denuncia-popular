@@ -15,120 +15,12 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  const generatePDF = (folio: string): jsPDF => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const margin = 20;
-    const contentWidth = pageWidth - (margin * 2);
-    let yPos = 20;
-
-    // --- Header ---
-    doc.setFont("times", "bold");
-    doc.setFontSize(10);
-    doc.text("FOLIO PRELIMINAR: #" + folio, pageWidth - margin, yPos, { align: "right" });
-    yPos += 5;
-    doc.setFontSize(12);
-    doc.text("ASUNTO: DENUNCIA CIUDADANA POR FALTAS ADMINISTRATIVAS", pageWidth - margin, yPos, { align: "right" });
-
-    yPos += 20;
-
-    // --- Addressee ---
-    doc.setFont("times", "bold");
-    doc.setFontSize(11);
-    doc.text(`A LA AUTORIDAD ${draft.aiAnalysis?.competency || 'COMPETENTE'}`, margin, yPos);
-    yPos += 5;
-    doc.text("PRESENTE.", margin, yPos);
-
-    yPos += 15;
-
-    // --- Body Paragraph 1 ---
-    doc.setFont("times", "normal");
-    doc.setFontSize(11);
-    const name = draft.isAnonymous ? "CIUDADANO BAJO PROTECCIÓN DE ANONIMATO" : draft.fullName.toUpperCase();
-    const email = draft.email;
-
-    const text1 = `El que suscribe, ${name}, señalando como medio para recibir notificaciones el correo electrónico ${email}, comparezco para exponer:`;
-    const splitText1 = doc.splitTextToSize(text1, contentWidth);
-    doc.text(splitText1, margin, yPos);
-    yPos += (splitText1.length * 5) + 5;
-
-    // --- Body Paragraph 2 ---
-    const legalBasis = draft.aiAnalysis?.legalBasis || 'la legislación aplicable';
-    const text2 = `Que por medio del presente instrumento vengo a denunciar los hechos que considero constitutivos de falta administrativa, fundamentando mi dicho en ${legalBasis}.`;
-    const splitText2 = doc.splitTextToSize(text2, contentWidth);
-    doc.text(splitText2, margin, yPos);
-    yPos += (splitText2.length * 5) + 10;
-
-    // --- Description (Quote) ---
-    doc.setFont("times", "italic");
-    doc.setTextColor(50, 50, 50); // Dark Gray
-
-    const description = `"${draft.description}"`;
-    const splitDesc = doc.splitTextToSize(description, contentWidth - 10); // Indent slightly
-    doc.text(splitDesc, margin + 5, yPos);
-    yPos += (splitDesc.length * 5) + 15;
-
-    doc.setTextColor(0, 0, 0); // Reset color
-    doc.setFont("times", "normal");
-
-    // --- Location & Evidence Section ---
-    doc.setDrawColor(200, 200, 200);
-    doc.rect(margin, yPos, contentWidth, 35); // Box
-
-    let boxY = yPos + 8;
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    doc.text("UBICACIÓN GEO-REFERENCIADA:", margin + 5, boxY);
-    doc.text("EVIDENCIA ADJUNTA:", pageWidth / 2 + 5, boxY);
-
-    boxY += 5;
-    doc.setFont("helvetica", "normal");
-    if (draft.location) {
-      doc.text(`Lat: ${draft.location.lat.toFixed(6)}, Lng: ${draft.location.lng.toFixed(6)}`, margin + 5, boxY);
-      const addressLines = doc.splitTextToSize(draft.location.address || '', (contentWidth / 2) - 10);
-      doc.text(addressLines, margin + 5, boxY + 5);
-    } else {
-      doc.text("No especificada", margin + 5, boxY);
-    }
-
-    const evidenceText = draft.evidenceFiles.length > 0
-      ? draft.evidenceFiles.map(f => `• ${f.name}`).join("\n")
-      : "Sin archivos adjuntos";
-    const splitEvidence = doc.splitTextToSize(evidenceText, (contentWidth / 2) - 10);
-    doc.text(splitEvidence, pageWidth / 2 + 5, boxY);
-
-    yPos += 50;
-
-    // --- Signature ---
-    yPos = Math.max(yPos, 220); // Push to bottom if space allows, or just below content
-
-    doc.setDrawColor(0, 0, 0);
-    doc.line((pageWidth / 2) - 40, yPos, (pageWidth / 2) + 40, yPos); // Signature Line
-
-    doc.setFont("times", "normal");
-    doc.setFontSize(10);
-    const signName = draft.isAnonymous ? "Firma Digital Anónima" : draft.fullName;
-    doc.text(signName, pageWidth / 2, yPos + 5, { align: "center" });
-
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Hash Digital: ${Math.random().toString(36).substring(7).toUpperCase()}`, pageWidth / 2, yPos + 10, { align: "center" });
-
-    // --- Footer ---
-    doc.setFontSize(8);
-    doc.setTextColor(150, 150, 150);
-    doc.text("Generado por Denuncia Popular - Esoteria AI", pageWidth / 2, 280, { align: "center" });
-
-    return doc;
-  };
-
   const handleSubmit = async () => {
     setIsSubmitting(true);
 
     try {
       const folio = `MX-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
 
-      // 1. Insert Data
       const { error } = await supabase.from('denuncias').insert({
         folio,
         is_anonymous: draft.isAnonymous,
@@ -151,68 +43,6 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
 
       if (error) throw error;
 
-      // 2. Generate and Upload PDF if email is present
-      if (draft.email) {
-        try {
-          const doc = generatePDF(folio);
-          const pdfBlob = doc.output('blob');
-          const fileName = `${folio}_denuncia.pdf`;
-
-          // Upload to Supabase Storage
-          const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('evidence') // Reusing evidence bucket for now
-            .upload(`pdfs/${fileName}`, pdfBlob, {
-              contentType: 'application/pdf',
-              upsert: true
-            });
-
-          if (uploadError) throw uploadError;
-
-          // Get Public URL
-          const { data: { publicUrl } } = supabase.storage
-            .from('evidence')
-            .getPublicUrl(`pdfs/${fileName}`);
-
-          // 3. Send Email using EmailJS (Client-side)
-          // Note: You need to configure EmailJS with your Service ID, Template ID, and Public Key
-          // See EMAILJS_SETUP.md for detailed setup instructions
-
-          const emailjs = await import('@emailjs/browser');
-
-          const serviceId = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-          const templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-          const publicKey = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-
-          // Only attempt to send email if EmailJS is configured
-          if (serviceId && templateId && publicKey &&
-            serviceId !== 'YOUR_SERVICE_ID' &&
-            templateId !== 'YOUR_TEMPLATE_ID' &&
-            publicKey !== 'YOUR_PUBLIC_KEY') {
-
-            await emailjs.send(
-              serviceId,
-              templateId,
-              {
-                to_email: draft.email,
-                to_name: draft.fullName || 'Ciudadano',
-                folio: folio,
-                pdf_link: publicUrl,
-                message: 'Adjunto encontrará su denuncia generada.'
-              },
-              publicKey
-            );
-
-            console.log('Email sent successfully to:', draft.email);
-          } else {
-            console.warn('EmailJS not configured. Skipping email send. See EMAILJS_SETUP.md for setup instructions.');
-          }
-
-        } catch (emailError) {
-          console.error('Error sending email/uploading PDF:', emailError);
-          // Don't block the success flow if email fails, but maybe notify?
-        }
-      }
-
       // Success
       onSubmit();
 
@@ -228,8 +58,112 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
     setIsGeneratingPdf(true);
 
     try {
-      const folio = `MX-${Math.floor(Math.random() * 10000)}`; // Temporary folio for preview
-      const doc = generatePDF(folio);
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const margin = 20;
+      const contentWidth = pageWidth - (margin * 2);
+      let yPos = 20;
+
+      // --- Header ---
+      doc.setFont("times", "bold");
+      doc.setFontSize(10);
+      doc.text("FOLIO PRELIMINAR: #MX-" + Math.floor(Math.random() * 10000), pageWidth - margin, yPos, { align: "right" });
+      yPos += 5;
+      doc.setFontSize(12);
+      doc.text("ASUNTO: DENUNCIA CIUDADANA POR FALTAS ADMINISTRATIVAS", pageWidth - margin, yPos, { align: "right" });
+
+      yPos += 20;
+
+      // --- Addressee ---
+      doc.setFont("times", "bold");
+      doc.setFontSize(11);
+      doc.text(`A LA AUTORIDAD ${draft.aiAnalysis?.competency || 'COMPETENTE'}`, margin, yPos);
+      yPos += 5;
+      doc.text("PRESENTE.", margin, yPos);
+
+      yPos += 15;
+
+      // --- Body Paragraph 1 ---
+      doc.setFont("times", "normal");
+      doc.setFontSize(11);
+      const name = draft.isAnonymous ? "CIUDADANO BAJO PROTECCIÓN DE ANONIMATO" : draft.fullName.toUpperCase();
+      const email = draft.email;
+
+      const text1 = `El que suscribe, ${name}, señalando como medio para recibir notificaciones el correo electrónico ${email}, comparezco para exponer:`;
+      const splitText1 = doc.splitTextToSize(text1, contentWidth);
+      doc.text(splitText1, margin, yPos);
+      yPos += (splitText1.length * 5) + 5;
+
+      // --- Body Paragraph 2 ---
+      const legalBasis = draft.aiAnalysis?.legalBasis || 'la legislación aplicable';
+      const text2 = `Que por medio del presente instrumento vengo a denunciar los hechos que considero constitutivos de falta administrativa, fundamentando mi dicho en ${legalBasis}.`;
+      const splitText2 = doc.splitTextToSize(text2, contentWidth);
+      doc.text(splitText2, margin, yPos);
+      yPos += (splitText2.length * 5) + 10;
+
+      // --- Description (Quote) ---
+      doc.setFont("times", "italic");
+      doc.setTextColor(50, 50, 50); // Dark Gray
+      // Draw a light gray background box for the quote
+      // doc.setFillColor(245, 245, 245);
+      // doc.rect(margin, yPos - 5, contentWidth, 50, 'F'); // Approximate height, hard to calculate exact dynamic height easily without more logic
+
+      const description = `"${draft.description}"`;
+      const splitDesc = doc.splitTextToSize(description, contentWidth - 10); // Indent slightly
+      doc.text(splitDesc, margin + 5, yPos);
+      yPos += (splitDesc.length * 5) + 15;
+
+      doc.setTextColor(0, 0, 0); // Reset color
+      doc.setFont("times", "normal");
+
+      // --- Location & Evidence Section ---
+      doc.setDrawColor(200, 200, 200);
+      doc.rect(margin, yPos, contentWidth, 35); // Box
+
+      let boxY = yPos + 8;
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "bold");
+      doc.text("UBICACIÓN GEO-REFERENCIADA:", margin + 5, boxY);
+      doc.text("EVIDENCIA ADJUNTA:", pageWidth / 2 + 5, boxY);
+
+      boxY += 5;
+      doc.setFont("helvetica", "normal");
+      if (draft.location) {
+        doc.text(`Lat: ${draft.location.lat.toFixed(6)}, Lng: ${draft.location.lng.toFixed(6)}`, margin + 5, boxY);
+        const addressLines = doc.splitTextToSize(draft.location.address || '', (contentWidth / 2) - 10);
+        doc.text(addressLines, margin + 5, boxY + 5);
+      } else {
+        doc.text("No especificada", margin + 5, boxY);
+      }
+
+      const evidenceText = draft.evidenceFiles.length > 0
+        ? draft.evidenceFiles.map(f => `• ${f.name}`).join("\n")
+        : "Sin archivos adjuntos";
+      const splitEvidence = doc.splitTextToSize(evidenceText, (contentWidth / 2) - 10);
+      doc.text(splitEvidence, pageWidth / 2 + 5, boxY);
+
+      yPos += 50;
+
+      // --- Signature ---
+      yPos = Math.max(yPos, 220); // Push to bottom if space allows, or just below content
+
+      doc.setDrawColor(0, 0, 0);
+      doc.line((pageWidth / 2) - 40, yPos, (pageWidth / 2) + 40, yPos); // Signature Line
+
+      doc.setFont("times", "normal");
+      doc.setFontSize(10);
+      const signName = draft.isAnonymous ? "Firma Digital Anónima" : draft.fullName;
+      doc.text(signName, pageWidth / 2, yPos + 5, { align: "center" });
+
+      doc.setFontSize(8);
+      doc.setTextColor(100, 100, 100);
+      doc.text(`Hash Digital: ${Math.random().toString(36).substring(7).toUpperCase()}`, pageWidth / 2, yPos + 10, { align: "center" });
+
+      // --- Footer ---
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text("Generado por Denuncia Popular - Esoteria AI", pageWidth / 2, 280, { align: "center" });
+
       doc.save("Denuncia_Popular_Oficial.pdf");
 
     } catch (error) {
