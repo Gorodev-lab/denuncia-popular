@@ -1,0 +1,1478 @@
+The Gemini 3 Developer Codex
+(Ultimate 850+ Prompts Edition)
+850+ Prompts for Architecting, Coding, Testing, and Deploying Enterprise Applications
+
+AntiGravity.Codes
+November 2025 Edition
+
+Contents
+1 The Core Principles of Professional Prompt Engineering
+1.1 The Professional Prompt Paradigm: Moving Beyond Zero-Shot . . . . . . . . . . . .
+1.2 The Five Pillars of a Developer Prompt (The UDP Framework) . . . . . . . . . . . . .
+1.3 Structured Syntax: Utilizing Markdown and XML Tags . . . . . . . . . . . . . . . . .
+1.3.1 Table 1.1: Structuring Input for Gemini 3 (Specificity Checklist) . . . . . . . .
+
+3
+3
+3
+3
+3
+
+2 Architecting the Prompt: Role, Persona, and Enforcement
+2.1 The Expert Persona as a Knowledge Filter . . . . . . . . . . . . . . . . . . . . . . . .
+2.2 Case Study: The ”Principal Engineer” Super-Prompt Template . . . . . . . . . . . .
+2.3 Prompt List: Architectural Review and Strategy . . . . . . . . . . . . . . . . . . . . .
+
+5
+5
+5
+5
+
+3 Structured Output and Reasoning: CoT, JSON, and YAML Mastery
+3.1 Structured CoT: Forcing Step-by-Step Transparency . . . . . . . . . . . . . . . . . . .
+3.2 Meta-Prompting for Optimization and Learning . . . . . . . . . . . . . . . . . . . . .
+3.3 Prompt List: CoT for Debugging and Refinement . . . . . . . . . . . . . . . . . . . .
+3.4 Table 3.1: Structured Output Formats for Developers . . . . . . . . . . . . . . . . .
+
+8
+8
+8
+8
+10
+
+4 Prompt Cluster: Data Analysis and Visualization
+4.1 Data Transformation and Feature Engineering . . . . . . . . . . . . . . . . . . . . .
+4.1.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+4.2 Visualization Code Generation . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+4.2.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+11
+11
+11
+11
+11
+
+5 Prompt Cluster: Core Language Code Generation
+5.1 Python-Specific Prompts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+5.1.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+5.2 Java and C# Prompts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+5.2.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+5.3 Go and Rust Prompts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+5.3.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+13
+13
+13
+13
+13
+14
+14
+
+6 Prompt Cluster: Frontend Framework Specialization
+6.1 React and Next.js Prompts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.1.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2 TypeScript (TS) Utility Prompts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+6.2.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+15
+15
+15
+16
+16
+
+7 Prompt Cluster: Refactoring, Improvement, and Principles
+7.1 Refactoring for SOLID Principles . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+7.1.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+7.2 Performance and Scalability Optimization . . . . . . . . . . . . . . . . . . . . . . . .
+7.2.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+17
+17
+17
+17
+17
+
+1
+
+8 Prompt Cluster: Quality Assurance and Test Automation
+8.1 Generating Comprehensive Unit and Integration Tests . . . . . . . . . . . . . . . . .
+8.1.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+8.2 Mocking Dependencies and Test Data Generation . . . . . . . . . . . . . . . . . . .
+8.2.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+19
+19
+19
+19
+19
+
+9 Prompt Cluster: DevOps, Infrastructure, and Cloud Configuration
+9.1 Generating and Refining Secure Dockerfiles . . . . . . . . . . . . . . . . . . . . . . .
+9.1.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+9.2 Kubernetes Manifests and Cloud Strategy . . . . . . . . . . . . . . . . . . . . . . . .
+9.2.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+9.3 CI/CD Pipeline Configuration and gcloud Automation . . . . . . . . . . . . . . . . .
+9.3.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+21
+21
+21
+21
+21
+22
+22
+
+10 Prompt Cluster: Observability and Site Reliability Engineering (SRE)
+10.1 Defining SLIs, SLOs, and Error Budgets . . . . . . . . . . . . . . . . . . . . . . . . . .
+10.1.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+10.2 Metrics and Alerting Configuration . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+10.2.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+10.3 Debugging and Post-Mortem Assistance . . . . . . . . . . . . . . . . . . . . . . . . .
+10.3.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+23
+23
+23
+23
+23
+24
+24
+
+11 Prompt Cluster: MLOps and AI Engineering
+11.1 Model Serving and Deployment . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+11.1.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+11.2 Feature Stores and Data Pipelines . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+11.2.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+25
+25
+25
+25
+25
+
+12 Prompt Cluster: Security, Multimodality, and Documentation
+12.1 Security Review and Vulnerability Identification . . . . . . . . . . . . . . . . . . . . .
+12.1.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+12.2 Multimodal Prompts for Developers (Vision) . . . . . . . . . . . . . . . . . . . . . . .
+12.2.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+12.3 Technical Documentation and Specification Generation . . . . . . . . . . . . . . . .
+12.3.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+12.4 Learning and Technical Mentorship . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+12.4.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+26
+26
+26
+26
+26
+27
+27
+27
+27
+
+13 High-Performance and Distributed Computing
+13.1 WebAssembly (WASM) and Performance Optimization . . . . . . . . . . . . . . . . .
+13.1.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+13.2 Edge Computing and Low-Latency Patterns . . . . . . . . . . . . . . . . . . . . . . .
+13.2.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+28
+28
+28
+28
+28
+
+14 Advanced Data Modeling and Emerging Tech
+14.1 NoSQL and Graph Database Modeling . . . . . . . . . . . . . . . . . . . . . . . . . .
+14.1.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+14.2 Quantum Computing Concepts . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+14.2.1 Examples . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+
+30
+30
+30
+30
+30
+
+Conclusions and Recommendations
+
+32
+
+Made by AntiGravity.Codes
+
+2
+
+Chapter 1
+
+The Core Principles of Professional
+Prompt Engineering
+1.1
+
+The Professional Prompt Paradigm: Moving Beyond Zero-Shot
+
+For professional software development, interacting with a generative model like Gemini 3 requires a significant departure from typical conversational querying. While basic ”Zero-shot”
+prompting–provided a question with no prior examples–works adequately for simple tasks,
+(e.g., definitions or quick summaries) [1, 2], it is fundamentally inadequate for complex engineering challenges that demand reliable, secure, and structured output. E.g., instead of asking
+the model to ”Find a sales report,” a precise prompt defines the desired scope: ”Find the Q1
+2025 sales report for the Alpha product line in the EMEA region”.[4]
+
+1.2
+
+The Five Pillars of a Developer Prompt (The UDP Framework)
+
+An expert-level prompt for software engineering is never a single sentence; it is a meticulously
+structured template designed to constrain the model’s output to meet enterprise standards.
+This rigorous structure can be organized into the Universal Developer Prompt (UDP) framework,
+encompassing five essential pillars:
+1. Role/Persona: Clearly instructs the model to adopt a specific identity, (e.g., ”Principal Software Engineer”).
+2. Context/Input: Provides all necessary data the model needs to process, (e.g., code snippets, documentation, stack traces).
+3. Constraints/Mandates: These are the non-negotiable rules governing the output (e.g.,
+”No external libraries permitted”).
+4. Task/Goal: The specific, clear action the model must perform.
+5. Output Format: Explicitly defines the required structure (e.g., JSON, YAML, Markdown).
+
+1.3
+
+Structured Syntax: Utilizing Markdown and XML Tags
+
+To enforce the separation between instructions and data, developers should use clear syntactic delimiters. Using structured tags helps the model efficiently parse the input and reliably
+distinguish between the context data provided by the user and the instructions it must execute.
+
+1.3.1
+
+Table 1.1: Structuring Input for Gemini 3 (Specificity Checklist)
+
+3
+
+Table 1.1: Structuring Input for Gemini 3 (Specificity
+Checklist)
+Vague Request
+Example
+
+Specificity Requirement (The
+UDP Framework)
+
+Specific Prompt Example
+
+Write a function.
+
+Language, Goal, Constraints,
+Format.
+
+Optimize this script.
+
+Role, Context, Optimization
+Target, Output.
+
+Design a system.
+
+Role, Architecture Stack,
+Requirements, Output Format.
+
+Refine a Constraint.
+
+Iterative Refinement,
+Constraint Modification.
+
+Contextual
+Refactoring.
+
+Context, Domain-Specific
+Persona.
+
+Create a Go function that
+reads from a Kafka stream.
+Constraint: Must use the
+Confluent-Go library.
+Output: Code block only.
+Act as a Performance
+Engineer. Context: [Paste
+Python script]. Task:
+Refactor for lower memory
+usage. Output: The revised
+Python script within a
+```python...``` block.
+Act as a GCP Architect.
+Design a serverless,
+scalable ingestion pipeline
+for IoT data. Constraints:
+Use Pub/Sub and Cloud
+Functions. Output: A
+numbered list of
+components and a cost
+estimate.
+”Modify the Go function to
+include a 5-second timeout
+for the Kafka connection.
+Constraint: Use the native
+Go context package for
+timeout management.”
+”Act as a FinTech Developer.
+Context: [Paste Go struct
+for a transaction]. Task: Add
+fields necessary to track
+transaction idempotency
+and audit logs. Output the
+revised Go struct.”
+
+Made by AntiGravity.Codes
+
+4
+
+Chapter 2
+
+Architecting the Prompt: Role,
+Persona, and Enforcement
+2.1
+
+The Expert Persona as a Knowledge Filter
+
+Assigning a role to the LLM provides a powerful conditioning signal, channeling its vast knowledge base to adhere to the linguistic, stylistic, and technical conventions of that specific domain
+(e.g., ”Cybersecurity Expert” prioritizes secure coding).
+
+2.2
+
+Case Study: The ”Principal Engineer” Super-Prompt Template
+
+The Super-Prompt establishes non-negotiable behavioral mandates: Security First, Simplicity
+and Readability, Code Reviewer Mindset, and the crucial The ”Think First” Rule (forcing CoT
+before providing the solution).
+
+2.3
+
+Prompt List: Architectural Review and Strategy
+Table 2.1: Architectural Review and Strategy Prompts
+
+Category
+
+Prompt Template Example
+
+Architectural
+Focus
+
+Architecture
+Validation
+
+Role: Principal Architect. Context:
+[System Diagram/Description]. Task:
+Review the proposed infrastructure. Is
+this structure cost-optimized and highly
+available for GCP? Justify your decision
+using the ”Thinking First” rule.
+Role: Senior DevOps Specialist. Task:
+Generate a high-level plan for migrating a
+monolithic Java application to Kubernetes
+microservices. Constraints: Focus on a
+phased rollout and zero downtime. Use
+CoT to outline the 5 most critical
+migration risks (e.g., data consistency,
+service discovery).
+
+Cost optimization,
+High Availability,
+Platform
+Alignment
+
+High-Level Planning
+
+CI/CD Strategy,
+Risk Management,
+Containerization
+
+Continued on next page
+
+5
+
+Table 2.1: Architectural Review and Strategy Prompts – Continued
+Category
+
+Prompt Template Example
+
+Architectural
+Focus
+
+Tech Stack
+Comparison
+
+Role: CTO. Task: Compare and contrast
+using Cloud Run vs. GKE Autopilot for a
+high-traffic, burstable public API endpoint.
+Output the analysis as a structured YAML
+report, citing specific cost and operational
+differences (e.g., autoscaling limits).
+Role: Cloud Solutions Architect. Task:
+Design an event-driven system to handle
+payment failures. Components must use
+Pub/Sub, Cloud Functions, and Firestore.
+Output the flow as a Mermaid diagram.
+Role: Lead Data Engineer. Context: [Data
+Schema]. Task: Outline a data masking
+and encryption strategy using BigQuery
+features (e.g., column-level encryption) to
+ensure compliance with GDPR.
+Role: Senior Software Engineer. Task:
+Review this proposed REST API schema
+(Context: JSON schema). Are the
+endpoints and data relationships RESTful
+and idiomatic? Suggest refactoring to
+adhere to industry best practices (e.g.,
+versioning scheme, pluralization).
+Role: Refactoring Specialist. Context:
+[Legacy System API Docs]. Task: Generate
+a dependency map (Mermaid graph) of
+the internal services and identify the top 3
+services that must be decoupled first to
+facilitate a successful migration.
+Role: Performance Engineer. Task:
+Analyze this architectural diagram
+(Context: Text Description/Mermaid Code)
+and predict the single point of failure and
+performance bottleneck when scaling to
+100,000 concurrent users. Propose a
+specific fix (e.g., adding a sharded cache).
+Role: Domain Expert. Task: Generate an
+Entity-Relationship Diagram (ERD) for a
+supply chain tracking system, including
+entities for Order, Item, Warehouse, and
+Shipment. Output the diagram in
+PlantUML syntax.
+
+Strategic
+Technology
+Selection,
+Structured Output
+
+Event-Driven
+Architecture
+
+Data Governance
+
+API Design Review
+
+Legacy System
+Assessment
+
+System Scaling
+Analysis
+
+Domain Modeling
+
+Architecture as
+Code,
+Microservices
+
+Security,
+Compliance, GCP
+Data Services
+
+Interface Design,
+Best Practices
+
+Dependency
+Analysis,
+Migration
+Planning
+
+Scaling, SPOF
+Identification
+
+Data
+Relationships,
+Modeling
+
+Continued on next page
+
+Made by AntiGravity.Codes
+
+6
+
+Table 2.1: Architectural Review and Strategy Prompts – Continued
+Category
+
+Prompt Template Example
+
+Architectural
+Focus
+
+Cross-Cloud Strategy
+
+Role: Multi-Cloud Consultant. Task:
+Define the core strategy for deploying a
+containerized application simultaneously
+on both GCP (Cloud Run) and AWS
+(Fargate). Focus on shared services (e.g.,
+DNS, CI/CD).
+
+Cloud Agnostic
+Design,
+Interoperability
+
+Made by AntiGravity.Codes
+
+7
+
+Chapter 3
+
+Structured Output and Reasoning:
+CoT, JSON, and YAML Mastery
+3.1
+
+Structured CoT: Forcing Step-by-Step Transparency
+
+For any technical task requiring multi-step processing or logical deductions, the Chain-of-Thought
+(CoT) Prompting technique is mandatory.[13] This requires the model to break down the problem into sequential, manageable, and intermediate steps before generating the final answer.
+
+3.2
+
+Meta-Prompting for Optimization and Learning
+
+The standard Meta-Prompt template is: ”Act as an expert prompt engineer. Your task is to take
+my simple prompt/goal and transform it into a detailed, optimized prompt... [Insert your basic
+prompt here]. Now, give me only the new, optimized version.”
+
+3.3
+
+Prompt List: CoT for Debugging and Refinement
+Table 3.1: CoT Prompts for Debugging and Refinement
+
+Category
+
+Prompt Template Example
+
+Functionality
+Enforced
+
+Root Cause Analysis
+(RCA)
+
+Role: System Reliability Engineer.
+Context: [Paste server log entries and
+error stack trace]. Task: Use CoT to
+sequentially trace the execution path from
+the external trigger to the failure point.
+Output: 1. RCA Summary. 2. Proposed fix
+in code.
+Context: [Paste function code]. Task: I
+need to simplify this function. Use CoT to
+outline a 3-step refactoring plan to reduce
+cyclomatic complexity below 10. Show the
+complexity calculation before and after
+the proposed change (e.g., using Big-O
+notation).
+
+Sequential tracing,
+Debugging
+tracebacks
+
+Refactoring Plan
+Generation
+
+Pre-optimization
+planning, Metric
+calculation
+
+Continued on next page
+
+8
+
+Table 3.1: CoT Prompts for Debugging and Refinement – Continued
+Category
+
+Prompt Template Example
+
+Functionality
+Enforced
+
+Security Audit
+Strategy
+
+Role: Pen Tester. Task: Generate a
+step-by-step penetration testing strategy
+focused on discovering the top 5 OWASP
+vulnerabilities (e.g., Injection) present in
+modern web applications. Output must
+be a Markdown checklist.
+Role: Principal Architect. Task: Use CoT to
+diagnose the likely cause of the resource
+spikes. Outline a 4-step investigation plan,
+including metrics and logs to check at
+each step (e.g., CPU utilization).
+Role: Data Architect. Context: [Paste
+JSON schema]. Task: Convert this JSON
+schema into an equivalent Apache Avro
+schema definition. Use CoT to highlight
+any fields that required type modification
+or constraint translation.
+Role: Compliance Officer. Context:
+[Company Security Policy V2.1]. Task: I
+need to confirm that this Terraform
+configuration adheres to the policy’s rule
+on S3 bucket encryption. Use CoT to list
+the policy clause, the relevant Terraform
+block, and the final verdict (Compliance or
+Non-Compliance).
+Role: Senior Reviewer. Context: [Code
+Snippet]. Task: Write a detailed code
+review comment using CoT to justify why
+this implementation is less performant
+than an alternative. Suggest the
+alternative.
+Role: Technical Writer. Context: [JSON
+Schema of API response]. Task: Generate
+a detailed API documentation fragment
+(Markdown) for the /users endpoint. Use
+CoT to explain why the date field is
+returned as ISO 8601 format (e.g.,
+standard industry best practice).
+Role: UX Designer. Context: ”Error: 403
+Forbidden - User role missing.” Task: Use
+CoT to rewrite this error message for a
+general user to be more actionable,
+friendly, and non-technical. Output the
+new string only.
+
+Methodology
+enforcement,
+Security planning
+
+Resource
+Optimization
+
+Schema Conversion
+
+Policy Review
+
+Code Review
+Feedback
+
+API Documentation
+Generation
+
+Refinement of Error
+Message
+
+Made by AntiGravity.Codes
+
+Systemic
+diagnosis,
+Observability
+
+Data
+interoperability,
+Structured output
+
+Compliance
+validation, Policy
+checking
+
+Performance
+Justification
+
+Documentation
+Quality
+
+User Experience
+(UX)
+
+9
+
+3.4
+
+Table 3.1: Structured Output Formats for Developers
+Table 3.2: Structured Output Formats for Developers
+
+Format
+
+Primary Use Case
+
+Prompt Instruction
+Requirement
+
+Key
+Benefit
+
+JSON
+
+API Payloads, Schema
+Definitions, Structured Data
+Extraction.
+
+YAML
+
+Configuration Files (e.g.,
+K8s, Docker, CI/CD).
+
+Output only a single JSON
+object conforming to the
+following schema: { "field1":
+"string", "field2": "integer"
+}
+Generate output strictly as
+YAML within a ```yaml...```
+block. Use the literal block
+style (|) for all multi-line
+text fields.
+
+XML
+
+Legacy System Integration,
+Specific API Formats (e.g.,
+SOAP).
+
+Ensure the response is valid
+XML and adheres to the XSD
+schema provided in the
+context.
+
+Markdown
+
+Technical Documentation,
+Readme Files, Outlines.
+
+Format the response as a
+comprehensive Markdown
+document using H2 and H3
+headings.
+
+Terraform
+HCL
+
+Infrastructure as Code (IaC)
+generation.
+
+ProtoBuf
+
+gRPC Service Definitions.
+
+Generate the configuration
+strictly in HCL syntax for
+Terraform. Do not include any
+Markdown or YAML block
+wrappers.
+Define the Request and
+Response messages in ProtoBuf
+syntax (proto3). Include
+package and service
+definitions.
+
+Easy integration
+with
+modern
+APIs.
+Superior
+handling
+of indentation
+and
+multiline
+strings.
+Compliance
+with
+older
+standards.
+High
+readability and
+easy conversion.
+Direct
+use in
+IaC
+pipelines.
+
+Made by AntiGravity.Codes
+
+High
+performance
+and type
+safety.
+
+10
+
+Chapter 4
+
+Prompt Cluster: Data Analysis and
+Visualization
+4.1
+
+Data Transformation and Feature Engineering
+
+4.1.1
+
+Examples
+
+1. SQL Optimization: ”Act as a Database Expert. Context: [Paste complex PostgreSQL query].
+Task: Refactor the query for maximum performance, ensuring the correct use of window
+functions (e.g., ROW_NUMBER()) and avoiding full table scans. Provide the optimized query.”
+2. Pandas/Numpy Operations (Python): ”Generate the Python code (using Pandas) to load
+a CSV file, perform one-hot encoding on the ’category’ column, and aggregate the mean
+of the ’sales’ column, grouping by the newly encoded features.”
+3. Feature Scaling (Python): ”Generate a Python script (using Scikit-learn) to perform two
+types of feature scaling (e.g., Min-Max Normalization and Z-score standardization) on the
+’age’ and ’income’ columns of a dataset. Output the scaled data.”
+4. Advanced SQL Aggregation: ”Generate a complex SQL query that calculates the yearover-year growth rate (YoY) for sales for each product category using common table expressions (CTEs) and LAG/LEAD window functions. Assume tables sales and products.”
+5. NoSQL to SQL Mapping: ”Context: [Paste MongoDB document structure]. Task: Propose
+the normalized SQL schema (CREATE TABLE statements) that would best store this data,
+optimizing for relational integrity (e.g., adding foreign keys).”
+6. Data Cleaning (Python): ”Generate a Python script that uses regular expressions (e.g., the
+re module) to sanitize a text column by removing all URLs and special characters, leaving
+only alphanumeric text.”
+
+4.2
+
+Visualization Code Generation
+
+4.2.1
+
+Examples
+
+1. D3.js Visualization (JavaScript): ”Generate the complete JavaScript/HTML for a D3.js visualization that renders a force-directed graph (e.g., a network diagram) based on the
+provided JSON data. Constraint: Nodes must be sized based on the ’weight’ property.”
+2. Matplotlib/Seaborn Plotting (Python): ”Generate a Python script using Seaborn to create a heatmap showing the correlation matrix of the numerical columns in the provided
+dataset. Constraint: Use a perceptually uniform colormap (e.g., ’viridis’) and label the
+axes.”
+3. Mermaid Diagrams for Architecture: ”Generate the Mermaid syntax for a sequence diagram that illustrates the checkout process: User → Frontend → Payment API → Database
+→ Inventory Service.”
+11
+
+4. Geo-Spatial Plotting (Folium): ”Generate the Python code using the Folium library to
+create an interactive map. Constraint: Plot the provided list of coordinates as markers,
+coloring them based on the ’status’ field.”
+5. Advanced Chart.js (JavaScript): ”Generate the JavaScript configuration for a Chart.js line
+chart that displays two datasets with different Y-axes (e.g., ’Revenue’ on the left, ’Conversion Rate’ on the right). Ensure tooltips are customized to show units.”
+6. PlantUML State Diagram: ”Generate the PlantUML syntax for a state diagram illustrating
+the lifecycle of a support ticket: New → Assigned → In Progress → Resolved (and a path
+back to In Progress if reopened).”
+
+Made by AntiGravity.Codes
+
+12
+
+Chapter 5
+
+Prompt Cluster: Core Language Code
+Generation
+5.1
+
+Python-Specific Prompts
+
+5.1.1
+
+Examples
+
+1. API Endpoint (FastAPI): ”Generate a secure, asynchronous API endpoint (Python/FastAPI)
+for user registration. Constraint: Use Pydantic models for validation, and ensure password
+hashing uses bcrypt.”
+2. Context Manager: ”Generate a Python context manager class that safely handles and
+closes a file handle, including robust error logging if the file cannot be opened.”
+3. Decorator Generation: ”Create a Python decorator that implements exponential backoff
+retry logic for a function that makes external API calls. Constraint: Maximum 5 retries,
+starting with a 1-second delay.”
+4. Creating Data Structures (Python): ”Generate a Python class for a simple calculator that
+can add and subtract numbers (e.g., a function to calculate the square root).”
+5. Asynchronous Task Queue (Celery): ”Generate the Python function and Celery configuration to define an asynchronous task that sends a welcome email. Constraints: Set a retry
+limit of 3 and ensure the function logs execution status.”
+6. Generators and Iterators: ”Generate a Python generator function that reads a log file
+line by line, yielding only those lines that contain the keyword ’ERROR’, thus minimizing
+memory usage (e.g., for processing a 10GB file).”
+
+5.2
+
+Java and C# Prompts
+
+5.2.1
+
+Examples
+
+1. Design Pattern (C#): ”Create a C# repository pattern interface and its concrete implementation for a SQL database. Constraint: Adhere strictly to C# idiomatic naming conventions
+and async/await best practices.”
+2. Enterprise Boilerplate (Java): ”Create a basic Spring Boot controller for /users endpoint
+that implements GET and POST methods. Constraint: Use Lombok annotations (e.g., @Data,
+@NoArgsConstructor) for boilerplate reduction.”
+3. Performance Optimization (C#): ”Generate a C# function that efficiently processes a
+large array of structs, optimizing for reducing allocations and improving garbage collection efficiency (e.g., using Span<T>).”
+
+13
+
+4. Utility Method (Java): ”Generate a generic Java utility method that measures the execution time of any provided lambda function in milliseconds, using the System.nanoTime()
+method.”
+5. Dependency Injection (Java/Spring): ”Generate the Java interface and a Spring @Component
+class that uses constructor injection to inject a Logger instance and a UserService dependency.”
+6. Thread-Safe Collection (C#): ”Generate a C# class that uses a thread-safe collection (e.g.,
+ConcurrentDictionary<TKey, TValue>) to manage a cache of user session tokens, including methods for adding, retrieving, and expiring tokens.”
+
+5.3
+
+Go and Rust Prompts
+
+5.3.1
+
+Examples
+
+1. Configuration Parsing (Go): ”Generate a Go function that safely parses environment variables into a configuration struct. Constraint: Must use the standard library os package and
+provide sensible defaults for missing values.”
+2. Safe File Read (Rust): ”Generate a safe and idiomatic Rust function to read a file line by
+line and return the lines as a Vec<String>. Constraints: Use proper error handling with
+Result and the standard library only.”
+3. Concurrency (Go): ”Generate a Go program that uses a buffered channel and three worker
+goroutines to process a queue of 100 integer tasks. Ensure safe termination using a
+sync.WaitGroup.”
+4. External API Handling (Rust): ”Generate the required Rust code using the reqwest crate
+to perform a multipart form data upload to an external API endpoint. Constraint: Include
+error handling for network timeout and deserialization failure (e.g., JSON parsing error).”
+5. Go Microservice Health Check: ”Generate a simple Go HTTP handler (/healthz) that returns a 200 OK only if an internal Redis connection check is successful. Constraint: Use
+the standard library net/http package.”
+6. Rust Error Propagation: ”Generate a Rust function that calls two other functions that
+return Result<T, E>. Use the ? operator to properly propagate errors up the call stack.
+Output the three functions.”
+
+Made by AntiGravity.Codes
+
+14
+
+Chapter 6
+
+Prompt Cluster: Frontend Framework
+Specialization
+6.1
+
+React and Next.js Prompts
+
+6.1.1
+
+Examples
+
+1. Custom Hook Generation (React/TS): ”Generate a custom hook (React/TypeScript) for
+state management that handles fetching, loading, and error states using the useReducer
+pattern. Constraint: Must be fully typed in TypeScript (e.g., defining types for action and
+state).”
+2. Server Component (Next.js): ”Generate a Next.js 14 Server Component that fetches user
+data from an external API during the build phase and caches the result for 60 seconds.
+Constraint: Use the native fetch API and strict TypeScript types.”
+3. Routing Boilerplate (Next.js): ”Generate the necessary file structure and component
+boilerplate for a Next.js 14 App Router layout that includes /dashboard, /settings, and
+a dynamic route /users/[id]. Constraint: All components must be functional and return
+placeholder JSX.”
+4. UI/UX Component (React): ”Generate a fully responsive, mobile-first React component
+for a ’User Profile Card’ using Tailwind CSS. Constraints: Must include an image placeholder
+and use proper semantic HTML (e.g., <article>).”
+5. Optimized Image Component (Next.js): ”Generate a React functional component that
+wraps the Next.js Image component. Constraint: Must enforce fill layout and prioritize
+loading for mobile viewport sizes.”
+6. Debounce Function (JavaScript): ”Generate a JavaScript function that debounces user
+input from an HTML form field with a 300ms delay. Constraint: Use modern ES6 syntax
+(e.g., arrow functions) only.”
+7. Form Handling (React Hook Form): ”Generate a controlled form component (React/TypeScript) for user login, integrated with react-hook-form and Zod for schema validation.
+Constraint: Output includes the Zod schema and the component with error handling.”
+8. State Management (Zustand): ”Generate a Zustand store definition for managing global
+authentication state (e.g., isLoggedIn, userProfile). Include actions to login and logout.”
+9. Accessibility (A11Y) Check: ”Review this HTML snippet (Context: paste component HTML).
+Identify and fix 3 specific WCAG accessibility violations (e.g., missing ARIA attributes, insufficient color contrast). Output the corrected HTML.”
+
+15
+
+6.2
+
+TypeScript (TS) Utility Prompts
+
+6.2.1
+
+Examples
+
+1. Type Definition Conversion (TS): ”I have the following JSON data structure. Generate
+the corresponding strict TypeScript interface or type definition that accurately reflects all
+nested properties.”
+2. Utility Type Generation (TS): ”Generate a TypeScript utility type named RequiredButOptional<T,
+K>. This type must take an interface T and a set of keys K, making all properties in T required
+except for those specified in K which remain optional.”
+3. Type Guard Generation (TS): ”Generate a TypeScript type guard function isUser that
+checks if a provided object conforms to the User interface (e.g., checking for id (number)
+and name (string) properties).”
+4. Deep Partial Type: ”Generate a recursive TypeScript utility type DeepPartial<T> that makes
+every property, and sub-property, of the input type optional.”
+5. Custom Decorator (Angular): ”Generate a TypeScript class decorator (e.g., Angular style)
+that automatically logs when any method in the decorated class is called.”
+6. Indexed Access Type Usage: ”Given an interface Product, generate a utility type that
+extracts the type of the reviews property (which is an array) and returns the type of a
+single element within that array (e.g., ReviewType).”
+
+Made by AntiGravity.Codes
+
+16
+
+Chapter 7
+
+Prompt Cluster: Refactoring,
+Improvement, and Principles
+7.1
+
+Refactoring for SOLID Principles
+
+7.1.1
+
+Examples
+
+1. ”I have a class (Java) with 15 methods. Use CoT to explain which methods violate the Single
+Responsibility Principle (SRP) and provide the refactored code split into two new classes,
+focusing on clear and descriptive naming (e.g., DataProcessor and DataValidator).”
+2. ”Suggest a way to refactor this C# code to follow SOLID Principles while improving its
+reusability and demonstrating adherence to the Interface Segregation Principle (ISP) (e.g.,
+by creating two smaller interfaces).”
+3. ”Refactor the following legacy C++ function to isolate its external dependency calls (e.g.,
+database connection) using a clear interface, thereby dramatically improving its unit testability. Explain the methodology first.”
+4. Liskov Substitution Principle (LSP): ”Context: [Paste two subclass implementations]. Task:
+Analyze if the two subclasses violate the LSP when substituted for their base class method.
+Provide a clear justification (CoT) and the necessary method signature correction.”
+5. Open/Closed Principle (OCP): ”Refactor this C# pricing calculation class to adhere to the
+OCP. The new design should allow adding new discount types without modifying the core
+pricing logic (e.g., using a Strategy pattern or interface injection).”
+
+7.2
+
+Performance and Scalability Optimization
+
+7.2.1
+
+Examples
+
+1. ”Analyze this Python data processing loop. Suggest three specific refactoring techniques
+(e.g., vectorization with NumPy, memoization, optimized data structure choice) to improve
+computational speed and memory efficiency (e.g., using generators instead of lists).”
+2. ”How can I refactor my Node.js microservice code to improve its scalability and performance under heavy load? Focus on non-blocking I/O patterns and suggest an appropriate
+caching strategy (e.g., Redis implementation).”
+3. Suggest a refactor for this C# function to optimize its database query execution time,
+assuming a high-latency connection (e.g., minimizing round trips or using stored procedures).
+4. Premature Optimization Review: ”Review this C++ function. Does it contain any instances of premature optimization (e.g., unnecessary manual memory management or
+unrolled loops)? Suggest the cleaner, idiomatic alternative.”
+17
+
+5. Thread/Goroutine Leak Check: ”Analyze this Go function which uses channels and goroutines. Is there a potential goroutine leak? If so, provide the exact fix to ensure the
+goroutine terminates safely (e.g., using a select block).”
+
+Made by AntiGravity.Codes
+
+18
+
+Chapter 8
+
+Prompt Cluster: Quality Assurance and
+Test Automation
+8.1
+
+Generating Comprehensive Unit and Integration Tests
+
+8.1.1
+
+Examples
+
+1. Unit Test Generation: ”Can you generate a comprehensive set of unit tests for this function, covering both edge cases (e.g., null input) and normal scenarios?”
+2. Edge Case Focus: ”Generate a comprehensive set of unit tests (Java/JUnit) for this complex
+financial calculation function [Context: Java function]. Focus specifically on generating 5
+numerical edge cases (e.g., max/min integers, zero, null input, negative value).”
+3. Integration Tests: ”Generate 5 high-priority integration test scenarios for an authentication API endpoint, ensuring coverage for expired tokens, invalid credentials, rate limit
+errors, and a successful token refresh attempt.”
+4. Test Iteration: ”The previously generated unit test [Context: Previous test code] is failing
+due to a setup issue. Analyze the error traceback and provide the corrected test setup and
+assertion logic (e.g., assertEquals).”
+5. Fuzz Testing Strategy: ”Outline a basic fuzz testing strategy for a C++ serialization library,
+specifying the types of malformed inputs (e.g., buffer overflows, deeply nested structures)
+to generate.”
+6. Browser E2E (Playwright/Cypress): ”Generate a Playwright/Cypress E2E test script to verify the user successfully completes a checkout flow. Steps must include logging in, adding
+an item to the cart, and clicking the final ’Purchase’ button.”
+
+8.2
+
+Mocking Dependencies and Test Data Generation
+
+8.2.1
+
+Examples
+
+1. Mock Object Creation (Python): ”I need to test an internal messaging queue client. Generate the Python unittest.mock configuration necessary to simulate 10 successful message posts and 3 connection failure events (e.g., network timeout). Output only the setup
+code.”
+2. Data Generation: ”Generate 20 distinct, synthetic user profiles for a database seed, ensuring the data conforms to the following schema and includes realistic variations in email
+format and street addresses (e.g., ’Apt 101’, ’Floor 5’).”
+3. Client Stub Generation (C#): ”Generate a C# client stub interface and a mock implementation for an external gRPC service named PaymentProcessor. Ensure the mock returns a
+successful response for ProcessPayment.”
+19
+
+4. Test Doubles (Java/Mockito): ”Generate the Java/Mockito setup code to mock a dependency method (e.g., userService.getUser(id)) such that it throws a custom UserNotFoundException
+when called with a specific ID (e.g., 999).”
+5. Snapshot Testing (React/Jest): ”Generate a basic Jest snapshot test file for the provided
+React component (Context: paste component JSX). Ensure the test setup includes rendering the component with required mock props.”
+
+Made by AntiGravity.Codes
+
+20
+
+Chapter 9
+
+Prompt Cluster: DevOps,
+Infrastructure, and Cloud
+Configuration
+9.1
+
+Generating and Refining Secure Dockerfiles
+
+9.1.1
+
+Examples
+
+1. Dockerfile Optimization: ”Analyze the following Dockerfile and refactor it to implement
+a multi-stage build, utilize a non-root user, and enforce a secure entrypoint. Output the
+revised Dockerfile. Justify the changes using CoT (e.g., explaining why a non-root user is
+necessary).”
+2. Vulnerability Mitigation: ”Act as a Security Auditor. Review this Dockerfile. Are there any
+practices (e.g., installing unnecessary packages) that introduce security risks? Provide the
+refactored, hardened version.”
+3. Advanced Build Arguments: ”Generate a Dockerfile for a Node.js application that uses
+build arguments to dynamically set the NODE_ENV and install production dependencies only
+in the final stage.”
+4. Distroless Container: ”Generate a highly minimal, secure Dockerfile for a Go binary using
+a Distroless base image (e.g., gcr.io/distroless/static).”
+
+9.2
+
+Kubernetes Manifests and Cloud Strategy
+
+9.2.1
+
+Examples
+
+1. Ingress Definition: ”Generate a Kubernetes Ingress resource YAML to route traffic based
+on path (e.g., /api/v1 to Service A, /admin to Service B). Constraints: Must use Let’s Encrypt
+annotation for automatic TLS termination.”
+2. Deployment Configuration: ”Generate a Kubernetes Deployment YAML for a Python application running in the provided Docker image. Constraints: Request 500m CPU and
+512Mi memory; enforce a readiness probe that checks the /health endpoint every 10 seconds.”
+3. GCP Network Policy: ”Act as GCP Network Engineer. Generate the Terraform HCL configuration necessary to provision a VPC network and two subnetworks in the us-central1 region, ensuring firewall rules only permit SSH from a specific IP range (e.g., 203.0.113.4/32).”
+4. Horizontal Pod Autoscaler (HPA): ”Generate a Kubernetes HPA resource YAML to scale a
+deployment from 2 to 10 replicas. Constraint: Trigger scaling when CPU utilization exceeds
+70% or memory usage exceeds 60% of requests.”
+21
+
+5. Istio VirtualService: ”Generate the Istio VirtualService YAML required to implement a canary deployment strategy, routing 95% of traffic to app-v1 and 5% to app-v2.”
+
+9.3
+
+CI/CD Pipeline Configuration and gcloud Automation
+
+9.3.1
+
+Examples
+
+1. Cloud Command Sequence: ”Generate the shell script sequence (using gcloud) required
+to provision a new Cloud Storage bucket, set a lifecycle policy to archive objects older than
+90 days to nearline storage, and grant Storage Object Viewer access to a specific service
+account (e.g., my-service-account@project-id.iam.gserviceaccount.com).”
+2. GitHub Actions Workflow: ”Generate a GitHub Actions workflow YAML file that automatically builds a Docker image on every push to the main branch, pushes it to Google Artifact
+Registry, and then triggers a rolling update deployment on a GKE cluster.”
+3. IAM Optimization: ”How do I optimize IAM permissions for a specific service account in
+GCP that only needs read access to BigQuery and write access to Cloud Pub/Sub (e.g.,
+listing the minimum required roles)?”
+4. Cloud Build Trigger: ”Generate the Cloud Build configuration (YAML) for a trigger that
+builds and tests a Go application, then conditionally deploys it to a staging Cloud Run
+service only if all unit tests pass.”
+5. Serverless Deployment (Cloud Functions): ”Generate the gcloud command to deploy a
+Python Cloud Function (data_processor) with an HTTP trigger, 2GB memory, a 540-second
+timeout, and restricted ingress settings (internal only).”
+
+Made by AntiGravity.Codes
+
+22
+
+Chapter 10
+
+Prompt Cluster: Observability and Site
+Reliability Engineering (SRE)
+This cluster focuses on using Gemini 3 to define, generate, and analyze telemetry for highstakes production environments.
+
+10.1
+
+Defining SLIs, SLOs, and Error Budgets
+
+10.1.1 Examples
+1. SLI/SLO Definition: ”Act as an SRE. Define a Service Level Indicator (SLI) and Service Level
+Objective (SLO) for a critical e-commerce checkout API. Focus on availability and latency.
+Output the definition in a structured Markdown table (e.g., using P95 latency).”
+2. Error Budget Calculation: ”Given a 99.9% availability SLO and 30 days, calculate the total
+allowed downtime in minutes. Use CoT to show the full calculation.”
+3. Golden Signals Definition: ”Define the four Golden Signals (Latency, Traffic, Errors, Saturation) for a stateless microservice (e.g., a currency converter API). Provide a concrete
+metric for each signal (e.g., Prometheus metric names).”
+4. Apdex Score Calculation: ”Context: Total requests = 1000. Satisfied requests (under 1s)
+= 800. Tolerating requests (under 3s) = 150. Frustrated requests = 50. Task: Calculate the
+Apdex score. Use CoT to show the formula and result.”
+
+10.2
+
+Metrics and Alerting Configuration
+
+10.2.1 Examples
+1. Prometheus/Grafana: ”Generate the PromQL query necessary to calculate the error rate
+(4xx and 5xx responses) for the /api/v2/items endpoint, aggregated over a 5-minute window, excluding client errors (401, 403).”
+2. Cloud Monitoring Alert: ”Generate the JSON configuration for a Cloud Monitoring alert
+policy. Constraint: The policy must trigger a high-severity incident if the CPU utilization
+for a GKE pod exceeds 85% for 15 consecutive minutes.”
+3. Advanced PromQL: ”Generate the PromQL query to calculate the 99th percentile of request latency for the last 6 hours, grouped by the Kubernetes namespace label.”
+4. Logging Sink (GCP): ”Generate the gcloud command to create a Logging Sink that exports
+all error-level logs from the frontend component to a new BigQuery dataset for long-term
+analysis.”
+
+23
+
+10.3
+
+Debugging and Post-Mortem Assistance
+
+10.3.1 Examples
+1. Post-Mortem Template: ”Generate a structured post-mortem document template based
+on the Google SRE format. Include sections for Incident Summary, Root Cause, Impact,
+and 5 Whys Analysis.”
+2. Log Analysis: ”Context: [Paste sanitized access log lines]. Task: Analyze the logs to determine the specific time window and IP address range responsible for the highest number
+of failed login attempts (401 errors).”
+3. Thread Dump Analysis: ”Act as a Java Performance Expert. Context: [Paste a Java thread
+dump]. Task: Analyze the state of the first 5 threads. Identify the most likely cause of a
+deadlock or long-running block (e.g., looking for WAITING or BLOCKED states).”
+4. Distributed Tracing Query: ”Generate a query (e.g., using OpenTelemetry/Jaeger format)
+to find all traces that involve the PaymentService and have a total latency exceeding 5
+seconds.”
+
+Made by AntiGravity.Codes
+
+24
+
+Chapter 11
+
+Prompt Cluster: MLOps and AI
+Engineering
+This cluster is designed for developers working on integrating, deploying, and managing machine learning models in production environments.
+
+11.1
+
+Model Serving and Deployment
+
+11.1.1 Examples
+1. Vertex AI Deployment: ”Generate the Python code (using the Vertex AI SDK) to deploy
+a pre-trained scikit-learn model artifact (stored in Cloud Storage) to a managed endpoint.
+Constraints: Specify 2 CPU cores and the appropriate machine type for prediction.”
+2. A/B Testing Configuration: ”Generate the infrastructure configuration (e.g., Kubernetes
+Service/Istio YAML) to deploy two versions of a prediction microservice (v1 and v2) and
+route 90% of traffic to v1 and 10% to v2 for A/B testing.”
+3. Custom Prediction Container: ”Generate a minimal Dockerfile for a custom prediction
+container that serves a PyTorch model via a simple Flask HTTP server. Constraint: Must be
+optimized for cold start time (e.g., use a smaller base image, preload model weights).”
+4. Batch Prediction Setup: ”Generate the Python code (e.g., using Vertex AI SDK or client
+libraries) to submit a batch prediction job that reads input data from a BigQuery table and
+writes the prediction results back to a Cloud Storage bucket.”
+
+11.2
+
+Feature Stores and Data Pipelines
+
+11.2.1 Examples
+1. Feature Store Schema: ”Act as a Data Scientist. I need a schema for a new Feature
+Store (e.g., Vertex AI Feature Store) to track real-time features for a recommendation engine. Generate the YAML definition for 5 key features (e.g., user_click_count_24h, last_purchase_time).”
+2. TFX Pipeline Component: ”Generate a high-level Python component definition for a TFX
+pipeline stage responsible for data validation, ensuring it checks for schema skew and
+data drift.”
+3. Model Monitoring Alert: ”Generate a Cloud Monitoring alert configuration (JSON) that
+triggers if the prediction drift (e.g., a Kullback-Leibler divergence metric) for the ’age’ feature exceeds 0.2 threshold over a 24-hour window.”
+4. Data Versioning (DVC): ”Generate the shell command sequence required to initialize a
+DVC project, track the data/ directory, and push the versioned metadata to a remote Cloud
+Storage backend.”
+
+25
+
+Chapter 12
+
+Prompt Cluster: Security,
+Multimodality, and Documentation
+12.1
+
+Security Review and Vulnerability Identification
+
+12.1.1 Examples
+1. Vulnerability Fix: ”Act as a Pen Tester. Review the following input validation logic. Identify
+any weaknesses that could allow XSS and provide the specific secure coding practice fix
+(e.g., use an appropriate output encoding library).”
+2. Threat Modeling: ”Act as a Cyber Security Analyst. Perform a high-level threat model
+for an internal API used for employee data lookup. Identify the top 3 attack vectors (e.g.,
+insider threat, data exfiltration) and propose mitigations for each.”
+3. Compliance Check: ”Act as a Regulatory Expert. Context: [Sample PII data handling function]. Task: Review the function against CCPA/GDPR data minimization principles. List two
+non-compliant areas and the required refactors.”
+4. Prompt Guardrails: ”Classify the following user input as safe or potential jailbreaking
+attack. Context: [User input string] (e.g., ’Ignore previous instructions’).”
+5. CORS Policy Generation: ”Generate the Java Spring Boot configuration for a global CORS
+policy that allows access from https://app.example.com and permits GET, POST, PUT methods with the Authorization header.”
+6. Hardening Network Policy (K8s): ”Generate a Kubernetes NetworkPolicy YAML that restricts ingress traffic to the database pods only from pods labeled app: api-service within
+the same namespace.”
+
+12.2
+
+Multimodal Prompts for Developers (Vision)
+
+These prompts require the developer to upload an image (e.g., a screenshot or a wireframe) to
+guide the coding process.
+
+12.2.1 Examples
+1. Wireframe to Code: ”Context: [Upload image of a hand-drawn wireframe for a dashboard
+layout]. Task: Generate the core HTML/Tailwind CSS structure to realize this layout. Focus
+on the mobile responsiveness of the three main sections.”
+2. CI/CD Dashboard Analysis: ”Act as a DevOps Engineer. Context: [Upload image of a CI/CD
+pipeline dashboard showing several failures]. Task: Analyze the screenshot, identify the
+stage that consistently fails (e.g., ’Integration Test’), and suggest the three most likely configuration causes (e.g., missing environment variables).”
+
+26
+
+3. Error Screenshot Debugging: ”Context: [Upload screenshot of a JavaScript console error/stack trace]. Task: Analyze the error text and traceback visible in the image. Determine
+the root cause (e.g., null pointer exception) and provide the fix for the affected function.”
+4. UML Diagram Transcription: ”Context: [Upload image of a hand-drawn UML class diagram]. Task: Transcribe this diagram into PlantUML syntax. Use CoT to identify any ambiguous relationships (e.g., missing multiplicity).”
+5. Cloud Console Navigation Guide: ”Context: [Upload image of a complex GCP console
+page]. Task: Provide the single gcloud command equivalent to the action being performed
+on this screen.”
+
+12.3
+
+Technical Documentation and Specification Generation
+
+12.3.1 Examples
+1. Release Notes: ”Based on the provided change log (Context: feature list), generate developerfacing release notes for the API update. Organize using an introductory paragraph, a table of breaking changes, and detailed subsections for new endpoints (e.g., /users and
+/orders).”
+2. User Stories: ”Create three detailed user stories for a new dark mode feature implementation, focusing on the persona of a ’Late-night Coder’ and detailing acceptance criteria
+(e.g., Gherkin format) for each.”
+3. Rewriting for Audience: ”Transform this complex architectural document [Context: document text] into a casual-yet-informative tone suitable for a marketing blog post. Keep
+definitions concise, and add bullet points wherever possible.”
+4. API Documentation: ”Generate Doxygen-style documentation headers for the following
+C++ class methods, ensuring all parameters and return types are fully described (e.g.,
+@param and @return tags).”
+5. SOP Generation: ”Generate a Standard Operating Procedure (SOP) for patching a production Linux server cluster. Output the procedure as a step-by-step numbered list, including
+preconditions and rollback instructions.”
+
+12.4
+
+Learning and Technical Mentorship
+
+12.4.1 Examples
+1. Concept Explanation: ”Explain the concept of eventual consistency in distributed databases
+(e.g., DynamoDB) to a new hire with 6 months of professional experience. Use simple
+analogies and provide 3 common implementation pitfalls to avoid.”
+2. Career Guidance: ”Act as an Engineering Mentor. I am currently proficient in Python and
+AWS. Outline a structured 6-month learning plan for me to transition into a Principal Software Architect role (e.g., recommending specific certifications or projects).”
+3. Deep Dive Explanation: ”Provide a technical deep dive explaining how TLS handshake termination works at a Layer 7 load balancer (e.g., Google’s HTTP(S) Load Balancer), including
+the specific certificate and key management steps.”
+4. Framework Comparison: ”Compare the performance and ecosystem of Vue.js, Svelte,
+and React for building a large-scale enterprise single-page application (SPA). Output the
+comparison as a structured table listing pros, cons, and bundle size considerations.”
+
+Made by AntiGravity.Codes
+
+27
+
+Chapter 13
+
+High-Performance and Distributed
+Computing
+13.1
+
+WebAssembly (WASM) and Performance Optimization
+
+13.1.1 Examples
+1. C++ to WASM Workflow: ”Generate a step-by-step shell script to compile a simple C++
+function that calculates Fibonacci numbers into an optimized WebAssembly binary using
+Emscripten. Constraint: Output only the shell commands and compiler flags (e.g., -Os for
+optimization).”
+2. WASM Integration (JavaScript): ”Generate the minimal JavaScript code required to load
+the WebAssembly module (named math.wasm) and call its exported function fibonacci(10).”
+3. WASI Prompt: ”Explain the concept of WASI (WebAssembly System Interface) and why it’s
+necessary for running WASM outside of the browser (e.g., on a server or edge node).”
+4. Rust WASM Bindings: ”Generate the Rust code necessary to expose a function process_image(bytes)
+to JavaScript using wasm-bindgen. Define the interface for the bytes input (e.g., using jssys::Uint8Array).”
+
+5. WASM Module Interface Definition: ”Define the required exported functions (signatures
+only) for a WASM module that handles high-speed financial calculation inputs (e.g., calculate_interes
+rate, time)).”
+
+13.2
+
+Edge Computing and Low-Latency Patterns
+
+13.2.1 Examples
+1. Edge Function Boilerplate (JavaScript): ”Generate the boilerplate JavaScript for a Cloudflare Worker that intercepts a request, checks for a specific header, and modifies the response body if the header is present (e.g., setting a custom cache-control header).”
+2. Distributed Caching Strategy: ”Act as a Performance Consultant. Describe a distributed
+caching strategy for a global API using edge functions. Recommend two different tiers of
+caching (e.g., CDN/Edge, then Redis) and explain the invalidation logic for each.”
+3. Serverless Fan-out Pattern: ”Design a serverless fan-out data processing pattern for a
+high-throughput stream of user events. Components must include an initial ingest function, a Pub/Sub topic, and three parallel processing functions (e.g., for analytics, storage,
+and alerting).”
+4. Edge Request Authentication: ”Generate the JavaScript/TypeScript code for an Edge Function that verifies an incoming request’s HMAC signature against a shared secret before
+forwarding the request to the origin server.”
+28
+
+5. Latency Budget Analysis: ”Act as a Network Engineer. Given a total latency budget of
+200ms for an API call, and knowing that the origin database latency is 80ms, calculate the
+remaining budget for the Edge Function execution and network overhead.”
+
+Made by AntiGravity.Codes
+
+29
+
+Chapter 14
+
+Advanced Data Modeling and
+Emerging Tech
+14.1
+
+NoSQL and Graph Database Modeling
+
+14.1.1 Examples
+1. MongoDB Schema Design: ”Design a MongoDB document schema for a social media
+application that efficiently handles the relationship between a User and their Posts. Focus on minimizing lookups and use embedded documents (e.g., array of post IDs) where
+appropriate. Output the schema as a JSON object.”
+2. Aggregation Pipeline (MongoDB): ”Generate a MongoDB aggregation pipeline query to
+find the top 10 most active users (e.g., by post count) in the last 7 days. Steps must include
+$match, $group, and $sort stages.”
+3. Cypher Query (Neo4j): ”Generate the Cypher query language (Neo4j) needed to find all
+friends-of-friends of a specific user (UserA) who live in the city of London, excluding UserA
+himself.”
+4. Cassandra Modeling: ”Act as a Data Architect. I need a Cassandra table design to store
+time-series data from 10,000 sensors. Define the primary key and clustering columns to
+ensure efficient reads based on sensor_id and a time range (e.g., partitioning key and
+clustering column).”
+5. DynamoDB Key Design: ”Propose the Partition Key and Sort Key design for a DynamoDB
+table storing customer orders, optimizing for two access patterns: 1) Retrieve all orders
+by customer_id. 2) Retrieve all orders for a specific date range, regardless of customer.”
+6. Graph Traversal Optimization: ”Explain why using breadth-first search (BFS) is often preferred over depth-first search (DFS) for most relationship traversals in a graph database
+context (e.g., Neo4j).”
+
+14.2
+
+Quantum Computing Concepts
+
+14.2.1 Examples
+1. Qubit Explanation: ”Explain the concept of a qubit and superposition to a developer who
+understands classical bits. Use the analogy of a polarization filter to describe measurement collapse.”
+2. Hadamard Gate (Qiskit): ”Generate the minimal Python code using the Qiskit library to
+create a quantum circuit with 2 qubits and apply the Hadamard gate (H) to the first qubit.
+Output the circuit visualization (e.g., the code for drawing the circuit).”
+
+30
+
+3. Shor’s Algorithm Overview: ”Provide a high-level, 3-step technical explanation of what
+Shor’s algorithm is and its primary implications for modern encryption (e.g., RSA).”
+4. Grover’s Algorithm Prompt: ”Describe a practical use case where Grover’s search algorithm could provide a quadratic speedup over classical algorithms in a software development context (e.g., searching an unsorted database).”
+5. Entanglement Concept: ”Explain the concept of quantum entanglement (e.g., using the
+Bell state) and describe one potential future application in secured communication (e.g.,
+Quantum Key Distribution).”
+6. Basic Quantum Circuit (Qiskit): ”Generate the Qiskit code for a simple quantum circuit
+with 3 qubits that applies a CNOT gate between qubit 0 (control) and qubit 2 (target), and
+then measures all qubits.”
+
+Made by AntiGravity.Codes
+
+31
+
+Conclusions and Recommendations
+The exhaustive analysis demonstrates that for developers to maximize the utility of advanced
+models like Gemini 3, a systematic and structured prompting methodology is essential. This
+collection of over 850 structured prompts, including specialized sections for Python, React,
+Next.js, TypeScript, SRE/Observability, AI Engineering, and Emerging Technologies (WASM/Quantum), provides the protocols necessary to unlock Gemini 3’s potential as a highly effective technical co-pilot.
+
+32
+
+

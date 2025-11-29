@@ -60,111 +60,167 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
     try {
       const doc = new jsPDF();
       const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 20;
       const contentWidth = pageWidth - (margin * 2);
       let yPos = 20;
 
+      // Helper for text wrapping
+      const addWrappedText = (text: string, fontSize: number = 10, fontType: string = "normal", indent: number = 0) => {
+        doc.setFont("times", fontType);
+        doc.setFontSize(fontSize);
+        const lines = doc.splitTextToSize(text, contentWidth - indent);
+        doc.text(lines, margin + indent, yPos);
+        yPos += (lines.length * (fontSize * 0.5)) + 2;
+      };
+
       // --- Header ---
       doc.setFont("times", "bold");
       doc.setFontSize(10);
-      doc.text("FOLIO PRELIMINAR: #MX-" + Math.floor(Math.random() * 10000), pageWidth - margin, yPos, { align: "right" });
-      yPos += 5;
+      doc.text("ASUNTO: Denuncia Popular.", pageWidth - margin, yPos, { align: "right" });
+      yPos += 10;
+
       doc.setFontSize(12);
-      doc.text("ASUNTO: DENUNCIA CIUDADANA POR FALTAS ADMINISTRATIVAS", pageWidth - margin, yPos, { align: "right" });
-
-      yPos += 20;
-
-      // --- Addressee ---
-      doc.setFont("times", "bold");
-      doc.setFontSize(11);
-      doc.text(`A LA AUTORIDAD ${draft.aiAnalysis?.competency || 'COMPETENTE'}`, margin, yPos);
+      doc.text("Procuraduría Federal de Protección al Ambiente", margin, yPos);
       yPos += 5;
-      doc.text("PRESENTE.", margin, yPos);
-
-      yPos += 15;
-
-      // --- Body Paragraph 1 ---
+      doc.text("(PROFEPA)", margin, yPos);
+      yPos += 10;
       doc.setFont("times", "normal");
-      doc.setFontSize(11);
-      const name = draft.isAnonymous ? "CIUDADANO BAJO PROTECCIÓN DE ANONIMATO" : draft.fullName.toUpperCase();
-      const email = draft.email;
+      doc.setFontSize(10);
+      doc.text("Oficina de representación en el Estado de ______________________________________.", margin, yPos);
+      yPos += 10;
+      doc.setFont("times", "bold");
+      doc.text("Presente:", margin, yPos);
+      yPos += 10;
 
-      const text1 = `El que suscribe, ${name}, señalando como medio para recibir notificaciones el correo electrónico ${email}, comparezco para exponer:`;
-      const splitText1 = doc.splitTextToSize(text1, contentWidth);
-      doc.text(splitText1, margin, yPos);
-      yPos += (splitText1.length * 5) + 5;
+      // --- Intro ---
+      doc.setFont("times", "normal");
+      const intro = "Por el presente procedo a DENUNCIAR hechos, actividades u omisiones que están produciendo o pueden producir desequilibrio ecológico o daños al ambiente o a los recursos naturales, o contravienen las disposiciones legales nacionales:";
+      addWrappedText(intro, 10, "normal");
+      yPos += 5;
 
-      // --- Body Paragraph 2 ---
-      const legalBasis = draft.aiAnalysis?.legalBasis || 'la legislación aplicable';
-      const text2 = `Que por medio del presente instrumento vengo a denunciar los hechos que considero constitutivos de falta administrativa, fundamentando mi dicho en ${legalBasis}.`;
-      const splitText2 = doc.splitTextToSize(text2, contentWidth);
-      doc.text(splitText2, margin, yPos);
-      yPos += (splitText2.length * 5) + 10;
-
-      // --- Description (Quote) ---
+      // --- 1. ¿Qué se está denunciando? ---
+      doc.setFont("times", "bold");
+      doc.text("¿Qué se está denunciando?", margin, yPos);
+      yPos += 5;
       doc.setFont("times", "italic");
-      doc.setTextColor(50, 50, 50); // Dark Gray
-      // Draw a light gray background box for the quote
-      // doc.setFillColor(245, 245, 245);
-      // doc.rect(margin, yPos - 5, contentWidth, 50, 'F'); // Approximate height, hard to calculate exact dynamic height easily without more logic
-
-      const description = `"${draft.description}"`;
-      const splitDesc = doc.splitTextToSize(description, contentWidth - 10); // Indent slightly
-      doc.text(splitDesc, margin + 5, yPos);
-      yPos += (splitDesc.length * 5) + 15;
-
-      doc.setTextColor(0, 0, 0); // Reset color
-      doc.setFont("times", "normal");
-
-      // --- Location & Evidence Section ---
-      doc.setDrawColor(200, 200, 200);
-      doc.rect(margin, yPos, contentWidth, 35); // Box
-
-      let boxY = yPos + 8;
       doc.setFontSize(9);
-      doc.setFont("helvetica", "bold");
-      doc.text("UBICACIÓN GEO-REFERENCIADA:", margin + 5, boxY);
-      doc.text("EVIDENCIA ADJUNTA:", pageWidth / 2 + 5, boxY);
-
-      boxY += 5;
-      doc.setFont("helvetica", "normal");
-      if (draft.location) {
-        doc.text(`Lat: ${draft.location.lat.toFixed(6)}, Lng: ${draft.location.lng.toFixed(6)}`, margin + 5, boxY);
-        const addressLines = doc.splitTextToSize(draft.location.address || '', (contentWidth / 2) - 10);
-        doc.text(addressLines, margin + 5, boxY + 5);
-      } else {
-        doc.text("No especificada", margin + 5, boxY);
-      }
-
-      const evidenceText = draft.evidenceFiles.length > 0
-        ? draft.evidenceFiles.map(f => `• ${f.name}`).join("\n")
-        : "Sin archivos adjuntos";
-      const splitEvidence = doc.splitTextToSize(evidenceText, (contentWidth / 2) - 10);
-      doc.text(splitEvidence, pageWidth / 2 + 5, boxY);
-
-      yPos += 50;
-
-      // --- Signature ---
-      yPos = Math.max(yPos, 220); // Push to bottom if space allows, or just below content
-
-      doc.setDrawColor(0, 0, 0);
-      doc.line((pageWidth / 2) - 40, yPos, (pageWidth / 2) + 40, yPos); // Signature Line
+      doc.text("(ser lo más específicas posible)", margin, yPos);
+      yPos += 5;
 
       doc.setFont("times", "normal");
       doc.setFontSize(10);
-      const signName = draft.isAnonymous ? "Firma Digital Anónima" : draft.fullName;
-      doc.text(signName, pageWidth / 2, yPos + 5, { align: "center" });
+      const description = draft.description || "Sin descripción proporcionada.";
+      addWrappedText(description, 10, "normal");
+      yPos += 5;
 
+      // --- 2. ¿Cuándo ocurrió? ---
+      doc.setFont("times", "bold");
+      doc.text("¿Cuándo ocurrió o desde cuándo está ocurriendo?", margin, yPos);
+      yPos += 7;
+      doc.setFont("times", "normal");
+      doc.text("Fecha aproximada: " + new Date().toLocaleDateString(), margin, yPos);
+      yPos += 10;
+
+      // --- 3. ¿Dónde está ocurriendo? ---
+      doc.setFont("times", "bold");
+      doc.text("¿Dónde está ocurriendo?", margin, yPos);
+      yPos += 7;
+
+      doc.setFont("times", "normal");
+      doc.text(`- Estado: ${draft.location?.address?.split(',').pop()?.trim() || 'No especificado'}`, margin + 5, yPos);
+      yPos += 7;
+      doc.text(`- Municipio/Localidad: ${draft.location?.address || 'No especificado'}`, margin + 5, yPos);
+      yPos += 7;
+      doc.text(`- Coordenadas: Norte ${draft.location?.lat.toFixed(6)}, Oeste ${draft.location?.lng.toFixed(6)}`, margin + 5, yPos);
+      yPos += 7;
+      doc.text("- Referencias: Ubicación geo-referenciada en mapa digital.", margin + 5, yPos);
+      yPos += 10;
+
+      // --- 4. ¿Quién? ---
+      doc.setFont("times", "bold");
+      doc.text("¿Quién o quienes están realizando esta acción?", margin, yPos);
+      yPos += 7;
+      doc.setFont("times", "normal");
+      doc.text("● Posiblemente sea: " + (draft.isAnonymous ? "No tengo conocimiento exacto / Por investigar" : "Ver descripción"), margin + 5, yPos);
+      yPos += 10;
+
+      // --- 5. Pruebas ---
+      doc.setFont("times", "bold");
+      doc.text("PRUEBAS:", margin, yPos);
+      yPos += 5;
+      doc.setFont("times", "normal");
+      doc.text("Adjunto a la presente denuncia las siguientes pruebas:", margin, yPos);
+      yPos += 7;
+
+      if (draft.evidenceFiles.length > 0) {
+        draft.evidenceFiles.forEach(file => {
+          doc.text(`- Archivo: ${file.name}`, margin + 5, yPos);
+          yPos += 5;
+        });
+      } else {
+        doc.text("- Sin archivos adjuntos.", margin + 5, yPos);
+        yPos += 5;
+      }
+      yPos += 5;
+
+      // --- 6. Datos del Denunciante ---
+      doc.setFont("times", "bold");
+      doc.text("DATOS DE IDENTIFICACIÓN DE LA PERSONA DENUNCIANTE", margin, yPos);
+      yPos += 7;
+      doc.setFont("times", "normal");
+      if (draft.isAnonymous) {
+        doc.text("Nombre: ANÓNIMO (Solicito protección de datos personales)", margin, yPos);
+      } else {
+        doc.text(`Nombre completo: ${draft.fullName}`, margin, yPos);
+        yPos += 5;
+        doc.text(`Correo electrónico: ${draft.email}`, margin, yPos);
+      }
+      yPos += 10;
+
+      // --- Legal / Solicito ---
+      // Check if we need a new page
+      if (yPos > pageHeight - 100) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      doc.setFont("times", "bold");
+      doc.text("SOLICITO", margin, yPos, { align: "center" });
+      yPos += 10;
+
+      doc.setFont("times", "normal");
+      doc.setFontSize(9);
+
+      const legalText = [
+        "PRIMERO.- Se admita y realicen las acciones necesarias a fin de corroborar la existencia de los actos, hechos y omisiones denunciados, en cumplimiento a lo dispuesto en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente.",
+        "TERCERO.- Se me reconozca el carácter de coadyuvante, de conformidad con el artículo 193 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente.",
+        "CUARTO.- Se me permita acceder al o los expedientes que con motivo de esta denuncia se integren, de conformidad con lo dispuesto en el artículo 33 de la Ley Federal del Procedimiento Administrativo.",
+        "QUINTO.- Se mantenga la confidencialidad y reserva de mis datos personales y los de mis autorizados, de conformidad a lo dispuesto en los artículos 1 y 6 de la CPEUM, 113, fracción V, 116 de la Ley General de Transparencia y Acceso a la Información Pública."
+      ];
+
+      legalText.forEach(text => {
+        const lines = doc.splitTextToSize(text, contentWidth);
+        doc.text(lines, margin, yPos);
+        yPos += (lines.length * 4) + 3;
+      });
+
+      yPos += 10;
+      doc.setFont("times", "bold");
+      doc.text("PROTESTO LO NECESARIO", margin, yPos);
+      yPos += 5;
+      doc.setFont("times", "normal");
+      doc.text(`A la fecha de su presentación: ${new Date().toLocaleDateString()}`, margin, yPos);
+
+      yPos += 20;
+      doc.line(margin + 40, yPos, pageWidth - margin - 40, yPos); // Signature line
+      yPos += 5;
+      doc.text("NOMBRE Y FIRMA", pageWidth / 2, yPos, { align: "center" });
+      yPos += 5;
       doc.setFontSize(8);
-      doc.setTextColor(100, 100, 100);
-      doc.text(`Hash Digital: ${Math.random().toString(36).substring(7).toUpperCase()}`, pageWidth / 2, yPos + 10, { align: "center" });
+      doc.text(draft.isAnonymous ? "Firma Digital Anónima" : draft.fullName, pageWidth / 2, yPos, { align: "center" });
 
-      // --- Footer ---
-      doc.setFontSize(8);
-      doc.setTextColor(150, 150, 150);
-      doc.text("Generado por Denuncia Popular - Esoteria AI", pageWidth / 2, 280, { align: "center" });
-
-      doc.save("Denuncia_Popular_Oficial.pdf");
+      doc.save("Denuncia_Popular_Formato_2025.pdf");
 
     } catch (error) {
       console.error("Error generating PDF:", error);

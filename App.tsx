@@ -1,7 +1,10 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DenunciaDraft, Step } from './types';
 import { Wizard } from './components/Wizard';
+import { useDenunciaDraft } from './hooks/useDenunciaDraft';
+import { useWizardNavigation } from './hooks/useWizardNavigation';
+import { supabase } from './services/supabase';
 import { ChatBot } from './components/ChatBot';
 import { MessageCircle, X } from 'lucide-react';
 import { FeedbackWidget } from './components/FeedbackWidget';
@@ -13,21 +16,18 @@ const App: React.FC = () => {
   const { language, setLanguage } = useLanguage();
 
   // Initialize step to LOCATION (0) - Map is the Home Page
-  const [currentStep, setCurrentStep] = useState<Step>(Step.LOCATION);
+  const { currentStep, goToStep: setCurrentStep } = useWizardNavigation();
 
-  const [draft, setDraft] = useState<DenunciaDraft>({
-    isAnonymous: false,
-    fullName: '',
-    email: '',
-    location: null,
-    description: '',
-    category: '',
-    evidenceFiles: []
-  });
+  const { draft, updateDraft: handleUpdateDraft } = useDenunciaDraft();
 
-  const handleUpdateDraft = (updates: Partial<DenunciaDraft>) => {
-    setDraft(prev => ({ ...prev, ...updates }));
-  };
+  // Anonymous Auth for RLS
+  useEffect(() => {
+    const signIn = async () => {
+      const { error } = await supabase.auth.signInAnonymously();
+      if (error) console.error('Error signing in anonymously:', error);
+    };
+    signIn();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background text-white font-sans flex flex-col selection:bg-pink-500 selection:text-white overflow-hidden">

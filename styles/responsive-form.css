@@ -1,0 +1,280 @@
+/**
+ * Mobile-First Responsive Styles for Report Form
+ * 
+ * Strategy:
+ * - Mobile (< 768px): Bottom sheet drawer that slides up
+ * - Desktop (>= 768px): Side panel fixed to the right
+ * 
+ * Key features:
+ * - Map remains partially visible on mobile
+ * - Smooth slide-up animation
+ * - Touch-friendly close gesture
+ */
+
+/* =============================================
+   Container Wrapper (Map + Form)
+   ============================================= */
+.report-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* =============================================
+   Map Container
+   ============================================= */
+.map-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+/* On desktop, reduce map width to make room for side panel */
+@media (min-width: 768px) {
+  .map-wrapper {
+    width: calc(100% - 400px); /* Sidebar width */
+  }
+}
+
+/* =============================================
+   Report Form Container
+   ============================================= */
+.report-form-container {
+  position: fixed;
+  background: #ffffff;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  
+  /* Mobile: Bottom sheet */
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 75vh;
+  border-radius: 20px 20px 0 0;
+  transform: translateY(100%);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* When form is open on mobile */
+.report-form-container.open {
+  transform: translateY(0);
+}
+
+/* Desktop: Side panel */
+@media (min-width: 768px) {
+  .report-form-container {
+    top: 0;
+    bottom: 0;
+    left: auto;
+    right: 0;
+    width: 400px;
+    max-height: 100vh;
+    border-radius: 0;
+    transform: translateX(100%);
+  }
+  
+  .report-form-container.open {
+    transform: translateX(0);
+  }
+}
+
+/* =============================================
+   Drag Handle (Mobile Only)
+   ============================================= */
+.drag-handle {
+  display: block;
+  width: 40px;
+  height: 4px;
+  background: #d1d5db;
+  border-radius: 2px;
+  margin: 12px auto 8px;
+  cursor: grab;
+}
+
+@media (min-width: 768px) {
+  .drag-handle {
+    display: none;
+  }
+}
+
+/* =============================================
+   Form Content
+   ============================================= */
+.report-form-content {
+  padding: 16px 20px;
+  overflow-y: auto;
+  max-height: calc(75vh - 50px); /* Account for header */
+}
+
+@media (min-width: 768px) {
+  .report-form-content {
+    max-height: calc(100vh - 60px);
+    padding: 24px;
+  }
+}
+
+/* Hide scrollbar but keep functionality */
+.report-form-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.report-form-content::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+/* =============================================
+   Form Header
+   ============================================= */
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 0 16px 0;
+  border-bottom: 1px solid #e5e7eb;
+  margin-bottom: 16px;
+}
+
+.form-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.close-button {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.2s;
+}
+
+.close-button:hover {
+  color: #1f2937;
+}
+
+/* =============================================
+   Map Overlay (Mobile - Dim map when form is open)
+   ============================================= */
+.map-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.map-overlay.visible {
+  display: block;
+  opacity: 1;
+}
+
+@media (min-width: 768px) {
+  .map-overlay {
+    display: none !important;
+  }
+}
+
+/* =============================================
+   Form Inputs - Mobile Optimized
+   ============================================= */
+.form-input,
+.form-textarea,
+.form-select {
+  width: 100%;
+  padding: 14px 16px; /* Larger touch target on mobile */
+  font-size: 16px; /* Prevent zoom on iOS */
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+  outline: none;
+  border-color: #ec4899;
+  box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+}
+
+@media (min-width: 768px) {
+  .form-input,
+  .form-textarea,
+  .form-select {
+    padding: 12px 14px;
+    font-size: 14px;
+  }
+}
+
+/* =============================================
+   Submit Button - Mobile Optimized
+   ============================================= */
+.submit-button {
+  width: 100%;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  background: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-top: 8px;
+}
+
+.submit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(236, 72, 153, 0.3);
+}
+
+.submit-button:active {
+  transform: translateY(0);
+}
+
+.submit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* =============================================
+   Animation Classes (for JavaScript toggle)
+   ============================================= */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInFromRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* =============================================
+   Safe Area Insets (for notched devices)
+   ============================================= */
+@supports (padding: max(0px)) {
+  .report-form-content {
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+}

@@ -20,7 +20,7 @@ const ai = new GoogleGenAI({ apiKey });
 
 export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', role: 'model', text: 'Hola, soy la IA de Esoteria. ¿Tienes dudas sobre cómo funciona Denuncia Popular o nuestros servicios?' }
+    { id: '1', role: 'model', text: 'Hola, soy tu Asistente Legal Virtual. ¿En qué puedo ayudarte a redactar tu denuncia hoy?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -42,21 +42,21 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
 
     try {
       // Use gemini-2.5-flash for fast general responses or gemini-3-pro-preview if configured
-      const modelId = 'gemini-2.5-flash'; 
-      
+      const modelId = 'gemini-2.0-flash-exp';
+
       const response = await ai.models.generateContent({
         model: modelId,
         contents: [
-          { role: 'user', parts: [{ text: "System: You are the assistant for 'Esoteria AI', a tech company offering 'Denuncia Popular'. Be concise, professional, and helpful." }] },
+          { role: 'user', parts: [{ text: "System: Act as a Legal Aid Assistant for Mexican Citizens. Your goal is to help users describe their complaints clearly and objectively. Do not give legal advice, but guide them to provide necessary details like Time, Location, and Description. Be concise, professional, and helpful." }] },
           ...messages.map(m => ({ role: m.role, parts: [{ text: m.text }] })),
           { role: 'user', parts: [{ text: input }] }
         ]
       });
 
-      const aiMsg: Message = { 
-        id: (Date.now() + 1).toString(), 
-        role: 'model', 
-        text: response.text || "Lo siento, no pude procesar eso." 
+      const aiMsg: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'model',
+        text: response.text || "Lo siento, no pude procesar eso."
       };
       setMessages(prev => [...prev, aiMsg]);
 
@@ -89,16 +89,15 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
       <div className="flex-1 overflow-y-auto p-4 space-y-4" ref={scrollRef}>
         {messages.map((msg) => (
           <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-             <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center ${msg.role === 'user' ? 'bg-zinc-800' : 'bg-pink-900/20'}`}>
-                {msg.role === 'user' ? <User size={14} className="text-zinc-400" /> : <Sparkles size={14} className="text-pink-500" />}
-             </div>
-             <div className={`max-w-[80%] p-3 rounded-2xl text-xs leading-relaxed ${
-               msg.role === 'user' 
-                 ? 'bg-zinc-800 text-white rounded-tr-none' 
-                 : 'bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-tl-none'
-             }`}>
-               {msg.text}
-             </div>
+            <div className={`w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center ${msg.role === 'user' ? 'bg-zinc-800' : 'bg-pink-900/20'}`}>
+              {msg.role === 'user' ? <User size={14} className="text-zinc-400" /> : <Sparkles size={14} className="text-pink-500" />}
+            </div>
+            <div className={`max-w-[80%] p-3 rounded-2xl text-xs leading-relaxed ${msg.role === 'user'
+                ? 'bg-zinc-800 text-white rounded-tr-none'
+                : 'bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-tl-none'
+              }`}>
+              {msg.text}
+            </div>
           </div>
         ))}
         {isLoading && (
@@ -121,7 +120,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
             placeholder="Pregunta algo..."
             className="w-full bg-zinc-950 border border-zinc-800 rounded-full pl-4 pr-10 py-3 text-xs text-white focus:ring-1 focus:ring-pink-500 outline-none"
           />
-          <button 
+          <button
             onClick={handleSend}
             className="absolute right-1 top-1 bottom-1 w-8 bg-zinc-800 hover:bg-pink-600 text-zinc-400 hover:text-white rounded-full flex items-center justify-center transition-colors"
           >

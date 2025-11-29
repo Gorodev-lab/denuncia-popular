@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
 import { DenunciaDraft } from '../../types';
 import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X, Edit2, Check } from 'lucide-react';
 import L from 'leaflet';
@@ -396,7 +397,9 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           <ClickFeedbackLayer />
-          {position && <Marker position={position} icon={tacticalIcon} />}
+          <MarkerClusterGroup chunkedLoading>
+            {position && <Marker position={position} icon={tacticalIcon} />}
+          </MarkerClusterGroup>
           <MapClickHandler setPosition={setPosition} />
         </MapContainer>
 
