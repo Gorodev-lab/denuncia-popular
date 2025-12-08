@@ -1,113 +1,127 @@
-# White Paper: Denuncia Popular v2.0
+# White Paper: Denuncia Popular v2.1
 **Democratizing Access to Administrative Justice through Artificial Intelligence**
 
-**Version:** 2.0
-**Date:** November 2025
-**Author:** Esoteria AI
+**Version:** 2.1  
+**Date:** November 2025  
+**Author:** Esoteria AI  
+**Status:** In Production (Beta)
 
 ---
 
 ## 1. Executive Summary
 
-**Denuncia Popular v2.0** is a technological platform designed to empower citizens by facilitating the creation, management, and submission of formal complaints regarding administrative misconduct. Using advanced technologies such as **Generative Artificial Intelligence (Google Gemini)** and **Precision Geolocation (Google Maps)**, the platform eliminates the technical and legal barriers that traditionally prevent citizens from exercising their rights.
+**Denuncia Popular** is a civic platform designed to transform citizen frustration into effective legal action. Using **Generative Artificial Intelligence** and **High-Precision Geolocation**, the platform converts informal reports of poor public services (potholes, streetlights, leaks) into formally structured administrative complaints, legally grounded and ready for submission to the competent authority.
 
-The system transforms an informal citizen report into a legally robust, substantiated document ready to be processed by competent authorities, all within an intuitive and accessible interface.
+Version 2.1 consolidates a robust architecture focused on user privacy, data accuracy, and technical scalability.
 
 ---
 
 ## 2. Problem Statement
 
-In Mexico and much of Latin America, citizen participation in reporting irregularities (potholes, service failures, corruption, insecurity) is low due to three critical factors:
+The gap between citizens and public administration is perpetuated by three fundamental barriers:
 
-1.  **Legal Complexity:** The average citizen is unaware of the technical-legal language necessary to draft a formal complaint that will not be dismissed for "lack of elements."
-2.  **Bureaucracy and Lack of Knowledge:** Often, it is unknown which specific authority (municipal, state, or federal) is responsible for each problem.
-3.  **Fear and Mistrust:** Fear of retaliation and mistrust in the handling of personal data discourage nominal reporting.
-
-As a result, thousands of incidents go unreported, perpetuating impunity and the deterioration of the urban environment.
+1.  **Technical-Legal Barrier:** The average citizen lacks the legal knowledge to draft a complaint that meets form and substance requirements (Constitutional Art. 8 and local administrative laws). Informal reports on social media lack legal validity.
+2.  **Jurisdictional Ambiguity:** It is difficult for citizens to distinguish whether a problem is under municipal, state, or federal jurisdiction, or which specific agency is responsible.
+3.  **Process Friction:** Official mechanisms are often bureaucratic, require physical presence, or use obsolete and difficult-to-use digital platforms.
 
 ---
 
-## 3. The Solution: Denuncia Popular
+## 3. Solution and Value Proposition
 
-Our solution acts as a **digital bridge** between the citizen and the authority. It is not just a complaint box; it is an **automated legal assistant**.
+**Denuncia Popular** acts as an **Intelligent Legal Assistant** that:
 
-### Solution Pillars:
-*   **Universal Accessibility:** A "Wizard" style interface that guides the user step-by-step without requiring prior knowledge.
-*   **Legal Intelligence:** An AI engine that interviews the user, structures the facts, identifies jurisdiction (who is responsible), and legally substantiates the complaint.
-*   **Geographic Precision:** Integration with Google Maps to locate incidents with exactitude, allowing manual descriptions ("in front of store X") for better local reference.
-*   **Security and Anonymity:** Robust options to protect the complainant's identity through encryption and anonymous reporting modes.
-
----
-
-## 4. Technical Architecture
-
-The platform is built on a modern, scalable, and secure architecture, prioritizing Client-Side performance for a fluid experience.
-
-### 4.1 Technology Stack
-*   **Frontend:** React 19 + Vite (Performance and modularity).
-*   **Language:** TypeScript (Type safety and maintainability).
-*   **Styles:** Tailwind CSS (Responsive design and premium "Dark Mode" aesthetic).
-*   **Maps:** Google Maps JavaScript API + Places API + Geocoding API.
-*   **Artificial Intelligence:** Google Gemini 1.5 Flash (Large Language Models for legal analysis).
-*   **Backend & Database:** Supabase (PostgreSQL) for data persistence and authentication.
-*   **Document Generation:** jsPDF for dynamic creation of PDF files in the browser.
-
-### 4.2 Data Flow Diagram
-1.  **Input:** The user enters location and facts (voice or text).
-2.  **Processing:**
-    *   *Google Maps* validates and normalizes the location.
-    *   *Gemini AI* analyzes the text, extracts entities, determines legal jurisdiction, and drafts the legal narrative.
-3.  **Storage:** Structured data and evidence (photos/videos) are saved in Supabase.
-4.  **Output:** A PDF is generated with a unique folio, digital signature (hash), and formal structure for download or submission.
+*   **Interviews** the user to gather essential facts (time, manner, place).
+*   **Locates** the incident precisely using industry-leading mapping services.
+*   **Substantiates** the petition by analyzing current regulations via AI.
+*   **Generates** an immutable PDF document, ready to print or send digitally.
 
 ---
 
-## 5. Key Features
+## 4. Technical Architecture and Decision Justification
 
-### 5.1 Intelligent Hybrid Geolocation
-We migrated from OpenStreetMap to **Google Maps** to offer:
-*   **Autocomplete:** Predictive address search.
-*   **Reverse Geocoding:** Precise conversion of coordinates to postal addresses.
-*   **Manual Editing:** A unique feature that allows the user to refine the automatic address with local references (e.g., "Between street 5 and 6"), crucial for areas with irregular nomenclature.
+The architecture of Denuncia Popular has been designed prioritizing **resilience**, **security**, and **user experience (UX)**. Below, we justify each critical technological decision.
 
-### 5.2 AI Legal Assistant (Chain of Thought)
-The integrated chat is not a standard chatbot. It uses **Chain of Thought (CoT)** techniques to:
-1.  **Interview:** Ask pertinent missing questions (When did it happen? Were there witnesses?).
-2.  **Substantiate:** Search in real-time (Grounding) for laws and regulations applicable to the specific case.
-3.  **Draft:** Generate a formal, objective text free of emotions, suitable for an administrative procedure.
+### 4.1 Frontend: React 19 + Vite
+*   **Decision:** Migration to React 19 and use of Vite as bundler.
+*   **Justification:**
+    *   **Performance:** React 19 introduces significant improvements in DOM handling and concurrency. Vite offers near-instant load times (HMR) during development and optimized builds for production.
+    *   **Ecosystem:** The immense community and available libraries ensure long-term maintainability.
+    *   **Fluid UX:** The SPA (Single Page Application) model eliminates page reloads, crucial for maintaining user context during the complaint "Wizard".
 
-### 5.3 Immutable Document Generation
-The system generates a PDF file that meets the requirements of a formal written petition:
-*   Header with competent authority.
-*   Preamble with identification (or anonymity legend).
-*   Narrative of facts ordered chronologically.
-*   Legal substantiation.
-*   Related attached evidence.
-*   Digital signature and Verification Hash for integrity.
+### 4.2 Database and Backend: Supabase (PostgreSQL)
+*   **Decision:** Use of Supabase as Backend-as-a-Service (BaaS).
+*   **Justification:**
+    *   **Security (RLS):** PostgreSQL's *Row Level Security Policies* allow defining granular access rules directly in the database. This ensures that even if the frontend is compromised, data remains secure.
+    *   **Anonymous Authentication:** Supabase Auth allows secure anonymous sessions, vital for protecting the identity of whistleblowers who fear retaliation.
+    *   **Scalability:** Being based on PostgreSQL, it offers enterprise robustness and native geospatial query capabilities (PostGIS).
+
+### 4.3 Map Services: Google Maps Platform
+*   **Decision:** Migration from OpenStreetMap (Leaflet) to Google Maps API.
+*   **Justification:**
+    *   **Data Quality:** In Latin America, Google's database of addresses and POIs (Points of Interest) is superior to OSM. This is critical to avoid complaints being dismissed for "imprecise location".
+    *   **Reverse Geocoding:** Google's API offers a much more precise and readable coordinate-to-address conversion for authorities.
+    *   **Familiarity:** The Google Maps interface is the de facto standard; its use reduces the learning curve for the end user.
+
+### 4.4 Artificial Intelligence: Google Gemini 1.5 Flash
+*   **Decision:** Implementation of Gemini 1.5 Flash via the `@google/genai` SDK.
+*   **Justification:**
+    *   **Context Window:** The large context window allows injecting complete laws and regulations into the system prompt, improving the accuracy of legal substantiation (lightweight RAG).
+    *   **Reasoning:** Gemini demonstrates superior capabilities in logical reasoning tasks and formal drafting in Spanish compared to smaller models.
+    *   **Latency and Cost:** The Flash version offers the ideal balance between response speed (critical for real-time chat) and operating cost.
+
+### 4.5 Storage: Supabase Storage
+*   **Decision:** Storage of evidence (photos/videos) in private buckets.
+*   **Justification:** Native integration with the database and unified security policies. Allows generating temporary signed URLs to protect evidence.
+
+---
+
+## 5. Data Flow and Security
+
+1.  **Capture:** The user enters data on the client (browser). No sensitive data is sent to the server until final confirmation.
+2.  **AI Processing:** Texts are sent to Gemini for cleaning and structuring. *Note: Personal data is anonymized before sending to the LLM whenever possible.*
+3.  **Persistence:** Data is saved in Supabase with RLS enabled.
+4.  **Local Generation:** The final PDF is generated in the browser (Client-side) using `jsPDF`. This ensures the final document is created on the user's device, reducing server load and increasing privacy.
 
 ---
 
 ## 6. Roadmap
 
-### Phase 1: Consolidation (Current)
-*   Stabilization of the migration to Google Maps.
-*   Optimization of prompts for the Gemini legal model.
-*   Deployment on Vercel.
-
-### Phase 2: Expansion (Q1 2026)
-*   **Native Mobile App:** React Native for offline access and push notifications.
-*   **Authority Dashboard:** Panel for governments to receive and manage complaints directly.
-*   **Blockchain Integration:** Registration of folios on a blockchain to ensure that complaints cannot be "deleted" or altered by corrupt officials.
-
-### Phase 3: Ecosystem (Q3 2026)
-*   **Public API:** Allow other apps to integrate the complaint engine.
-*   **Predictive Analysis:** Use aggregated data to generate heat maps of urban problems and predict red spots.
+*   **Q4 2025:** Beta stabilization, full Google Maps integration, and legal prompt optimization.
+*   **Q1 2026:** Launch of Native Mobile App (React Native) and Dashboard for NGOs.
+*   **Q2 2026:** WhatsApp Integration (See Annex A).
 
 ---
 
-## 7. Conclusion
+## Annex A: WhatsApp Integration Strategy
 
-**Denuncia Popular v2.0** is not just a technological tool; it is an instrument of social change. By reducing the friction to report and elevating the technical quality of reports, we democratize access to administrative justice. We transform passive complaint into effective legal action, fostering a more participatory citizenry and more responsible governments.
+### Objective
+Enable the creation of complaints directly from WhatsApp, leveraging it as the most used communication platform in Mexico, reducing the friction of downloading an app or visiting a website.
 
----
-*© 2025 Esoteria AI. All rights reserved.*
+### Technical Strategy
+
+Implementation will be done using the **WhatsApp Business API** (via Meta or a BSP like Twilio), connected to our Supabase backend and the Gemini AI brain.
+
+#### Phase 1: Triage "Bot" (MVP)
+*   **Functionality:** A simple bot that receives location and a photo, and returns a "Magic Link" to complete the complaint on the web.
+*   **Flow:**
+    1.  User sends current location via WhatsApp.
+    2.  User sends photo of evidence.
+    3.  Bot responds: *"Thanks! We've saved your evidence. To legally formalize your complaint, complete your details here: [link-with-token]"*.
+    4.  The link opens the Web App with the location and photo pre-loaded (using session ID).
+
+#### Phase 2: Full Conversational Complaint (Full AI)
+*   **Functionality:** The entire process happens within the chat.
+*   **Architecture:**
+    *   **Audio Input:** User sends voice notes narrating the problem.
+    *   **STT (Speech-to-Text):** We use the **Whisper** model (or Gemini Multimodal) to transcribe audio to text.
+    *   **Processing:** An AI agent extracts variables (What, Who, When) from the transcribed text.
+    *   **Confirmation:** The bot summarizes the complaint and asks for confirmation: *"Understood. Complaint for pothole on 5th Street. Is this correct?"*.
+    *   **Delivery:** The bot generates the PDF and sends it back to the user within the same chat.
+
+### Infrastructure Requirements for WhatsApp
+1.  **Webhook Server:** A server (Node.js/Edge Function) to receive WhatsApp message events.
+2.  **State Management:** A Supabase table `whatsapp_sessions` to maintain conversation state (e.g., `WAITING_FOR_LOCATION`, `WAITING_FOR_PHOTO`).
+3.  **Business Verification:** Meta requires business verification to access the full API without strict limits.
+
+### Strategy Justification
+WhatsApp removes the highest barrier to entry: the unfamiliar user interface. By using a familiar conversational interface, we democratize access for segments of the population with lower digital literacy.

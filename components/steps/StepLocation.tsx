@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap, LayersControl, ZoomControl } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { DenunciaDraft } from '../../types';
 import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X, Edit2, Check } from 'lucide-react';
@@ -102,6 +102,41 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
   const [loadingGPS, setLoadingGPS] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(async () => {
+      if (searchQuery.length > 2) {
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=mx&limit=5`,
+            { headers: { 'User-Agent': 'DenunciaPopularApp/1.0' } }
+          );
+          const data = await response.json();
+          setSuggestions(data);
+          setShowSuggestions(true);
+        } catch (error) {
+          console.error("Autocomplete error:", error);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
+
+  const handleSelectSuggestion = (result: any) => {
+    const newPos = new L.LatLng(parseFloat(result.lat), parseFloat(result.lon));
+    setPosition(newPos);
+    setAddressDisplay(result.display_name);
+    // Optional: Update search query to match selection or keep it as is
+    // setSearchQuery(result.display_name); 
+    setShowSuggestions(false);
+    setIsManualMode(false);
+  };
 
   // Manual address editing state
   const [isManualMode, setIsManualMode] = useState(false);
@@ -296,6 +331,20 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     iconAnchor: [20, 20]
   }), []);
 
+  const markerRef = React.useRef<L.Marker>(null);
+
+  const eventHandlers = useMemo(
+    () => ({
+      dragend() {
+        const marker = markerRef.current;
+        if (marker != null) {
+          setPosition(marker.getLatLng());
+        }
+      },
+    }),
+    [],
+  );
+
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] relative bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800">
       {/* Inject Leaflet CSS directly to ensure it loads */}
@@ -381,6 +430,22 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
             </div>
           )}
         </form>
+
+        {/* Autocomplete Suggestions */}
+        {showSuggestions && suggestions.length > 0 && (
+          <div className="pointer-events-auto bg-zinc-900/95 backdrop-blur-md border border-zinc-700 rounded-xl shadow-2xl overflow-hidden mt-1 max-h-60 overflow-y-auto">
+            {suggestions.map((item, index) => (
+              <button
+                key={index}
+                onClick={() => handleSelectSuggestion(item)}
+                className="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white border-b border-zinc-800 last:border-0 transition-colors flex items-start gap-2"
+              >
+                <MapPin size={14} className="mt-1 text-pink-500 shrink-0" />
+                <span className="line-clamp-2">{item.display_name}</span>
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex-1 w-full h-full z-0 relative">
@@ -388,17 +453,55 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
           center={position || defaultCenter}
           zoom={13}
           scrollWheelZoom={true}
+          zoomControl={false}
           className="h-full w-full bg-zinc-950 outline-none"
         >
+          <ZoomControl position="bottomleft" />
           <MapRealigner />
           <MapUpdater center={position} zoom={16} />
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
+          <LayersControl position="bottomright">
+            <LayersControl.BaseLayer checked name="Calle (OpenStreetMap)">
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+            </LayersControl.BaseLayer>
+
+            <LayersControl.BaseLayer name="Topografía (OpenTopoMap)">
+              <TileLayer
+                attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+                url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+                maxZoom={17}
+              />
+            </LayersControl.BaseLayer>
+
+            <LayersControl.BaseLayer name="Satélite (Esri World Imagery)">
+              <TileLayer
+                attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+              />
+            </LayersControl.BaseLayer>
+
+            <LayersControl.BaseLayer name="Relieve (Esri World Shaded Relief)">
+              <TileLayer
+                attribution='Tiles &copy; Esri &mdash; Source: Esri'
+                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}"
+                maxZoom={13}
+              />
+            </LayersControl.BaseLayer>
+          </LayersControl>
+
           <ClickFeedbackLayer />
           <MarkerClusterGroup chunkedLoading>
-            {position && <Marker position={position} icon={tacticalIcon} />}
+            {position && (
+              <Marker
+                draggable={true}
+                eventHandlers={eventHandlers}
+                position={position}
+                ref={markerRef}
+                icon={tacticalIcon}
+              />
+            )}
           </MarkerClusterGroup>
           <MapClickHandler setPosition={setPosition} />
         </MapContainer>

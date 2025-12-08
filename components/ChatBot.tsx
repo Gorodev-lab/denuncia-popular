@@ -15,7 +15,7 @@ interface Message {
 }
 
 // Initialize Gemini Client specifically for the ChatBot
-const apiKey = process.env.API_KEY || '';
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
 export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
@@ -93,8 +93,8 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
               {msg.role === 'user' ? <User size={14} className="text-zinc-400" /> : <Sparkles size={14} className="text-pink-500" />}
             </div>
             <div className={`max-w-[80%] p-3 rounded-2xl text-xs leading-relaxed ${msg.role === 'user'
-                ? 'bg-zinc-800 text-white rounded-tr-none'
-                : 'bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-tl-none'
+              ? 'bg-zinc-800 text-white rounded-tr-none'
+              : 'bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-tl-none'
               }`}>
               {msg.text}
             </div>

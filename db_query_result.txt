@@ -1,0 +1,5 @@
+Querying latest denuncias...
+
+Found 0 recent denuncias:
+
+[]

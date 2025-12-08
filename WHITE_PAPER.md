@@ -1,113 +1,127 @@
-# White Paper: Denuncia Popular v2.0
+# White Paper: Denuncia Popular v2.1
 **Democratizando el Acceso a la Justicia Administrativa mediante Inteligencia Artificial**
 
-**Versión:** 2.0  
+**Versión:** 2.1  
 **Fecha:** Noviembre 2025  
-**Autor:** Esoteria AI
+**Autor:** Esoteria AI  
+**Estado:** En Producción (Beta)
 
 ---
 
 ## 1. Resumen Ejecutivo
 
-**Denuncia Popular v2.0** es una plataforma tecnológica diseñada para empoderar a la ciudadanía, facilitando la creación, gestión y presentación de denuncias formales por faltas administrativas. Utilizando tecnologías avanzadas como **Inteligencia Artificial Generativa (Google Gemini)** y **Geolocalización de Precisión (Google Maps)**, la plataforma elimina las barreras técnicas y legales que tradicionalmente impiden que los ciudadanos ejerzan sus derechos.
+**Denuncia Popular** es una plataforma cívica diseñada para transformar la frustración ciudadana en acción legal efectiva. Utilizando **Inteligencia Artificial Generativa** y **Geolocalización de Alta Precisión**, la plataforma convierte reportes informales de servicios públicos deficientes (baches, luminarias, fugas) en denuncias administrativas formalmente estructuradas, fundamentadas legalmente y listas para su presentación ante la autoridad competente.
 
-El sistema transforma un reporte ciudadano informal en un documento legalmente robusto, fundamentado y listo para ser procesado por las autoridades competentes, todo ello bajo una interfaz intuitiva y accesible.
+La versión 2.1 consolida una arquitectura robusta centrada en la privacidad del usuario, la precisión de los datos y la escalabilidad técnica.
 
 ---
 
 ## 2. Planteamiento del Problema
 
-En México y gran parte de Latinoamérica, la participación ciudadana en la denuncia de irregularidades (baches, fallas de servicios, corrupción, inseguridad) es baja debido a tres factores críticos:
+La brecha entre el ciudadano y la administración pública se perpetúa por tres barreras fundamentales:
 
-1.  **Complejidad Legal:** El ciudadano promedio desconoce el lenguaje técnico-jurídico necesario para redactar una denuncia formal que no sea desestimada por "falta de elementos".
-2.  **Burocracia y Desconocimiento:** A menudo no se sabe a qué autoridad específica (municipal, estatal o federal) corresponde cada problema.
-3.  **Miedo y Desconfianza:** El temor a represalias y la desconfianza en el manejo de datos personales desincentivan la denuncia nominal.
-
-Como resultado, miles de incidentes quedan sin reportar, perpetuando la impunidad y el deterioro del entorno urbano.
+1.  **Barrera Técnica-Legal:** El ciudadano promedio carece del conocimiento jurídico para redactar una denuncia que cumpla con los requisitos de forma y fondo (Art. 8 Constitucional y leyes administrativas locales). Los reportes informales en redes sociales carecen de validez jurídica.
+2.  **Ambigüedad de Competencia:** Es difícil para el ciudadano distinguir si un problema es competencia municipal, estatal o federal, o a qué dependencia específica corresponde.
+3.  **Fricción en el Proceso:** Los mecanismos oficiales suelen ser burocráticos, requieren presencialidad o utilizan plataformas digitales obsoletas y difíciles de usar.
 
 ---
 
-## 3. La Solución: Denuncia Popular
+## 3. Solución y Propuesta de Valor
 
-Nuestra solución actúa como un **puente digital** entre el ciudadano y la autoridad. No es solo un buzón de quejas; es un **asistente legal automatizado**.
+**Denuncia Popular** actúa como un **Asistente Legal Inteligente** que:
 
-### Pilares de la Solución:
-*   **Accesibilidad Universal:** Interfaz tipo "Wizard" que guía al usuario paso a paso sin requerir conocimientos previos.
-*   **Inteligencia Legal:** Un motor de IA que entrevista al usuario, estructura los hechos, identifica la competencia (quién es responsable) y fundamenta legalmente la denuncia.
-*   **Precisión Geográfica:** Integración con Google Maps para ubicar incidentes con exactitud, permitiendo descripciones manuales ("frente a la tienda X") para mayor referencia local.
-*   **Seguridad y Anonimato:** Opciones robustas para proteger la identidad del denunciante mediante encriptación y modos de denuncia anónima.
-
----
-
-## 4. Arquitectura Técnica
-
-La plataforma está construida sobre una arquitectura moderna, escalable y segura, priorizando el rendimiento en el lado del cliente (Client-Side) para una experiencia fluida.
-
-### 4.1 Stack Tecnológico
-*   **Frontend:** React 19 + Vite (Rendimiento y modularidad).
-*   **Lenguaje:** TypeScript (Seguridad de tipos y mantenibilidad).
-*   **Estilos:** Tailwind CSS (Diseño responsivo y estética "Dark Mode" premium).
-*   **Mapas:** Google Maps JavaScript API + Places API + Geocoding API.
-*   **Inteligencia Artificial:** Google Gemini 1.5 Flash (Modelos de lenguaje grandes para análisis legal).
-*   **Backend & Base de Datos:** Supabase (PostgreSQL) para persistencia de datos y autenticación.
-*   **Generación de Documentos:** jsPDF para la creación dinámica de archivos PDF en el navegador.
-
-### 4.2 Diagrama de Flujo de Datos
-1.  **Input:** El usuario ingresa ubicación y hechos (voz o texto).
-2.  **Procesamiento:**
-    *   *Google Maps* valida y normaliza la ubicación.
-    *   *Gemini AI* analiza el texto, extrae entidades, determina la competencia legal y redacta la narrativa jurídica.
-3.  **Almacenamiento:** Los datos estructurados y la evidencia (fotos/videos) se guardan en Supabase.
-4.  **Output:** Se genera un PDF con folio único, firma digital (hash) y estructura formal para descarga o envío.
+*   **Entrevista** al usuario para recabar los hechos esenciales (tiempo, modo, lugar).
+*   **Localiza** con precisión el incidente utilizando servicios de mapas líderes en la industria.
+*   **Fundamenta** la petición analizando la normativa vigente mediante IA.
+*   **Genera** un documento PDF inmutable, listo para imprimir o enviar digitalmente.
 
 ---
 
-## 5. Características Clave
+## 4. Arquitectura Técnica y Justificación de Decisiones
 
-### 5.1 Geolocalización Híbrida Inteligente
-Migramos de OpenStreetMap a **Google Maps** para ofrecer:
-*   **Autocomplete:** Búsqueda predictiva de direcciones.
-*   **Geocodificación Inversa:** Conversión precisa de coordenadas a direcciones postales.
-*   **Edición Manual:** Una característica única que permite al usuario refinar la dirección automática con referencias locales (ej. "Entre calle 5 y 6"), crucial para zonas con nomenclatura irregular.
+La arquitectura de Denuncia Popular ha sido diseñada priorizando la **resiliencia**, la **seguridad** y la **experiencia de usuario (UX)**. A continuación, justificamos cada decisión tecnológica crítica.
 
-### 5.2 Asistente Legal con IA (Chain of Thought)
-El chat integrado no es un chatbot estándar. Utiliza técnicas de **Chain of Thought (CoT)** para:
-1.  **Entrevistar:** Hacer las preguntas pertinentes que faltan (¿Cuándo ocurrió? ¿Había testigos?).
-2.  **Fundamentar:** Buscar en tiempo real (Grounding) las leyes y reglamentos aplicables al caso específico.
-3.  **Redactar:** Generar un texto formal, objetivo y libre de emociones, adecuado para un trámite administrativo.
+### 4.1 Frontend: React 19 + Vite
+*   **Decisión:** Migración a React 19 y uso de Vite como bundler.
+*   **Justificación:**
+    *   **Rendimiento:** React 19 introduce mejoras significativas en el manejo del DOM y la concurrencia. Vite ofrece tiempos de carga casi instantáneos (HMR) durante el desarrollo y builds optimizados para producción.
+    *   **Ecosistema:** La inmensa comunidad y librerías disponibles aseguran mantenibilidad a largo plazo.
+    *   **UX Fluida:** El modelo SPA (Single Page Application) elimina las recargas de página, crucial para mantener el contexto del usuario durante el "Wizard" de denuncia.
 
-### 5.3 Generación de Documentos Inmutables
-El sistema genera un archivo PDF que cumple con los requisitos de un escrito formal de petición:
-*   Encabezado con autoridad competente.
-*   Proemio con identificación (o leyenda de anonimato).
-*   Narrativa de hechos ordenada cronológicamente.
-*   Fundamentación jurídica.
-*   Pruebas adjuntas relacionadas.
-*   Firma digital y Hash de verificación para integridad.
+### 4.2 Base de Datos y Backend: Supabase (PostgreSQL)
+*   **Decisión:** Uso de Supabase como Backend-as-a-Service (BaaS).
+*   **Justificación:**
+    *   **Seguridad (RLS):** Las *Row Level Security Policies* de PostgreSQL permiten definir reglas de acceso granulares directamente en la base de datos. Esto asegura que, incluso si el frontend es comprometido, los datos permanecen seguros.
+    *   **Autenticación Anónima:** Supabase Auth permite sesiones anónimas seguras, vitales para proteger la identidad de los denunciantes que temen represalias.
+    *   **Escalabilidad:** Al estar basado en PostgreSQL, ofrece robustez empresarial y capacidad de consultas geoespaciales (PostGIS) nativas.
+
+### 4.3 Servicios de Mapas: Google Maps Platform
+*   **Decisión:** Migración de OpenStreetMap (Leaflet) a Google Maps API.
+*   **Justificación:**
+    *   **Calidad de Datos:** En Latinoamérica, la base de datos de direcciones y POIs (Puntos de Interés) de Google es superior a la de OSM. Esto es crítico para evitar denuncias desechadas por "ubicación imprecisa".
+    *   **Geocoding Inverso:** La API de Google ofrece una conversión de coordenadas a direcciones mucho más precisa y legible para las autoridades.
+    *   **Familiaridad:** La interfaz de Google Maps es el estándar de facto; su uso reduce la curva de aprendizaje para el usuario final.
+
+### 4.4 Inteligencia Artificial: Google Gemini 1.5 Flash
+*   **Decisión:** Implementación de Gemini 1.5 Flash a través del SDK `@google/genai`.
+*   **Justificación:**
+    *   **Ventana de Contexto:** La amplia ventana de contexto permite inyectar leyes y reglamentos completos en el prompt del sistema, mejorando la precisión de la fundamentación legal (RAG ligero).
+    *   **Razonamiento:** Gemini demuestra capacidades superiores en tareas de razonamiento lógico y redacción formal en español comparado con modelos más pequeños.
+    *   **Latencia y Costo:** La versión Flash ofrece el equilibrio ideal entre velocidad de respuesta (crítica para el chat en tiempo real) y costo operativo.
+
+### 4.5 Almacenamiento: Supabase Storage
+*   **Decisión:** Almacenamiento de evidencias (fotos/videos) en buckets privados.
+*   **Justificación:** Integración nativa con la base de datos y políticas de seguridad unificadas. Permite generar URLs firmadas temporales para proteger la evidencia.
+
+---
+
+## 5. Flujo de Datos y Seguridad
+
+1.  **Captura:** El usuario ingresa datos en el cliente (navegador). No se envían datos sensibles al servidor hasta la confirmación final.
+2.  **Procesamiento IA:** Los textos se envían a Gemini para limpieza y estructuración. *Nota: Se anonimizan datos personales antes de enviar al LLM siempre que es posible.*
+3.  **Persistencia:** Los datos se guardan en Supabase con RLS activado.
+4.  **Generación Local:** El PDF final se genera en el navegador (Client-side) usando `jsPDF`. Esto garantiza que el documento final se crea en el dispositivo del usuario, reduciendo la carga del servidor y aumentando la privacidad.
 
 ---
 
 ## 6. Hoja de Ruta (Roadmap)
 
-### Fase 1: Consolidación (Actual)
-*   Estabilización de la migración a Google Maps.
-*   Optimización de prompts para el modelo legal de Gemini.
-*   Despliegue en Vercel.
-
-### Fase 2: Expansión (Q1 2026)
-*   **App Móvil Nativa:** React Native para acceso offline y notificaciones push.
-*   **Dashboard de Autoridad:** Panel para que los gobiernos reciban y gestionen las denuncias directamente.
-*   **Integración Blockchain:** Registro de folios en una cadena de bloques para garantizar que las denuncias no puedan ser "borradas" o alteradas por funcionarios corruptos.
-
-### Fase 3: Ecosistema (Q3 2026)
-*   **API Pública:** Permitir a otras apps integrar el motor de denuncias.
-*   **Análisis Predictivo:** Usar la data agregada para generar mapas de calor de problemas urbanos y predecir focos rojos.
+*   **Q4 2025:** Estabilización de Beta, integración completa de Google Maps y optimización de prompts legales.
+*   **Q1 2026:** Lanzamiento de App Móvil (React Native) y Dashboard para ONGs.
+*   **Q2 2026:** Integración con WhatsApp (Ver Anexo A).
 
 ---
 
-## 7. Conclusión
+## Anexo A: Estrategia de Integración con WhatsApp
 
-**Denuncia Popular v2.0** no es solo una herramienta tecnológica; es un instrumento de cambio social. Al reducir la fricción para denunciar y elevar la calidad técnica de los reportes, democratizamos el acceso a la justicia administrativa. Transformamos la queja pasiva en acción legal efectiva, fomentando una ciudadanía más participativa y gobiernos más responsables.
+### Objetivo
+Habilitar la creación de denuncias directamente desde WhatsApp, aprovechando que es la plataforma de comunicación más utilizada en México, reduciendo la fricción de descargar una app o visitar una web.
 
----
-*© 2025 Esoteria AI. Todos los derechos reservados.*
+### Estrategia Técnica
+
+La implementación se realizará utilizando la **WhatsApp Business API** (a través de Meta o un BSP como Twilio), conectada a nuestro backend en Supabase y al cerebro de IA Gemini.
+
+#### Fase 1: El "Bot" de Triaje (MVP)
+*   **Funcionalidad:** Un bot simple que recibe la ubicación y una foto, y devuelve un enlace "mágico" (Magic Link) para completar la denuncia en la web.
+*   **Flujo:**
+    1.  Usuario envía ubicación actual por WhatsApp.
+    2.  Usuario envía foto de la evidencia.
+    3.  Bot responde: *"¡Gracias! Hemos guardado tu evidencia. Para formalizar tu denuncia legalmente, completa tus datos aquí: [enlace-con-token]"*.
+    4.  El enlace abre la Web App con la ubicación y la foto ya precargadas (usando el ID de sesión).
+
+#### Fase 2: Denuncia Conversacional Completa (Full AI)
+*   **Funcionalidad:** Todo el proceso ocurre dentro del chat.
+*   **Arquitectura:**
+    *   **Entrada de Audio:** El usuario envía notas de voz narrando el problema.
+    *   **STT (Speech-to-Text):** Usamos el modelo **Whisper** (o Gemini Multimodal) para transcribir el audio a texto.
+    *   **Procesamiento:** Un agente de IA extrae las variables (Qué, Quién, Cuándo) del texto transcrito.
+    *   **Confirmación:** El bot resume la denuncia y pide confirmación: *"Entendido. Denuncia por bache en Calle 5. ¿Es correcto?"*.
+    *   **Entrega:** El bot genera el PDF y lo envía de regreso al usuario dentro del mismo chat.
+
+### Requisitos de Infraestructura para WhatsApp
+1.  **Webhook Server:** Un servidor (Node.js/Edge Function) para recibir los eventos de mensajes de WhatsApp.
+2.  **Gestión de Estado:** Una tabla en Supabase `whatsapp_sessions` para mantener el estado de la conversación (ej. `WAITING_FOR_LOCATION`, `WAITING_FOR_PHOTO`).
+3.  **Verificación de Negocio:** Meta requiere verificación de negocio para acceder a la API completa sin límites estrictos.
+
+### Justificación de la Estrategia
+WhatsApp elimina la barrera de entrada más alta: la interfaz de usuario desconocida. Al usar una interfaz conversacional familiar, democratizamos el acceso a segmentos de la población con menor alfabetización digital.
