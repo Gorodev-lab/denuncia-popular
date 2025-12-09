@@ -241,8 +241,6 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
 
   const handleLocateUser = () => {
     setLoadingGPS(true);
-    // Reset manual mode when locating
-    setIsManualMode(false);
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -274,8 +272,6 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     if (!searchQuery.trim()) return;
 
     setIsSearching(true);
-    // Reset manual mode on search
-    setIsManualMode(false);
 
     try {
       // Use Nominatim for Search (Free, Open Source)
