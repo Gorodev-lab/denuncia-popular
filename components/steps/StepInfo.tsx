@@ -10,8 +10,12 @@ interface Props {
   onBack?: () => void; // Added Back Handler
 }
 
+const validateEmail = (email: string) => {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+};
+
 export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }) => {
-  const isValid = draft.isAnonymous || (draft.fullName.length > 3 && draft.email.includes('@'));
+  const isValid = draft.isAnonymous || (draft.fullName.length > 3 && validateEmail(draft.email));
 
   // Handler specifically for the toggle to prevent propagation issues
   const handleToggle = (e: React.MouseEvent) => {
