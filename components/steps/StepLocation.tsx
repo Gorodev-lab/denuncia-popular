@@ -1,17 +1,9 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap, LayersControl, ZoomControl } from 'react-leaflet';
-import MarkerClusterGroup from 'react-leaflet-cluster';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import { GoogleMap, useJsApiLoader, Marker, Autocomplete } from '@react-google-maps/api';
 import { DenunciaDraft } from '../../types';
 import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X, Edit2, Check } from 'lucide-react';
-import L from 'leaflet';
 
-// Fix Leaflet icon issue in React
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png',
-});
+const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
 
 interface Props {
   draft: DenunciaDraft;
@@ -20,138 +12,134 @@ interface Props {
   onBack?: () => void;
 }
 
-// CRITICAL FIX: Component to force map resize calculation on mount
-const MapRealigner = () => {
-  const map = useMap();
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      map.invalidateSize();
-    }, 100); // Small delay to ensure container has dimensions
-    return () => clearTimeout(timeout);
-  }, [map]);
-  return null;
+const mapContainerStyle = {
+  width: '100%',
+  height: '100%',
+  borderRadius: '1rem',
 };
 
-// Subcomponent to handle click events on the map (Logic)
-const MapClickHandler: React.FC<{
-  setPosition: (pos: L.LatLng) => void
-}> = ({ setPosition }) => {
-  const map = useMapEvents({
-    click(e) {
-      setPosition(e.latlng);
-      map.flyTo(e.latlng, map.getZoom() < 16 ? 16 : map.getZoom(), { duration: 1.0 });
+const defaultCenter = {
+  lat: 19.4326,
+  lng: -99.1332,
+};
+
+const mapOptions = {
+  disableDefaultUI: true,
+  zoomControl: false,
+  streetViewControl: false,
+  mapTypeControl: false,
+  fullscreenControl: false,
+  styles: [
+    {
+      featureType: "all",
+      elementType: "geometry",
+      stylers: [{ color: "#242f3e" }]
     },
-  });
-  return null;
-};
-
-// Subcomponent to handle click feedback visuals (Ripple Effect)
-const ClickFeedbackLayer = () => {
-  const [ripples, setRipples] = useState<{ id: number, pos: L.LatLng }[]>([]);
-
-  useMapEvents({
-    click(e) {
-      const id = Date.now();
-      setRipples(prev => [...prev, { id, pos: e.latlng }]);
-      setTimeout(() => {
-        setRipples(prev => prev.filter(r => r.id !== id));
-      }, 800); // Match animation duration
+    {
+      featureType: "all",
+      elementType: "labels.text.stroke",
+      stylers: [{ color: "#242f3e" }, { lightness: -80 }]
+    },
+    {
+      featureType: "all",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#746855" }]
+    },
+    {
+      featureType: "administrative.locality",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }]
+    },
+    {
+      featureType: "poi",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }]
+    },
+    {
+      featureType: "poi.park",
+      elementType: "geometry",
+      stylers: [{ color: "#263c3f" }]
+    },
+    {
+      featureType: "poi.park",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#6b9a76" }]
+    },
+    {
+      featureType: "road",
+      elementType: "geometry",
+      stylers: [{ color: "#38414e" }]
+    },
+    {
+      featureType: "road",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#212a37" }]
+    },
+    {
+      featureType: "road",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#9ca5b3" }]
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry",
+      stylers: [{ color: "#746855" }]
+    },
+    {
+      featureType: "road.highway",
+      elementType: "geometry.stroke",
+      stylers: [{ color: "#1f2835" }]
+    },
+    {
+      featureType: "road.highway",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#f3d19c" }]
+    },
+    {
+      featureType: "transit",
+      elementType: "geometry",
+      stylers: [{ color: "#2f3948" }]
+    },
+    {
+      featureType: "transit.station",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#d59563" }]
+    },
+    {
+      featureType: "water",
+      elementType: "geometry",
+      stylers: [{ color: "#17263c" }]
+    },
+    {
+      featureType: "water",
+      elementType: "labels.text.fill",
+      stylers: [{ color: "#515c6d" }]
+    },
+    {
+      featureType: "water",
+      elementType: "labels.text.stroke",
+      stylers: [{ lightness: -20 }]
     }
-  });
-
-  const rippleIcon = L.divIcon({
-    className: 'bg-transparent',
-    html: `<div class="absolute inset-0 rounded-full border-2 border-pink-500 shadow-[0_0_15px_#ec4899] animate-ripple box-border"></div>`,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20]
-  });
-
-  return (
-    <>
-      {ripples.map(r => (
-        <Marker
-          key={r.id}
-          position={r.pos}
-          icon={rippleIcon}
-          zIndexOffset={-10} // Keep below the main pin
-          interactive={false}
-        />
-      ))}
-    </>
-  );
+  ]
 };
-
-
-// Helper to control Map center from external state
-const MapUpdater: React.FC<{ center: L.LatLng | null, zoom: number }> = ({ center, zoom }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (center) {
-      map.flyTo(center, zoom, { duration: 1.5 });
-    }
-  }, [center, zoom, map]);
-  return null;
-}
 
 export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }) => {
-  const [position, setPosition] = useState<L.LatLng | null>(
-    draft.location ? new L.LatLng(draft.location.lat, draft.location.lng) : null
+  const { isLoaded, loadError } = useJsApiLoader({
+    id: 'google-map-script',
+    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
+    libraries: libraries,
+  });
+
+  const [map, setMap] = useState<google.maps.Map | null>(null);
+  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(
+    draft.location ? { lat: draft.location.lat, lng: draft.location.lng } : null
   );
   const [addressDisplay, setAddressDisplay] = useState<string>(draft.location?.address || '');
   const [loadingAddress, setLoadingAddress] = useState(false);
   const [loadingGPS, setLoadingGPS] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
-  const [showSuggestions, setShowSuggestions] = useState(false);
-
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(async () => {
-      if (searchQuery.length > 2) {
-        try {
-          const response = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=mx&limit=5`,
-            { headers: { 'User-Agent': 'DenunciaPopularApp/1.0' } }
-          );
-          const data = await response.json();
-          setSuggestions(data);
-          setShowSuggestions(true);
-        } catch (error) {
-          console.error("Autocomplete error:", error);
-        }
-      } else {
-        setSuggestions([]);
-        setShowSuggestions(false);
-      }
-    }, 500);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchQuery]);
-
-  const handleSelectSuggestion = (result: any) => {
-    const newPos = new L.LatLng(parseFloat(result.lat), parseFloat(result.lon));
-    setPosition(newPos);
-    setAddressDisplay(result.display_name);
-    // Optional: Update search query to match selection or keep it as is
-    // setSearchQuery(result.display_name); 
-    setShowSuggestions(false);
-    setIsManualMode(false);
-  };
-
-  // Manual address editing state
   const [isManualMode, setIsManualMode] = useState(false);
   const [manualAddress, setManualAddress] = useState('');
-
-  // Default center (Mexico City Zocalo) - Acts as fallback
-  const defaultCenter = useMemo(() => ({ lat: 19.4326, lng: -99.1332 }), []);
-
-  // Auto-locate on mount if no location set
-  useEffect(() => {
-    if (!draft.location) {
-      handleLocateUser();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
 
   // Sync manual address with display address when not in manual mode
   useEffect(() => {
@@ -160,73 +148,171 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     }
   }, [addressDisplay, isManualMode]);
 
-  useEffect(() => {
+  const onLoad = useCallback(function callback(map: google.maps.Map) {
+    setMap(map);
     if (position) {
-      // Validate coordinates (Simple Bounding Box for Mexico)
-      const isValid =
-        position.lat >= 14.5 && position.lat <= 32.7 &&
-        position.lng >= -118.4 && position.lng <= -86.7;
+      map.panTo(position);
+      map.setZoom(16);
+    } else {
+      // If no position, try to locate user or default
+      handleLocateUser(map);
+    }
+  }, []);
 
-      if (!isValid) {
-        // Optional: Warn user but don't block, as bounding boxes can be tricky
-        // alert("La ubicación seleccionada parece estar fuera de México. Por favor verifica.");
-      }
+  const onUnmount = useCallback(function callback(map: google.maps.Map) {
+    setMap(null);
+  }, []);
 
-      // Only fetch address if NOT in manual mode to avoid overwriting user input immediately
-      // However, usually if user moves map, they expect address update. 
-      // We will allow update, but if they are actively typing (isManualMode), we might want to pause?
-      // For now, let's assume map movement overrides everything unless we are strictly in manual mode.
-      if (!isManualMode) {
-        const fetchAddress = async () => {
-          setLoadingAddress(true);
-          // Set a temporary "loading" message in the draft
-          updateDraft({
-            location: {
-              lat: position.lat,
-              lng: position.lng,
-              address: 'Consultando dirección...'
-            }
-          });
+  const handleLocateUser = (mapInstance: google.maps.Map | null = map) => {
+    setLoadingGPS(true);
+    setIsManualMode(false);
 
-          try {
-            // Use Nominatim for Reverse Geocoding (Free, Open Source)
-            const response = await fetch(
-              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${position.lat}&lon=${position.lng}&zoom=18&addressdetails=1`,
-              { headers: { 'User-Agent': 'DenunciaPopularApp/1.0' } }
-            );
-            const data = await response.json();
-
-            const address = data.display_name || "Dirección desconocida";
-
-            setAddressDisplay(address);
-            setLoadingAddress(false);
-
-            // Update draft with the final, accurate address
-            updateDraft({
-              location: {
-                lat: position.lat,
-                lng: position.lng,
-                address: address
-              }
-            });
-          } catch (error) {
-            console.error("Error fetching address:", error);
-            setAddressDisplay("Error al obtener la dirección. Puedes continuar con las coordenadas.");
-            setLoadingAddress(false);
-            // Still update with coordinates
-            updateDraft({
-              location: {
-                lat: position.lat,
-                lng: position.lng,
-                address: `Coordenadas: ${position.lat.toFixed(5)}, ${position.lng.toFixed(5)}`
-              }
-            });
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const newPos = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+          };
+          setPosition(newPos);
+          if (mapInstance) {
+            mapInstance.panTo(newPos);
+            mapInstance.setZoom(16);
           }
-        };
+          setLoadingGPS(false);
+        },
+        (err) => {
+          console.error(err);
+          setLoadingGPS(false);
+          if (!position && mapInstance) {
+            mapInstance.panTo(defaultCenter);
+            mapInstance.setZoom(13);
+          }
+        },
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+      );
+    } else {
+      setLoadingGPS(false);
+      if (!position && mapInstance) {
+        mapInstance.panTo(defaultCenter);
+        mapInstance.setZoom(13);
+      }
+    }
+  };
 
-        fetchAddress();
+  const geocodePosition = async (lat: number, lng: number) => {
+    if (!window.google || !window.google.maps) return;
+
+    setLoadingAddress(true);
+    // Temporary update
+    updateDraft({
+      location: {
+        lat,
+        lng,
+        address: 'Consultando dirección...'
+      }
+    });
+
+    const geocoder = new window.google.maps.Geocoder();
+    try {
+      const response = await geocoder.geocode({ location: { lat, lng } });
+      if (response.results && response.results[0]) {
+        const address = response.results[0].formatted_address;
+        setAddressDisplay(address);
+        updateDraft({
+          location: {
+            lat,
+            lng,
+            address: address
+          }
+        });
       } else {
-        // If in manual mode, just update coordinates in draft, keep manual address
+        setAddressDisplay("Dirección desconocida");
+        updateDraft({
+          location: {
+            lat,
+            lng,
+            address: `Coordenadas: ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Geocoding error:", error);
+      setAddressDisplay("Error al obtener la dirección.");
+      updateDraft({
+        location: {
+          lat,
+          lng,
+          address: `Coordenadas: ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+        }
+      });
+    } finally {
+      setLoadingAddress(false);
+    }
+  };
+
+  // Effect to geocode when position changes (and not in manual mode)
+  useEffect(() => {
+    if (position && !isManualMode) {
+      geocodePosition(position.lat, position.lng);
+    } else if (position && isManualMode) {
+      // Just update coords
+      updateDraft({
+        location: {
+          lat: position.lat,
+          lng: position.lng,
+          address: manualAddress
+        }
+      });
+    }
+  }, [position]); // Removed isManualMode to avoid loops
+
+  const onMapClick = useCallback((e: google.maps.MapMouseEvent) => {
+    if (e.latLng) {
+      const lat = e.latLng.lat();
+      const lng = e.latLng.lng();
+      setPosition({ lat, lng });
+      setIsManualMode(false); // Reset manual mode on map click
+    }
+  }, []);
+
+  const onMarkerDragEnd = useCallback((e: google.maps.MapMouseEvent) => {
+    if (e.latLng) {
+      const lat = e.latLng.lat();
+      const lng = e.latLng.lng();
+      setPosition({ lat, lng });
+      setIsManualMode(false);
+    }
+  }, []);
+
+  const onAutocompleteLoad = (autocompleteInstance: google.maps.places.Autocomplete) => {
+    setAutocomplete(autocompleteInstance);
+  };
+
+  const onPlaceChanged = () => {
+    if (autocomplete !== null) {
+      const place = autocomplete.getPlace();
+      if (place.geometry && place.geometry.location) {
+        const lat = place.geometry.location.lat();
+        const lng = place.geometry.location.lng();
+        setPosition({ lat, lng });
+        if (map) {
+          map.panTo({ lat, lng });
+          map.setZoom(16);
+        }
+        setAddressDisplay(place.formatted_address || '');
+        setIsManualMode(false);
+      } else {
+        console.log("No details available for input: '" + place.name + "'");
+      }
+    }
+  };
+
+  const toggleManualMode = () => {
+    if (isManualMode) {
+      // Saving
+      setAddressDisplay(manualAddress);
+      if (position) {
         updateDraft({
           location: {
             lat: position.lat,
@@ -235,83 +321,6 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
           }
         });
       }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [position]); // Removed isManualMode from deps to avoid loop, but we need to be careful
-
-  const handleLocateUser = () => {
-    setLoadingGPS(true);
-    // Reset manual mode when locating
-    setIsManualMode(false);
-
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const newPos = new L.LatLng(pos.coords.latitude, pos.coords.longitude);
-          setPosition(newPos);
-          setLoadingGPS(false);
-        },
-        (err) => {
-          console.error(err);
-          setLoadingGPS(false);
-          // Fallback to default center if denied but stop loading
-          if (!position) {
-            setPosition(new L.LatLng(defaultCenter.lat, defaultCenter.lng));
-          }
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-      );
-    } else {
-      setLoadingGPS(false);
-      if (!position) {
-        setPosition(new L.LatLng(defaultCenter.lat, defaultCenter.lng));
-      }
-    }
-  };
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-
-    setIsSearching(true);
-    // Reset manual mode on search
-    setIsManualMode(false);
-
-    try {
-      // Use Nominatim for Search (Free, Open Source)
-      // Limit to Mexico (countrycodes=mx)
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}&countrycodes=mx&limit=1`,
-        { headers: { 'User-Agent': 'DenunciaPopularApp/1.0' } }
-      );
-      const data = await response.json();
-
-      if (data && data.length > 0) {
-        const result = data[0];
-        const newPos = new L.LatLng(parseFloat(result.lat), parseFloat(result.lon));
-        setPosition(newPos);
-        setAddressDisplay(result.display_name);
-      } else {
-        alert("No se encontraron resultados. Intenta ser más específico.");
-      }
-    } catch (error) {
-      console.error("Search error:", error);
-      alert("Error al buscar. Intenta de nuevo.");
-    } finally {
-      setIsSearching(false);
-    }
-  };
-
-  const toggleManualMode = () => {
-    if (isManualMode) {
-      // Saving
-      setAddressDisplay(manualAddress);
-      updateDraft({
-        location: {
-          ...draft.location!,
-          address: manualAddress
-        }
-      });
       setIsManualMode(false);
     } else {
       // Editing
@@ -320,70 +329,24 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     }
   };
 
-  // Memoize the icon to prevent re-creation on every render, which causes Leaflet errors
-  const tacticalIcon = useMemo(() => new L.DivIcon({
-    className: 'bg-transparent',
-    html: `<div class="relative flex items-center justify-center w-10 h-10">
-              <div class="absolute w-full h-full rounded-full bg-red-500/30 animate-ping"></div>
-              <div class="relative w-4 h-4 bg-red-500 border-2 border-white rounded-full shadow-lg shadow-red-500/50"></div>
-           </div>`,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20]
-  }), []);
+  if (loadError) {
+    return <div className="text-red-500 p-4">Error loading Google Maps</div>;
+  }
 
-  const markerRef = React.useRef<L.Marker>(null);
-
-  const eventHandlers = useMemo(
-    () => ({
-      dragend() {
-        const marker = markerRef.current;
-        if (marker != null) {
-          setPosition(marker.getLatLng());
-        }
-      },
-    }),
-    [],
-  );
+  if (!isLoaded) {
+    return (
+      <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] relative bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800 items-center justify-center">
+        <Loader2 className="animate-spin text-pink-500" size={48} />
+        <p className="text-zinc-400 mt-4">Cargando mapa...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] relative bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800">
-      {/* Inject Leaflet CSS directly to ensure it loads */}
-      <style>
-        {`
-          .leaflet-container {
-            height: 100%;
-            width: 100%;
-            background-color: #09090b !important;
-            font-family: 'Inter', sans-serif;
-            border-radius: 1rem;
-          }
-          .leaflet-control-attribution {
-            background: rgba(0,0,0,0.8) !important;
-            color: #71717a !important;
-            font-size: 10px !important;
-            display: none; /* Hide attribution for cleaner UI if permitted, or style it better */
-          }
-          .leaflet-bar a {
-            background-color: #18181b !important;
-            color: #e4e4e7 !important;
-            border-bottom: 1px solid #27272a !important;
-          }
-          .leaflet-bar a:hover {
-            background-color: #27272a !important;
-            color: #fff !important;
-          }
-          @keyframes ripple-expand {
-            0% { transform: scale(0.1); opacity: 1; border-width: 4px; }
-            100% { transform: scale(2.5); opacity: 0; border-width: 0px; }
-          }
-          .animate-ripple {
-            animation: ripple-expand 0.8s ease-out forwards;
-          }
-        `}
-      </style>
 
       {/* Search Bar & Controls Overlay */}
-      <div className="absolute top-4 left-4 right-4 z-[500] flex flex-col gap-2 pointer-events-none">
+      <div className="absolute top-4 left-4 right-4 z-[10] flex flex-col gap-2 pointer-events-none">
 
         {/* Header Title */}
         <div className="pointer-events-auto bg-zinc-900/90 backdrop-blur-md p-3 rounded-xl border border-zinc-800 shadow-2xl flex justify-between items-center mb-2">
@@ -394,7 +357,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
             </span>
           </h2>
           <button
-            onClick={handleLocateUser}
+            onClick={() => handleLocateUser()}
             disabled={loadingGPS}
             className="p-2 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-pink-900/20 hover:border-pink-500/50 text-zinc-300 hover:text-pink-400 transition-all disabled:opacity-50"
             title="Usar mi ubicación actual"
@@ -404,114 +367,49 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
         </div>
 
         {/* Search Input */}
-        <form onSubmit={handleSearch} className="pointer-events-auto relative flex items-center shadow-xl">
-          <div className="absolute left-3 text-zinc-400">
+        <div className="pointer-events-auto relative flex items-center shadow-xl">
+          <div className="absolute left-3 text-zinc-400 z-10">
             <Search size={16} />
           </div>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar calle, colonia o ciudad..."
-            className="w-full bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 pl-10 pr-10 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-3 text-zinc-500 hover:text-white"
-            >
-              <X size={16} />
-            </button>
-          )}
-          {isSearching && (
-            <div className="absolute right-10">
-              <Loader2 size={16} className="animate-spin text-pink-500" />
-            </div>
-          )}
-        </form>
-
-        {/* Autocomplete Suggestions */}
-        {showSuggestions && suggestions.length > 0 && (
-          <div className="pointer-events-auto bg-zinc-900/95 backdrop-blur-md border border-zinc-700 rounded-xl shadow-2xl overflow-hidden mt-1 max-h-60 overflow-y-auto">
-            {suggestions.map((item, index) => (
-              <button
-                key={index}
-                onClick={() => handleSelectSuggestion(item)}
-                className="w-full text-left px-4 py-3 text-sm text-zinc-300 hover:bg-zinc-800 hover:text-white border-b border-zinc-800 last:border-0 transition-colors flex items-start gap-2"
-              >
-                <MapPin size={14} className="mt-1 text-pink-500 shrink-0" />
-                <span className="line-clamp-2">{item.display_name}</span>
-              </button>
-            ))}
-          </div>
-        )}
+          <Autocomplete
+            onLoad={onAutocompleteLoad}
+            onPlaceChanged={onPlaceChanged}
+            className="w-full"
+          >
+            <input
+              type="text"
+              placeholder="Buscar calle, colonia o ciudad..."
+              className="w-full bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 pl-10 pr-10 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
+            />
+          </Autocomplete>
+        </div>
       </div>
 
       <div className="flex-1 w-full h-full z-0 relative">
-        <MapContainer
+        <GoogleMap
+          mapContainerStyle={mapContainerStyle}
           center={position || defaultCenter}
           zoom={13}
-          scrollWheelZoom={true}
-          zoomControl={false}
-          className="h-full w-full bg-zinc-950 outline-none"
+          options={mapOptions}
+          onLoad={onLoad}
+          onUnmount={onUnmount}
+          onClick={onMapClick}
         >
-          <ZoomControl position="bottomleft" />
-          <MapRealigner />
-          <MapUpdater center={position} zoom={16} />
-          <LayersControl position="bottomright">
-            <LayersControl.BaseLayer checked name="Calle (OpenStreetMap)">
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-              />
-            </LayersControl.BaseLayer>
-
-            <LayersControl.BaseLayer name="Topografía (OpenTopoMap)">
-              <TileLayer
-                attribution='Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
-                url="https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
-                maxZoom={17}
-              />
-            </LayersControl.BaseLayer>
-
-            <LayersControl.BaseLayer name="Satélite (Esri World Imagery)">
-              <TileLayer
-                attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              />
-            </LayersControl.BaseLayer>
-
-            <LayersControl.BaseLayer name="Relieve (Esri World Shaded Relief)">
-              <TileLayer
-                attribution='Tiles &copy; Esri &mdash; Source: Esri'
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Shaded_Relief/MapServer/tile/{z}/{y}/{x}"
-                maxZoom={13}
-              />
-            </LayersControl.BaseLayer>
-          </LayersControl>
-
-          <ClickFeedbackLayer />
-          <MarkerClusterGroup chunkedLoading>
-            {position && (
-              <Marker
-                draggable={true}
-                eventHandlers={eventHandlers}
-                position={position}
-                ref={markerRef}
-                icon={tacticalIcon}
-              />
-            )}
-          </MarkerClusterGroup>
-          <MapClickHandler setPosition={setPosition} />
-        </MapContainer>
-
+          {position && (
+            <Marker
+              position={position}
+              draggable={true}
+              onDragEnd={onMarkerDragEnd}
+              animation={window.google.maps.Animation.DROP}
+            />
+          )}
+        </GoogleMap>
         {/* Vignette Effect */}
-        <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.9)] z-[400]"></div>
+        <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.9)] z-[5]"></div>
       </div>
 
       {/* Bottom Panel */}
-      <div className="p-4 md:p-6 bg-zinc-950 border-t border-zinc-900 z-[500]" aria-live="polite">
+      <div className="p-4 md:p-6 bg-zinc-950 border-t border-zinc-900 z-[10]" aria-live="polite">
         {position && (
           <div className="mb-4 md:mb-6 bg-zinc-900 p-3 md:p-4 rounded-xl border border-zinc-800 flex items-start gap-4 animate-fade-in">
             <div className={`mt-1 p-2 rounded-lg ${loadingAddress ? 'bg-zinc-800 text-zinc-500' : 'bg-pink-900/20 text-pink-500'}`}>

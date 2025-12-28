@@ -1,5 +1,6 @@
 
 export enum Step {
+  HOME = -1,
   LOCATION = 0,
   INFO = 1,
   EVIDENCE = 2,

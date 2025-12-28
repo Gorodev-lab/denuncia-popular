@@ -6,6 +6,7 @@ import { StepInfo } from './steps/StepInfo';
 import { StepLocation } from './steps/StepLocation';
 import { StepEvidence } from './steps/StepEvidence';
 import { StepReview } from './steps/StepReview';
+import { HomePage } from './HomePage';
 import { CheckCircle2, RefreshCw } from 'lucide-react';
 
 interface WizardProps {
@@ -16,12 +17,14 @@ interface WizardProps {
 }
 
 export const Wizard: React.FC<WizardProps> = ({ step, setStep, draft, updateDraft }) => {
-  
+
   const next = () => setStep(step + 1);
   const back = () => setStep(step - 1);
 
   const renderContent = () => {
     switch (step) {
+      case Step.HOME:
+        return <HomePage onStart={() => setStep(Step.LOCATION)} />;
       case Step.LOCATION:
         // First Step: Location (No back action)
         return <StepLocation draft={draft} updateDraft={updateDraft} onNext={next} />;
@@ -43,17 +46,17 @@ export const Wizard: React.FC<WizardProps> = ({ step, setStep, draft, updateDraf
                 <CheckCircle2 size={48} />
               </div>
             </div>
-            
+
             <h2 className="text-4xl md:text-5xl font-bold mb-4 text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-teal-400">
               Denuncia Registrada
             </h2>
-            
+
             <p className="text-zinc-400 max-w-lg mb-12 text-lg leading-relaxed">
-              Se ha generado el folio <strong className="text-white font-mono bg-zinc-800 px-2 py-1 rounded border border-zinc-700">#MX-2025-8492</strong>. 
-              <br/>Hemos enviado una copia del PDF firmado a tu correo.
+              Se ha generado el folio <strong className="text-white font-mono bg-zinc-800 px-2 py-1 rounded border border-zinc-700">#MX-2025-8492</strong>.
+              <br />Hemos enviado una copia del PDF firmado a tu correo.
             </p>
 
-            <button 
+            <button
               onClick={() => window.location.reload()}
               className="group px-8 py-4 rounded-full bg-zinc-900 border border-zinc-700 text-zinc-300 font-bold hover:bg-zinc-800 hover:text-white hover:border-zinc-500 transition-all duration-300 flex items-center gap-2"
             >
@@ -69,7 +72,7 @@ export const Wizard: React.FC<WizardProps> = ({ step, setStep, draft, updateDraf
 
   return (
     <div className="flex flex-col w-full h-full bg-black/40 backdrop-blur-sm">
-      <StepNavigation currentStep={step} />
+      {step !== Step.HOME && <StepNavigation currentStep={step} />}
       <div className="flex-1 w-full max-w-5xl mx-auto p-4">
         {/* Card Container with Glow Effect */}
         <div className="relative w-full h-full">

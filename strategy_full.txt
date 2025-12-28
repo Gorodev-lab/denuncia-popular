@@ -1,0 +1,186 @@
+Esta es una estrategia detallada paso a paso para migrar Denuncia Popular v2.2
+(actualmente en "Public Beta") al ecosistema gobernado de Esoteria AI, asegurando el
+cumplimiento estricto del SOP proporcionado.
+
+El objetivo es transicionar de un estado de "proyecto independiente" a una estructura
+empresarial de tres entornos bajo la organización esoteriaai.com.
+
+
+
+Estrategia de Migración e Implementación (Paso a Paso)
+Fase 1: Reestructuración de Jerarquía y Nombres
+Según el SOP, no podemos tener un solo proyecto para todo. Debemos adherirnos al modelo
+de tres entornos 111 bajo la carpeta correcta.
+
+
+ 1.​ Ubicación: Todo debe residir bajo la Organización esoteriaai.com dentro de la carpeta
+     Products (ya que es una app generadora de valor a largo plazo)222222222.​
+
+ 2.​ Convención de Nombres: Debemos renombrar/crear los proyectos siguiendo
+     <producto>-<env>333.​
+
+     ○​ denuncia-popular-sandbox (Para spikes y prototipos futuros)4.​
+
+     ○​ denuncia-popular-dev (Para pruebas internas y staging de la v2.3)5.​
+
+     ○​ denuncia-popular-prod (Donde vivirá la versión "Public Beta" actual)6.​
+
+
+Fase 2: Gestión de Credenciales e Infraestructura Compartida
+El SOP dicta que las credenciales compartidas y OAuth deben vivir en el proyecto
+Shared-Infra777777777.
+
+
+ 1.​ OAuth Consent Screen: Configurar la pantalla de consentimiento "Esoteria AI" en el
+     proyecto Shared-Infra (si aún no existe) para gestionar el login de usuarios o permisos
+     de Google8.​
+
+ 2.​ API Keys (Mapas y Gemini):
+     ○​ Crear claves restringidas. Para Frontend (Mapas), restringir por "HTTP referrer"
+         (denuncia-popular.vercel.app)9. Para Backend (Gemini), restringir por IP si es posible
+         o usar Service Accounts10.​
+
+     ○​ Las claves deben nombrarse: denuncia-popular-prod-maps-key11.​
+Fase 3: Gobernanza y Billing
+Dado que la app ya está en producción ("Public Beta"), debemos formalizarla
+retroactivamente.
+ 1.​ Facturación: Vincular dev y prod a la cuenta de facturación de Esoteria12.​
+
+ 2.​ Presupuestos:
+     ○​ Establecer presupuesto para dev ($20-$30 USD)13.​
+
+     ○​ Establecer presupuesto para prod basado en el uso actual de Gemini y Mapas14.​
+
+     ○​ Configurar alertas al 50%, 80% y 100% 15.​
+
+ 3.​ Aprobación Formal: Aunque ya está "en vivo", se debe generar el documento de
+     "Upgrade Request" para que el Admin (tú u otro) apruebe formalmente la existencia del
+     entorno prod bajo las nuevas normas16.​
+
+
+
+Paquetería de Documentos de Implementación
+A continuación, presento los documentos y templates necesarios para ejecutar esta
+estrategia.
+
+Documento 1: Solicitud de Upgrade a Producción (Formalización)
+
+
+
+Este documento es obligatorio para legitimar el entorno denuncia-popular-prod según la
+sección 7.2 del SOP17.
+
+
+     Upgrade Request: Denuncia Popular
+
+     * Product Name: Denuncia Popular 18* Project ID: denuncia-popular-prod
+     (Propuesto) 19
+
+
+      ●​ APIs Enabled:​
+         * Google Maps JavaScript API (Mapas interactivos) 20* Geocoding API
+         (Búsqueda de direcciones) 21* Generative Language API (Gemini 2.0 Flash
+         para análisis legal) 22
+      ●​ Expected Usage: Tráfico de Beta Pública (~500 peticiones/mes estimadas).
+         ●​ Estimated Monthly Cost: Bajo (Free tier de Maps + costo marginal de
+            Gemini Flash).
+         ●​ Business Justification: Plataforma cívica en Beta Pública v2.2. Requiere
+            infraestructura estable y aislada de desarrollo para garantizar disponibilidad
+            a ciudadanos. 23​
+
+         ●​ Safeguards: Presupuesto configurado en $50 USD con alertas al 50% y
+            80%. Claves de API restringidas por HTTP Referrer. 24* Requested Upgrade
+            Date: Inmediata (Regularización). 25​
+
+
+Documento 2: Registro de Proyecto para Obsidian
+
+
+
+Este contenido debe guardarse en Esoteria / SOPs / Cloud / Projects según el paso 8 del
+SOP26262626.
+
+
+
+
+    Markdown
+
+
+
+# Project: Denuncia Popular (Prod)​
+​
+- **Project Name:** denuncia-popular-prod​
+- **Project ID:** [Insertar ID real tras creación]​
+- [cite_start]**Folder Location:** Esoteria Organization > Products [cite: 39]​
+- **Environment:** Production​
+- [cite_start]**Owner:** Esoteria Core Admin [cite: 80]​
+​
+## [cite_start]APIs Enabled [cite: 92]​
+- Generative Language API (Gemini)​
+- Maps JavaScript API​
+- Geocoding API​
+​
+## [cite_start]IAM & Access [cite: 93]​
+- **Owner:** esoteria-admin@esoteriaai.com​
+- **Editor:** [Lead Developer Email]​
+- **Viewer:** [Junior Developer Email]​
+- **Service Accounts:**​
+    - [cite_start]`svc-denuncia-prod-gemini` (Backend processing) [cite: 86]​
+​
+## [cite_start]Credentials [cite: 94]​
+- **OAuth Client:** `denuncia-popular-prod-oauth` (Managed in Shared-Infra)​
+- **API Keys:**​
+    - `denuncia-popular-prod-maps-key` (Restricted to https://denuncia-popular.vercel.app)​
+​
+## [cite_start]Billing [cite: 95]​
+- **Status:** Active​
+- **Budget:** $50/mo​
+- **Alerts:** 50%, 80%, 100% via Email​
+
+
+
+
+Paquetería de Prompts (Para Asistencia de IA)
+Utiliza estos prompts con tu asistente de código (o conmigo en una nueva sesión) para
+generar los comandos técnicos y configuraciones.
+
+Prompt A: Creación de Infraestructura (CLI/Terraform)
+Este prompt ayuda a generar los comandos de gcloud respetando las convenciones de
+nombres y etiquetas del SOP.
+
+        "Actúa como Ingeniero DevOps de Esoteria AI. Basado en nuestro SOP, necesito
+        los comandos de gcloud para crear la estructura del proyecto 'Denuncia Popular'.
+
+        Requisitos:
+        1. Crear 3 proyectos: denuncia-popular-sandbox, denuncia-popular-dev,
+        denuncia-popular-prod bajo la carpeta 'Products' (asume un Folder ID variable
+        FOLDER_ID). 2727272727272727272. Vincularlos a la Billing Account (asume
+        BILLING_ID). 283. Aplicar etiquetas: env=sandbox|dev|prod,
+        product=denuncia-popular, owner=esoteria. 294. Habilitar solo las APIs:
+        generativelanguage.googleapis.com y maps-backend.googleapis.com. 305. Crear
+        un presupuesto de $20 para Dev y $50 para Prod con alertas por email.31.
+        Genera un script de bash comentado."
+
+Prompt B: Configuración de Seguridad y Secretos
+Para asegurar que las claves se manejen como dicta el SOP (nunca en GitHub).
+
+        "Analiza el White Paper de Denuncia Popular v2.2. Estoy migrando las
+        credenciales al estándar del SOP de Esoteria.
+
+        1. Genera un archivo .env.local.example que incluya las nuevas variables
+        estandarizadas para los Client IDs de OAuth y las API Keys creadas en GCP. 322.
+        Explica cómo configurar estas variables en Vercel para los entornos de Preview
+        (Dev) y Production (Prod) separadamente. 333. Redacta una política de seguridad
+    para el repositorio (SECURITY.md) explicando que las claves de Mapas deben
+    tener restricción HTTP y las de Gemini restricción de IP o Service Account." 34
+
+
+
+
+Resumen de Próximos Pasos
+1.​ Ejecutar Fase 1: Crear los proyectos en GCP Console o vía CLI usando el Prompt A.
+2.​ Solicitar Aprobación: Enviar (o auto-aprobar si eres Admin) el "Upgrade Request" para
+    Prod.
+3.​ Migrar Secretos: Actualizar Vercel con las nuevas credenciales generadas.
+4.​ Documentar: Crear la entrada en Obsidian.
+

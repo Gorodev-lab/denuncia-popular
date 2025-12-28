@@ -13,6 +13,12 @@ Una aplicación web moderna para facilitar la presentación de denuncias popular
 
 ## 🚀 Instalación y Uso Local
 
+### 🏢 Infraestructura Esoteria AI (Nuevo)
+Este proyecto ha migrado al ecosistema gobernado de **Esoteria AI**.
+Para desplegar la infraestructura empresarial (GCP Projects, Billing, IAM), consulta:
+- [`MIGRATION_EXECUTION_GUIDE.md`](./docs/MIGRATION_EXECUTION_GUIDE.md) - Guía de ejecución paso a paso.
+- [`SECURITY.md`](./SECURITY.md) - Políticas de seguridad y gestión de claves.
+
 ### Requisitos Previos
 
 - Node.js (v16 o superior)

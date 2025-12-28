@@ -4,7 +4,10 @@
 **Versión:** 2.2  
 **Fecha:** Diciembre 2025  
 **Autor:** Esoteria AI  
-**Estado:** En Producción (Beta Pública)
+**Estado:** En Producción (Beta Pública) - **Migrando a Esoteria AI Ecosystem**
+
+> [!IMPORTANT]
+> **Nota de Migración (Dic 2025):** Este proyecto se encuentra en proceso de migración a la infraestructura gobernada de Esoteria AI. Ver `docs/MIGRATION_EXECUTION_GUIDE.md` para detalles de la nueva arquitectura de despliegue.
 
 ---
 
