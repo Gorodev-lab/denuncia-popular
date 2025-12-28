@@ -140,6 +140,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
   const [isManualMode, setIsManualMode] = useState(false);
   const [manualAddress, setManualAddress] = useState('');
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
+  const [gpsError, setGpsError] = useState<string | null>(null);
 
   // Sync manual address with display address when not in manual mode
   useEffect(() => {
@@ -165,39 +166,71 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
 
   const handleLocateUser = (mapInstance: google.maps.Map | null = map) => {
     setLoadingGPS(true);
+    setGpsError(null);
     setIsManualMode(false);
 
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const newPos = {
-            lat: pos.coords.latitude,
-            lng: pos.coords.longitude,
-          };
-          setPosition(newPos);
-          if (mapInstance) {
-            mapInstance.panTo(newPos);
-            mapInstance.setZoom(16);
-          }
-          setLoadingGPS(false);
-        },
-        (err) => {
-          console.error(err);
-          setLoadingGPS(false);
-          if (!position && mapInstance) {
-            mapInstance.panTo(defaultCenter);
-            mapInstance.setZoom(13);
-          }
-        },
-        { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
-      );
-    } else {
+    if (!navigator.geolocation) {
+      setGpsError("Tu navegador no soporta geolocalización.");
       setLoadingGPS(false);
+      return;
+    }
+
+    const successCallback = (pos: GeolocationPosition) => {
+      const newPos = {
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+      };
+      setPosition(newPos);
+      if (mapInstance) {
+        mapInstance.panTo(newPos);
+        mapInstance.setZoom(16);
+      }
+      setLoadingGPS(false);
+    };
+
+    const errorCallback = (err: GeolocationPositionError) => {
+      console.error("GPS Error:", err);
+      let errorMessage = "Error al obtener ubicación.";
+
+      switch (err.code) {
+        case err.PERMISSION_DENIED:
+          errorMessage = "Permiso denegado. Habilita la ubicación en tu navegador.";
+          break;
+        case err.POSITION_UNAVAILABLE:
+          errorMessage = "Ubicación no disponible.";
+          break;
+        case err.TIMEOUT:
+          // Try again with low accuracy
+          console.log("Timeout with high accuracy, retrying with low accuracy...");
+          navigator.geolocation.getCurrentPosition(
+            successCallback,
+            (retryErr) => {
+              console.error("Retry GPS Error:", retryErr);
+              setLoadingGPS(false);
+              setGpsError("No se pudo obtener la ubicación. Intenta buscar manualmente.");
+            },
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
+          );
+          return; // Don't set error yet, wait for retry
+        default:
+          errorMessage = "Error desconocido de GPS.";
+      }
+
+      setLoadingGPS(false);
+      setGpsError(errorMessage);
+
+      // Fallback to default center if we don't have a position yet
       if (!position && mapInstance) {
         mapInstance.panTo(defaultCenter);
         mapInstance.setZoom(13);
       }
-    }
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      successCallback,
+      errorCallback,
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
   };
 
   const geocodePosition = async (lat: number, lng: number) => {
@@ -365,6 +398,19 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
             {loadingGPS ? <Loader2 size={18} className="animate-spin text-pink-500" /> : <Crosshair size={18} />}
           </button>
         </div>
+
+        {/* GPS Error Message */}
+        {gpsError && (
+          <div className="pointer-events-auto bg-red-900/90 backdrop-blur-md p-3 rounded-xl border border-red-700 shadow-xl flex justify-between items-center mb-2 animate-in fade-in slide-in-from-top-2">
+            <span className="text-white text-xs flex items-center gap-2">
+              <X size={14} className="text-red-300" />
+              {gpsError}
+            </span>
+            <button onClick={() => setGpsError(null)} className="text-red-300 hover:text-white">
+              <X size={14} />
+            </button>
+          </div>
+        )}
 
         {/* Search Input */}
         <div className="pointer-events-auto relative flex items-center shadow-xl">
