@@ -20,7 +20,7 @@ const ai = new GoogleGenAI({ apiKey });
 
 export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
   const [messages, setMessages] = useState<Message[]>([
-    { id: '1', role: 'model', text: 'Hola, soy tu Asistente Legal Virtual. ¿En qué puedo ayudarte a redactar tu denuncia hoy?' }
+    { id: '1', role: 'model', text: 'Bienvenido al Entorno de Gobernanza de Esoteria. Iniciando análisis de hechos para estructuración de denuncia. ¿En qué puedo ayudarle hoy?' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -78,7 +78,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
           <div className="w-8 h-8 bg-gradient-to-br from-pink-600 to-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-pink-900/20">
             <Bot size={18} className="text-white" />
           </div>
-          <span className="font-bold text-white text-sm">Esoteria Assistant</span>
+          <span className="font-bold text-zinc-200 text-xs tracking-widest uppercase">Esoteria Intelligence Interface</span>
         </div>
         <button onClick={onClose} className="text-zinc-400 hover:text-white transition-colors">
           <X size={20} />

@@ -6,8 +6,8 @@ Este documento detalla la hoja de ruta estratégica para evolucionar la aplicaci
 La aplicación cuenta con una base sólida:
 - **Frontend:** React 19 + Vite (Rápido y moderno).
 - **Mapas:** Google Maps API (Preciso y confiable).
-- **IA:** Gemini 1.5 Flash (Efectivo para redacción legal).
-- **Backend:** Supabase (Listo para escalar).
+- **Lógica Procedural:** LORE Engine (Bajo Gobernanza Esoteria).
+- **Backend:** Supabase (Gobernanza de Datos).
 
 **Áreas Críticas de Mejora:**
 1.  **Gestión de Evidencia:** Actualmente solo se guardan los nombres de archivo, no los archivos reales.
@@ -16,10 +16,10 @@ La aplicación cuenta con una base sólida:
 
 ---
 
-## Hoja de Ruta (Roadmap)
+## Hoja de Ruta de Gobernanza
 
-### Fase 1: Robustez Funcional y Seguridad (Inmediato)
-*Objetivo: Asegurar que la aplicación funcione correctamente de punta a punta y sea segura.*
+### Fase 1: Integridad Estructural y Seguridad (Inmediato)
+*Objetivo: Garantizar la inmutabilidad de la evidencia y el aislamiento de datos.*
 
 1.  **Implementación de Supabase Storage:**
     -   Crear un "Bucket" privado para almacenar fotos y documentos.
@@ -42,8 +42,8 @@ La aplicación cuenta con una base sólida:
     -   Asegurar que los botones tengan tamaño táctil adecuado (min 44px).
     -   Prevenir el zoom automático en inputs en iOS (font-size min 16px).
 
-### Fase 3: PWA y Expansión (Mediano Plazo)
-*Objetivo: Convertir la web en una "App" instalable.*
+### Fase 3: Expansión de Capas de Gobernanza (Mediano Plazo)
+*Objetivo: Recalibración estructural y multi-tenencia.*
 
 1.  **Progressive Web App (PWA):**
     -   Configurar `vite-plugin-pwa`.

@@ -20,7 +20,7 @@ export const HomePage: React.FC<Props> = ({ onStart }) => {
                 <div className="mb-12 animate-fade-in-up">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-900/50 border border-zinc-800 text-xs font-medium text-zinc-400 mb-6 backdrop-blur-sm">
                         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                        Sistema de Denuncia Ciudadana v2.0
+                        Sistema de Estructuración Ciudadana v2.5
                     </div>
 
                     <h1 className="text-5xl md:text-7xl font-black tracking-tight mb-6">
@@ -32,8 +32,8 @@ export const HomePage: React.FC<Props> = ({ onStart }) => {
                     </h1>
 
                     <p className="text-lg md:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed mb-8">
-                        Reporta incidentes de manera segura, anónima y respaldada por Inteligencia Artificial.
-                        Transformamos tu reporte en un documento legal listo para las autoridades.
+                        Estructure su reporte de manera segura, auditable y bajo gobernanza de inteligencia.
+                        Transformamos la fragmentación en un activo legal para las autoridades.
                     </p>
 
                     <button
@@ -52,8 +52,8 @@ export const HomePage: React.FC<Props> = ({ onStart }) => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left animate-fade-in-up delay-100">
                     <FeatureCard
                         icon={<Shield className="text-pink-500" size={24} />}
-                        title="Respaldo Legal IA"
-                        description="Nuestra IA analiza tu caso y redacta la denuncia con terminología jurídica precisa."
+                        title="Lógica Procedural"
+                        description="Nuestra infraestructura analiza la competencia y estructura la denuncia con rigor jurídico."
                     />
                     <FeatureCard
                         icon={<Lock className="text-purple-500" size={24} />}
@@ -71,7 +71,7 @@ export const HomePage: React.FC<Props> = ({ onStart }) => {
 
             {/* Footer */}
             <footer className="relative z-10 p-6 text-center text-zinc-600 text-sm">
-                <p>© 2025 Esoteria AI. Todos los derechos reservados.</p>
+                <p>© 2026 Esoteria Governance Infrastructure. Todos los derechos reservados.</p>
             </footer>
         </div>
     );

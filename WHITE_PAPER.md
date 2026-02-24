@@ -1,186 +1,105 @@
-# White Paper: Denuncia Popular v2.2
-**Democratizando el Acceso a la Justicia Administrativa mediante Inteligencia Artificial**
+# White Paper: Denuncia Popular v2.5
+**Gobernanza de Inteligencia para la Justicia Ambiental: El Modelo de Estructuración de Esoteria**
 
-**Versión:** 2.2  
-**Fecha:** Diciembre 2025  
-**Autor:** Esoteria AI  
-**Estado:** En Producción (Beta Pública) - **Migrando a Esoteria AI Ecosystem**
-
-> [!IMPORTANT]
-> **Nota de Migración (Dic 2025):** Este proyecto se encuentra en proceso de migración a la infraestructura gobernada de Esoteria AI. Ver `docs/MIGRATION_EXECUTION_GUIDE.md` para detalles de la nueva arquitectura de despliegue.
+**Versión:** 2.5 (Governance-First)  
+**Fecha:** Febrero 2026  
+**Estatus:** Infraestructura Certificada  
+**Ecosistema:** [Esoteria Intelligence Infrastructure](https://esoteria.ai)  
+**Autor:** Esoteria Governance Engineering  
 
 ---
 
-## 1. Resumen Ejecutivo
+## 1. Tesis Ejecutiva
 
-**Denuncia Popular** es una plataforma cívica diseñada para transformar la frustración ciudadana en acción legal efectiva. Utilizando **Inteligencia Artificial Generativa** y **Geolocalización de Alta Precisión**, la plataforma convierte reportes informales de servicios públicos deficientes (baches, luminarias, fugas) en denuncias administrativas formalmente estructuradas, fundamentadas legalmente y listas para su presentación ante la autoridad competente.
+Las organizaciones y ciudadanos no sufren por falta de información, sino por falta de **estructura**.  
+Indignación acumulada sin modelado legal es ruido administrativo.
 
-La versión 2.2 introduce mejoras significativas en la **experiencia del mapa**, **seguridad de datos** e **infraestructura como código**, consolidando una plataforma robusta, segura y escalable.
-
----
-
-## 2. Planteamiento del Problema
-
-La brecha entre el ciudadano y la administración pública se perpetúa por tres barreras fundamentales:
-
-1.  **Barrera Técnica-Legal:** El ciudadano promedio carece del conocimiento jurídico para redactar una denuncia que cumpla con los requisitos de forma y fondo (Art. 8 Constitucional y leyes administrativas locales).
-2.  **Ambigüedad de Competencia:** Es difícil para el ciudadano distinguir si un problema es competencia municipal, estatal o federal.
-3.  **Fricción en el Proceso:** Los mecanismos oficiales suelen ser burocráticos y difíciles de usar.
+**Denuncia Popular** opera como una capa de infraestructura inteligente que transforma la fragmentación de un incidente ambiental en una entidad estructurada, auditable y procesable. No es un chatbot; es un motor de gobernanza que formaliza la lógica de decisión legal antes de la ejecución.
 
 ---
 
-## 3. Solución y Propuesta de Valor
+## 2. El Problema: Fragmentación y Dependencia
 
-**Denuncia Popular** actúa como un **Asistente Legal Inteligente** que:
-
-*   **Entrevista** al usuario para recabar los hechos esenciales.
-*   **Localiza** con precisión el incidente utilizando múltiples capas de mapas.
-*   **Fundamenta** la petición analizando la normativa vigente mediante IA.
-*   **Genera** un documento PDF inmutable, listo para imprimir o enviar digitalmente.
-*   **Notifica** al usuario por correo electrónico con el comprobante adjunto.
+La justicia administrativa en México (Art. 189 LGEEPA) falla por tres debilidades estructurales:
+1.  **Ambigüedad Narrativa:** Hechos sin modelado jurídico.
+2.  **Imprecisión Espacial:** Datos de ubicación sin contexto de propiedad o jurisdicción.
+3.  **Fragilidad Procedural:** Dependencia en el criterio humano inconsistente en lugar de sistemas de lógica explícita.
 
 ---
 
-## 4. Arquitectura Técnica Actual (v2.2)
+## 3. Filosofía de Gobernanza Primero
 
-### 4.1 Frontend: React 19 + Vite + TypeScript
-*   **Stack:** React 19, Vite 6, TypeScript 5.8
-*   **UI/UX:** Diseño glassmórfico con paleta oscura (zinc), animaciones fluidas y micro-interacciones.
-*   **Responsivo:** Optimizado para móvil y escritorio.
+Bajo el ecosistema **Esoteria Workbench**, implementamos el **Modelo de Inteligencia por Capas**:
 
-### 4.2 Base de Datos y Backend: Supabase (PostgreSQL)
-*   **BaaS:** Supabase como Backend-as-a-Service.
-*   **Seguridad (RLS):** Políticas de Seguridad a Nivel de Fila (Row Level Security) estrictas:
-    *   `SELECT`: Público (para el mapa de denuncias).
-    *   `INSERT`: Solo usuarios autenticados.
-    *   `UPDATE/DELETE`: Solo el propietario del registro.
-*   **Infraestructura como Código:** Esquema y políticas versionados en `supabase/schema.sql` y `supabase/policies.sql`.
+### Capa 0 — Gobernanza y Límites
+Definimos las fronteras del conjunto de datos. La información del ciudadano permanece aislada y gobernada bajo políticas de privacidad física y lógica.
 
-### 4.3 Servicios de Mapas: OpenStreetMap + Leaflet
-*   **Decisión (v2.2):** Retorno a OpenStreetMap (Leaflet/React-Leaflet) con capas múltiples.
-*   **Justificación:**
-    *   **Costo:** Sin costos por uso, ideal para proyectos cívicos sin fines de lucro.
-    *   **Flexibilidad:** Capas intercambiables sin dependencia de un solo proveedor.
-*   **Capas Disponibles:**
-    | Capa | Proveedor | Uso |
-    |------|-----------|-----|
-    | Calle | OpenStreetMap | Navegación urbana estándar |
-    | Topografía | OpenTopoMap | Denuncias en áreas rurales/montañosas |
-    | Satélite | Esri World Imagery | Verificación visual de ubicaciones |
-    | Relieve | Esri World Shaded Relief | Contexto geográfico |
+### Capa 1 — Inventario de Hechos
+Antes de la interpretación, identificamos qué datos existen: coordenadas, testimonios, evidencia multimedia.
 
-### 4.4 Interacción del Mapa (Nuevas Funcionalidades v2.2)
-*   **Marcador Arrastrable:** El usuario puede arrastrar el pin rojo para ajustar la ubicación con precisión milimétrica.
-*   **Autocompletado de Búsqueda:** Al escribir en la barra de búsqueda, se muestran sugerencias en tiempo real (con debounce de 500ms).
-*   **Controles Reubicados:**
-    *   Zoom: Esquina inferior izquierda.
-    *   Capas: Esquina inferior derecha.
-*   **Efecto Ripple:** Animación visual al hacer clic en el mapa.
+### Capa 2 — Estructuración de Entidades
+Los datos crutos se convierten en entidades modeladas: Ofensor, Daño Ambiental, Ubicación Jurisdiccional.
 
-### 4.5 Inteligencia Artificial: Google Gemini 2.0 Flash
-*   **Modelo:** `gemini-2.0-flash-exp` (vía `@google/genai` SDK).
-*   **Casos de Uso:**
-    *   **ChatBot Legal:** Asistente conversacional con persona de "Asistente Legal para Ciudadanos Mexicanos".
-    *   **Auto-etiquetado:** Generación automática de etiquetas para clasificar denuncias.
-    *   **Redacción:** Limpieza y formalización del texto de la denuncia.
-
-### 4.6 Notificaciones: EmailJS
-*   **Servicio:** EmailJS (sin servidor propio).
-*   **Funcionalidad:** Envío automático del PDF generado al correo del usuario tras el registro exitoso.
-
-### 4.7 Generación de Documentos: jsPDF
-*   **Generación Client-Side:** El PDF se crea en el navegador del usuario, asegurando privacidad y reduciendo carga del servidor.
+### Capa 3 — Lógica de Decisión (LORE)
+Aplicamos criterios de ponderación transparentes para determinar la competencia (Municipal, Estatal, Federal) y el fundamento legal aplicable. La lógica es explícita, no intuitiva.
 
 ---
 
-## 5. Seguridad y Mejores Prácticas (v2.2)
+## 4. Arquitectura de Inteligencia Estructural
 
-| Aspecto | Implementación |
-|---------|----------------|
-| Secretos | Variables de entorno (`.env.local`), nunca hardcodeados. |
-| RLS | Políticas estrictas en PostgreSQL (ver `supabase/policies.sql`). |
-| Validación | Entrada del usuario validada en frontend y backend. |
-| CORS | Configurado en Supabase para dominios autorizados. |
-| Evidencia | Almacenada en buckets privados con URLs firmadas. |
-
----
-
-## 6. Flujo de Datos
-
-```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Usuario   │────▶│   Mapa      │────▶│   Gemini    │
-│  (Browser)  │     │ (Leaflet)   │     │   (IA)      │
-└─────────────┘     └─────────────┘     └─────────────┘
-       │                   │                   │
-       ▼                   ▼                   ▼
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   jsPDF     │◀────│  Supabase   │◀────│ Nominatim   │
-│   (PDF)     │     │  (DB/RLS)   │     │ (Geocoding) │
-└─────────────┘     └─────────────┘     └─────────────┘
-       │
-       ▼
-┌─────────────┐
-│   EmailJS   │
-│   (Correo)  │
-└─────────────┘
+```mermaid
+graph TD
+    User((Ciudadano)) --> Frontend[Interfaz de Inteligencia Esoteria]
+    Frontend --> Layer0[Gobernanza y Aislamiento]
+    Layer0 --> Layer2[Motor de Estructuración]
+    Layer2 --> Layer3[Lógica de Decisión LORE]
+    Layer3 --> DB[(Respositorio Estructurado Supabase)]
+    DB --> Output[Deliverable: Denuncia Formalizada]
 ```
 
----
-
-## 7. Hoja de Ruta (Roadmap)
-
-| Fase | Periodo | Objetivos |
-|------|---------|-----------|
-| Beta Pública | Q4 2025 | ✅ Estabilización, capas de mapa, marcador arrastrable, autocompletado. |
-| Móvil | Q1 2026 | App nativa (React Native), notificaciones push. |
-| WhatsApp | Q2 2026 | Bot conversacional para denuncias vía WhatsApp. |
-| Dashboard ONG | Q3 2026 | Panel de administración para ONGs y gobiernos locales. |
+### Componentes de Infraestructura
+*   **Lógica Procedural:** Motor de análisis basado en modelos de lenguaje gobernados.
+*   **Geolocalización de Precisión:** Integración de Google Maps con lógica de dirección manual para integridad de datos.
+*   **Segregación de Entornos:** Despliegue en GCP bajo estrictas políticas de IAM y Billing de Esoteria.
 
 ---
 
-## Anexo A: Estrategia de Integración con WhatsApp
+## 5. La Interfaz de Inteligencia
 
-*(Sin cambios respecto a v2.1)*
-
-### Objetivo
-Habilitar la creación de denuncias directamente desde WhatsApp, aprovechando que es la plataforma de comunicación más utilizada en México.
-
-### Fases
-1.  **Bot de Triaje (MVP):** Recibe ubicación y foto, devuelve Magic Link.
-2.  **Denuncia Conversacional (Full AI):** Proceso completo dentro del chat con soporte de audio (STT).
+La interacción conversacional es solo la superficie. El objetivo no es "chatear", sino recolectar los componentes necesarios para la **Estructuración de Hechos**:
+1.  **Identificación Espacial:** Georeferenciación precisa.
+2.  **Entrevista de Hechos:** Extracción de Tiempo, Modo y Lugar.
+3.  **Generación de Activos:** Producción de un reporte de inteligencia legal (PDF) listo para presentación oficial.
 
 ---
 
-## Anexo B: Infraestructura como Código
+## 6. Seguridad y Ética de Datos
 
-La versión 2.2 introduce el directorio `supabase/` con:
-
-*   **`schema.sql`:** Definición completa de las tablas `feedback` y `denuncias`, incluyendo triggers.
-*   **`policies.sql`:** Políticas RLS listas para aplicar en Supabase SQL Editor.
-
-Esto permite:
-*   **Versionado:** Cambios en la base de datos rastreables en Git.
-*   **Reproducibilidad:** Cualquier desarrollador puede recrear el entorno.
-*   **Auditoría:** Historial de cambios en políticas de seguridad.
+*   **Auditabilidad:** Cada paso de la estructuración es observable.
+*   **Privacidad Local:** El procesamiento de generación de documentos ocurre en el cliente para minimizar la exposición de datos.
+*   **Transparencia Procedural:** El usuario valida toda la lógica sugerida por el sistema antes de la firma.
 
 ---
 
-## Anexo C: Verificación de Seguridad
+## 7. Hoja de Ruta: Recalibración Estructural
 
-Script de verificación RLS disponible en `tests/verify_rls.js`:
-
-```bash
-node tests/verify_rls.js
-```
-
-**Salida Esperada (Políticas Correctas):**
-```
-✅ Lectura Anónima: Éxito
-✅ Escritura Anónima: Bloqueado (correcto)
-```
+| Fase | Hito | Propósito |
+| :--- | :--- | :--- |
+| **Q1 2026** | **Gobernanza Expandida** | Implementación de límites de workspace para diferentes tipos de delitos ambientales. |
+| **Q2 2026** | **Automatización de Flujo** | Cadencia de seguimiento automatizado con autoridades. |
+| **Q3 2026** | **Análisis de Clusters** | Identificación de patrones de degradación ambiental mediante modelado de entidades. |
 
 ---
 
-**Contacto:** [https://denuncia-popular.vercel.app](https://denuncia-popular.vercel.app)  
-**Repositorio:** [https://github.com/Gorodev-lab/denuncia-popular](https://github.com/Gorodev-lab/denuncia-popular)
+## 8. Conclusión
+
+**Denuncia Popular** no es una capa de IA sobre el caos. Es el sistema debajo de la claridad. Convertimos el juicio implícito en lógica explícita para devolver el poder del derecho ambiental a la ciudadanía mediante una infraestructura de gobernanza inatacable.
+
+---
+
+**Para más información:**
+🏗️ [Esoteria Intelligence Infrastructure](https://esoteria.ai)  
+📦 [GitHub Repository](https://github.com/Gorodev-lab/denuncia-popular)
+
+---
+*Este documento define la trayectoria doctrinaria de Esoteria para el proyecto Denuncia Popular v2.5.*

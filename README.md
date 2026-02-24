@@ -1,20 +1,21 @@
-# 🌿 Denuncia Popular - Sistema de Denuncias Ambientales
+#  Denuncia Popular - Sistema de Denuncias Ambientales
 
 Una aplicación web moderna para facilitar la presentación de denuncias populares ante SEMARNAT (Secretaría de Medio Ambiente y Recursos Naturales de México).
 
-## 📋 Características
+##  Características
 
 - **Interfaz Bilingüe**: Soporte completo para español e inglés
 - **Formulario Interactivo**: Wizard multi-paso para facilitar el proceso de denuncia
 - **Integración con Mapas**: Selección visual de la ubicación del incidente
 - **Generación de PDF**: Descarga automática de constancia de presentación
 - **UI Moderna**: Diseño oscuro y minimalista con Tailwind CSS
-- **Integración con IA**: Asistencia mediante Google Gemini API
+- **Gobernanza de Datos**: Estructuración de hechos y análisis de competencia legal
+- **Interfaz de Inteligencia**: Asistencia interactiva para la estructuración de denuncias
 
-## 🚀 Instalación y Uso Local
+##  Instalación y Uso Local
 
-### 🏢 Infraestructura Esoteria AI (Nuevo)
-Este proyecto ha migrado al ecosistema gobernado de **Esoteria AI**.
+### Infraestructura de Gobernanza Esoteria (Nuevo)
+Este proyecto ha migrado al ecosistema de **Gobernanza de Inteligencia Esoteria**.
 Para desplegar la infraestructura empresarial (GCP Projects, Billing, IAM), consulta:
 - [`MIGRATION_EXECUTION_GUIDE.md`](./docs/MIGRATION_EXECUTION_GUIDE.md) - Guía de ejecución paso a paso.
 - [`SECURITY.md`](./SECURITY.md) - Políticas de seguridad y gestión de claves.
@@ -48,8 +49,8 @@ Para desplegar la infraestructura empresarial (GCP Projects, Billing, IAM), cons
    VITE_SUPABASE_URL=tu_supabase_url
    VITE_SUPABASE_ANON_KEY=tu_supabase_anon_key
    
-   # Gemini AI (opcional)
-   GEMINI_API_KEY=tu_gemini_api_key_aqui
+   # Esoteria Governance Token (opcional)
+   ESOTERIA_TOKEN=tu_token_de_gobernanza_aqui
    ```
    
    **📖 Para obtener tu Google Maps API key**, consulta la guía completa:
@@ -69,7 +70,7 @@ Para desplegar la infraestructura empresarial (GCP Projects, Billing, IAM), cons
 - **React** + **TypeScript**: Framework principal
 - **Vite**: Build tool y servidor de desarrollo
 - **Tailwind CSS**: Estilos y diseño responsive
-- **Google Gemini API**: Asistencia con IA
+- **Lógica de Estructuración**: Motor de análisis procedural basado en Esoteria Workbench
 - **Google Maps API**: Mapas interactivos y geocodificación
 - **Supabase**: Base de datos y almacenamiento
 
