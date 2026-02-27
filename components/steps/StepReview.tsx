@@ -109,7 +109,7 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
 
       // --- Intro ---
       doc.setFont("times", "normal");
-      const intro = "Por el presente procedo a DENUNCIAR hechos, actividades u omisiones que están produciendo o pueden producir desequilibrio ecológico o daños al ambiente o a los recursos naturales, o contravienen las disposiciones legales nacionales:";
+      const intro = "Por el presente, y con fundamento en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente (LGEEPA), así como en la normatividad correlativa de la Ley Federal de Procedimiento Administrativo, comparezco para interponer formal DENUNCIA POPULAR respecto de hechos, actos y omisiones que producen o pueden producir desequilibrio ecológico, daños al ambiente y a los recursos naturales, contraviniendo las disposiciones legales aplicables. Al respecto, expongo lo siguiente:";
       addWrappedText(intro, 10, "normal");
       yPos += 5;
 
@@ -209,10 +209,10 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
       doc.setFontSize(9);
 
       const legalText = [
-        "PRIMERO.- Se admita y realicen las acciones necesarias a fin de corroborar la existence de los actos, hechos y omisiones denunciados, en cumplimiento a lo dispuesto en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente.",
-        "TERCERO.- Se me reconozca el carácter de coadyuvante, de conformidad con el artículo 193 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente.",
-        "CUARTO.- Se me permita acceder al o los expedientes que con motivo de esta denuncia se integren, de conformidad con lo dispuesto en el artículo 33 de la Ley Federal del Procedimiento Administrativo.",
-        "QUINTO.- Se mantenga la confidencialidad y reserva de mis datos personales y los de mis autorizados, de conformidad a lo dispuesto en los artículos 1 y 6 de la CPEUM, 113, fracción V, 116 de la Ley General de Transparencia y Acceso a la Información Pública."
+        "PRIMERO.- Se tenga por presentada y radicada la presente Denuncia Popular; y en consecuencia, se ordene el despliegue de las visitas de inspección o acciones tendientes a corroborar los actos y omisiones expuestos, en estricto cumplimiento y ejercicio de lo contemplado por los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente.",
+        "SEGUNDO.- Se me reconozca formal y expresamente el carácter de coadyuvante en el procedimiento administrativo instaurado, de conformidad con lo preceptuado por el artículo 193 de la citada Ley General del Equilibrio Ecológico y la Protección al Ambiente.",
+        "TERCERO.- Se me permita ejercer plenamente el derecho de acceso al expediente o expedientes que resulten y se sustancien con motivo de esta denuncia, de acuerdo a la prerrogativa que concede el artículo 33 de la Ley Federal de Procedimiento Administrativo.",
+        "CUARTO.- Se garantice, en todo momento, la absoluta confidencialidad y reserva de mis datos personales de localización e identidad, lo anterior con sustento en los artículos 1 y 6 de la Constitución Política de los Estados Unidos Mexicanos y en la Ley General de Transparencia y Acceso a la Información Pública."
       ];
 
       legalText.forEach(text => {
@@ -423,8 +423,8 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
               </p>
 
               <p className="text-justify pt-4">
-                Que por medio del presente instrumento vengo a denunciar hechos constitutivos de posibles faltas administrativas, fundamentando mi dicho en
-                <span className="font-bold mx-1">{draft.aiAnalysis?.legalBasis || 'la legislación aplicable'}</span>.
+                Que por medio del presente instrumento vengo a interponer formal DENUNCIA POPULAR respecto de hechos, actos y omisiones que producen o pueden producir desequilibrio ecológico, fundamentando mi dicho en
+                <span className="font-bold mx-1">{draft.aiAnalysis?.legalBasis || 'los artículos pertinentes de la LGEEPA'}</span>.
               </p>
 
               <div className="bg-slate-100 p-6 border-l-4 border-slate-400 italic my-6 text-slate-700">
