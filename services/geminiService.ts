@@ -1,20 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AIAnalysisResult } from '../types';
 
-const getApiKey = () => {
-    const key = import.meta.env.VITE_GEMINI_API_KEY ||
-        (typeof process !== 'undefined' ? process.env.VITE_GEMINI_API_KEY : undefined) ||
-        (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
-    return key;
-};
-
-const apiKey = getApiKey();
-
-if (!apiKey) {
-    console.warn("⚠️ Intelligence Infrastructure: API Key not detected. Falling back to Demo Mode.");
-} else {
-    console.log("✅ Intelligence Infrastructure: Key detected (" + apiKey.substring(0, 6) + "...)");
-}
+const apiKey = process.env.API_KEY;
 
 const ai = new GoogleGenAI({ apiKey: apiKey || '' });
 
@@ -28,17 +15,17 @@ export interface GroundedResponse {
     sources: GroundingSource[];
 }
 
-// Structural analysis using Esoteria LORE Engine
+// Fast analysis using Flash Lite
 export const analyzeComplaint = async (description: string, locationContext?: string): Promise<AIAnalysisResult> => {
-    if (!apiKey) {
-        return {
-            competency: 'MUNICIPAL',
-            legalBasis: 'Simulación: Falta API Key.',
-            summary: 'Análisis simulado.'
-        };
-    }
+  if (!apiKey) {
+    return {
+      competency: 'MUNICIPAL',
+      legalBasis: 'Simulación: Falta API Key.',
+      summary: 'Análisis simulado.'
+    };
+  }
 
-    const prompt = `
+  const prompt = `
     Analiza la siguiente denuncia ciudadana en México.
     Descripción: "${description}"
     Contexto de ubicación: "${locationContext || 'No especificado'}"
@@ -49,97 +36,105 @@ export const analyzeComplaint = async (description: string, locationContext?: st
     3. Un resumen formal de los hechos.
   `;
 
-    try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            config: {
-                responseMimeType: "application/json"
-            }
-        });
-
-        const text = response.text;
-        if (!text) throw new Error("Empty response from AI Engine");
-
-        return JSON.parse(text) as AIAnalysisResult;
-
-    } catch (error: any) {
-        if (error.message?.includes("PERMISSION_DENIED") || error.message?.includes("API_KEY_HTTP_REFERRER_BLOCKED")) {
-            console.error("❌ Intelligence Infrastructure: Google Cloud Restriction Found.");
-            throw new Error("RESTRICCION_DE_DOMINIO");
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-lite',
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            competency: {
+              type: Type.STRING,
+              enum: ['MUNICIPAL', 'ESTATAL', 'FEDERAL', 'UNKNOWN']
+            },
+            legalBasis: { type: Type.STRING },
+            summary: { type: Type.STRING }
+          },
+          required: ['competency', 'legalBasis', 'summary']
         }
-        console.error("Error analyzing complaint:", error);
-        throw error;
-    }
+      }
+    });
+
+    const text = response.text;
+    if (!text) throw new Error("No response from AI");
+    
+    return JSON.parse(text) as AIAnalysisResult;
+
+  } catch (error) {
+    console.error("Error analyzing complaint:", error);
+    throw error;
+  }
 };
 
 // Refined Geocoding Function
 export const getAddressFromCoordinates = async (lat: number, lng: number): Promise<{ address: string; uri?: string }> => {
-    if (!apiKey) return { address: "Ubicación aproximada (Sin API Key)" };
+  if (!apiKey) return { address: "Ubicación aproximada (Sin API Key)" };
 
-    const prompt = `
+  const prompt = `
     Find the precise postal address for the coordinates: latitude=${lat}, longitude=${lng}.
     Return only the full address string.
   `;
+  
+  let attempt = 0;
+  const maxAttempts = 3;
 
-    let attempt = 0;
-    const maxAttempts = 3;
+  while (attempt < maxAttempts) {
+      try {
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: prompt,
+          config: {
+            tools: [{ googleMaps: {} }],
+            // responseMimeType and responseSchema are NOT supported with googleMaps tool
+          }
+        });
 
-    while (attempt < maxAttempts) {
-        try {
-            const response = await ai.models.generateContent({
-                model: 'gemini-1.5-flash',
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
-                config: {
-                    tools: [{ googleMaps: {} }],
-                    // responseMimeType and responseSchema are NOT supported with googleMaps tool
-                }
-            });
-
-            const text = response.text;
-            let address = text ? text.trim() : "Dirección no encontrada";
-
-            // Extract Google Maps URI from grounding metadata
-            let uri: string | undefined;
-            const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-
-            if (chunks) {
-                for (const chunk of chunks) {
-                    // @ts-ignore
-                    if (chunk.maps?.desktopUri) {
-                        // @ts-ignore
-                        uri = chunk.maps.desktopUri;
-                        break;
-                    }
-                    // @ts-ignore
-                    if (chunk.maps?.uri) {
-                        // @ts-ignore
-                        uri = chunk.maps.uri;
-                        break;
-                    }
-                }
+        const text = response.text;
+        let address = text ? text.trim() : "Dirección no encontrada";
+        
+        // Extract Google Maps URI from grounding metadata
+        let uri: string | undefined;
+        const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+        
+        if (chunks) {
+          for (const chunk of chunks) {
+            // @ts-ignore
+            if (chunk.maps?.desktopUri) {
+              // @ts-ignore
+              uri = chunk.maps.desktopUri;
+              break;
             }
-
-            return { address, uri };
-
-        } catch (error: any) {
-            // Retry only on server errors (5xx)
-            if (error.status >= 500 && error.status < 600) {
-                attempt++;
-                console.warn(`Attempt ${attempt} failed with 500 error. Retrying...`);
-                if (attempt >= maxAttempts) {
-                    console.error("Max retries reached for Geocoding.");
-                    return { address: "Error temporal del servicio de mapas. Intente más tarde." };
-                }
-                // Exponential backoff
-                await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
-            } else {
-                console.error("Error fetching address:", error);
-                return { address: "Error al consultar la API de mapas" };
+            // @ts-ignore
+            if (chunk.maps?.uri) {
+              // @ts-ignore
+              uri = chunk.maps.uri;
+              break;
             }
+          }
         }
-    }
-    return { address: "Error desconocido" };
+
+        return { address, uri };
+
+      } catch (error: any) {
+        // Retry only on server errors (5xx)
+        if (error.status >= 500 && error.status < 600) {
+            attempt++;
+            console.warn(`Attempt ${attempt} failed with 500 error. Retrying...`);
+            if (attempt >= maxAttempts) {
+                console.error("Max retries reached for Geocoding.");
+                return { address: "Error temporal del servicio de mapas. Intente más tarde." };
+            }
+            // Exponential backoff
+            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+        } else {
+            console.error("Error fetching address:", error);
+            return { address: "Error al consultar la API de mapas" };
+        }
+      }
+  }
+  return { address: "Error desconocido" };
 };
 
 // New: Grounded Legal Search
@@ -155,8 +150,8 @@ export const getGroundedLegalInfo = async (query: string): Promise<GroundedRespo
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            model: 'gemini-2.5-flash',
+            contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }], // Enable Search Grounding
                 // JSON mode is NOT supported with Search tool, so we parse manually if needed or return text
@@ -164,7 +159,7 @@ export const getGroundedLegalInfo = async (query: string): Promise<GroundedRespo
         });
 
         const text = response.text || "No se encontró información.";
-
+        
         // Extract Sources (Citations)
         const sources: GroundingSource[] = [];
         const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
@@ -181,7 +176,7 @@ export const getGroundedLegalInfo = async (query: string): Promise<GroundedRespo
         }
 
         // Deduplicate sources
-        const uniqueSources = sources.filter((v, i, a) => a.findIndex(v2 => (v2.uri === v.uri)) === i);
+        const uniqueSources = sources.filter((v,i,a)=>a.findIndex(v2=>(v2.uri===v.uri))===i);
 
         return { text, sources: uniqueSources };
 
@@ -206,7 +201,7 @@ export const interactWithComplaintGuide = async (
     if (!apiKey) {
         return {
             message: "Modo Demo: Describe los hechos.",
-            draftNarrative: history[history.length - 1]?.text || '',
+            draftNarrative: history[history.length-1]?.text || '',
             missingElements: [],
             competency: 'MUNICIPAL',
             legalBasis: 'N/A'
@@ -214,18 +209,19 @@ export const interactWithComplaintGuide = async (
     }
 
     const systemInstruction = `
-    Act as an Esoteria Governance Engine for environmental compliance in Mexico.
-    Your goal is to perform a structural analysis of facts to build a formal administrative entity for legal action.
+    Act as an expert legal assistant for 'Denuncia Popular' in Mexico (PROFEPA/Local Authorities).
+    Your goal is to interview the citizen to build a formal administrative complaint document.
 
-    PRINCIPLES:
-    - Focus on Governance: Ensure data isolation and structural boundaries.
-    - Explicit Logic: Use defined legal criteria (LGEEPA) for evaluation.
-    - Professionalismo: Avoid "chatbot" conversational filler. Focus on information gathering.
-
-    INSTRUCTIONS (Sequential Modeling):
-    1. Identify the structural components: Time, Mode, Place, Responsibility.
-    2. Determine Jurisdictional Competency (Municipal, State, Federal) based on the modeled facts.
-    3. Update the 'draftNarrative' using formal administrative Spanish ("Se hace constar...", "Referente a los hechos...").
+    INSTRUCTIONS (Chain of Thought):
+    1. Analyze the conversation history and the user's latest input.
+    2. Check for the presence of these KEY ELEMENTS:
+       - **Time**: When did it happen? (Date/Time)
+       - **Mode**: Detailed description of the events.
+       - **Place**: Specific location details/references (beyond just coordinates).
+       - **Responsibility**: Who is the alleged offender? (Name, Company, Plate Number, Description).
+    3. **Reasoning**: Think about what is missing. If something is missing, formulate a follow-up question.
+    4. **Drafting**: Update the 'draftNarrative'. This text must be written in **FORMAL, THIRD-PERSON LEGAL SPANISH** (e.g., "El que suscribe hace constar que...", "Se observó que en el domicilio..."). This narrative will be put directly into the PDF.
+    5. **Legal Analysis**: Based on the facts, determine the 'competency' and suggest a 'legalBasis' (e.g., LGEEPA, Reglamento de Tránsito, etc.).
 
     OUTPUT FORMAT:
     Return ONLY a JSON object with this structure:
@@ -250,24 +246,33 @@ export const interactWithComplaintGuide = async (
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
+            model: 'gemini-2.5-flash',
             contents: contents,
             config: {
                 systemInstruction: systemInstruction,
-                responseMimeType: "application/json"
+                responseMimeType: "application/json",
+                thinkingConfig: { thinkingBudget: 1024 }, // Enable CoT for better reasoning
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        message: { type: Type.STRING },
+                        draftNarrative: { type: Type.STRING },
+                        missingElements: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        competency: { type: Type.STRING, enum: ['MUNICIPAL', 'ESTATAL', 'FEDERAL', 'UNKNOWN'] },
+                        legalBasis: { type: Type.STRING }
+                    },
+                    required: ['message', 'draftNarrative', 'competency', 'legalBasis']
+                }
             }
         });
 
         const text = response.text;
-        if (!text) throw new Error("Empty response from AI Engine");
-
+        if (!text) throw new Error("No response from AI");
+        
         return JSON.parse(text) as ChatGuideResponse;
 
-    } catch (error: any) {
-        if (error.message?.includes("PERMISSION_DENIED") || error.message?.includes("API_KEY_HTTP_REFERRER_BLOCKED")) {
-            throw new Error("RESTRICCION_DE_DOMINIO");
-        }
-        console.error("🔴 Intelligence Infrastructure Error:", error);
+    } catch (error) {
+        console.error("Guide Error:", error);
         throw error;
     }
 };
@@ -285,8 +290,8 @@ export const parseAddressComponents = async (fullAddress: string): Promise<{ est
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-1.5-flash',
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            model: 'gemini-2.5-flash',
+            contents: prompt,
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -312,7 +317,7 @@ export const getLocationDetails = async (lat: number, lng: number): Promise<{ th
     if (!apiKey) return { description: "Ubicación seleccionada." };
 
     // Parallel execution: Image Generation + Grounded Description
-
+    
     // 1. Description (Grounded)
     const descPromise = (async () => {
         const prompt = `
@@ -322,8 +327,8 @@ export const getLocationDetails = async (lat: number, lng: number): Promise<{ th
         `;
         try {
             const res = await ai.models.generateContent({
-                model: 'gemini-1.5-flash',
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                model: 'gemini-2.5-flash',
+                contents: prompt,
                 config: { tools: [{ googleSearch: {} }] }
             });
             return res.text || "Descripción no disponible.";
@@ -342,12 +347,12 @@ export const getLocationDetails = async (lat: number, lng: number): Promise<{ th
             // Since the user asked for gemini-3-pro-image-preview specifically:
             const res = await ai.models.generateContent({
                 model: 'gemini-3-pro-image-preview',
-                contents: [{ role: 'user', parts: [{ text: prompt }] }],
+                contents: prompt,
                 config: {
-                    imageConfig: { aspectRatio: "16:9", imageSize: "1K" }
+                   imageConfig: { aspectRatio: "16:9", imageSize: "1K" }
                 }
             });
-
+            
             // Extract image
             for (const part of res.candidates?.[0]?.content?.parts || []) {
                 if (part.inlineData) {
