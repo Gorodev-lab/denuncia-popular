@@ -52,7 +52,7 @@ export const analyzeComplaint = async (description: string, locationContext?: st
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-1.5-flash',
-            contents: prompt,
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
             config: {
                 responseMimeType: "application/json"
             }
@@ -89,7 +89,7 @@ export const getAddressFromCoordinates = async (lat: number, lng: number): Promi
         try {
             const response = await ai.models.generateContent({
                 model: 'gemini-1.5-flash',
-                contents: prompt,
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
                 config: {
                     tools: [{ googleMaps: {} }],
                     // responseMimeType and responseSchema are NOT supported with googleMaps tool
@@ -156,7 +156,7 @@ export const getGroundedLegalInfo = async (query: string): Promise<GroundedRespo
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-1.5-flash',
-            contents: prompt,
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
             config: {
                 tools: [{ googleSearch: {} }], // Enable Search Grounding
                 // JSON mode is NOT supported with Search tool, so we parse manually if needed or return text
@@ -286,7 +286,7 @@ export const parseAddressComponents = async (fullAddress: string): Promise<{ est
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-1.5-flash',
-            contents: prompt,
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
             config: {
                 responseMimeType: "application/json",
                 responseSchema: {
@@ -323,7 +323,7 @@ export const getLocationDetails = async (lat: number, lng: number): Promise<{ th
         try {
             const res = await ai.models.generateContent({
                 model: 'gemini-1.5-flash',
-                contents: prompt,
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
                 config: { tools: [{ googleSearch: {} }] }
             });
             return res.text || "Descripción no disponible.";
@@ -342,7 +342,7 @@ export const getLocationDetails = async (lat: number, lng: number): Promise<{ th
             // Since the user asked for gemini-3-pro-image-preview specifically:
             const res = await ai.models.generateContent({
                 model: 'gemini-3-pro-image-preview',
-                contents: prompt,
+                contents: [{ role: 'user', parts: [{ text: prompt }] }],
                 config: {
                     imageConfig: { aspectRatio: "16:9", imageSize: "1K" }
                 }
