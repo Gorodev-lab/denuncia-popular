@@ -1,0 +1,58 @@
+@import "tailwindcss";
+
+@theme {
+  --font-family-sans: 'Inter', sans-serif;
+  --font-family-mono: 'JetBrains Mono', monospace;
+
+  --color-background: #050505;
+  --color-surface: #0f0f0f;
+  --color-primary: #be185d;
+  --color-secondary: #9ca3af;
+  --color-accent: #dc2626;
+
+  --animate-blink: blink 1s step-end infinite;
+  --animate-glow: glow 2s ease-in-out infinite alternate;
+  --animate-fade-in: fade-in 0.3s ease-out;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.5); }
+  100% { box-shadow: 0 0 40px rgba(219, 39, 119, 0.6); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #050505;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* animate-in helpers used throughout the app */
+@utility animate-in {
+  animation-duration: 0.3s;
+  animation-fill-mode: both;
+}
+@utility fade-in {
+  animation-name: fade-in;
+}
+@utility slide-in-from-top-2 {
+  --tw-enter-translate-y: -0.5rem;
+}
