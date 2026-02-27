@@ -54,7 +54,16 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
     }
   };
 
-  const handleDownloadPDF = () => {
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  const handleDownloadPDF = async () => {
     setIsGeneratingPdf(true);
 
     try {
@@ -153,9 +162,11 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
       doc.text("Adjunto a la presente denuncia las siguientes pruebas:", margin, yPos);
       yPos += 7;
 
-      if (draft.evidenceFiles.length > 0) {
-        draft.evidenceFiles.forEach(file => {
-          doc.text(`- Archivo: ${file.name}`, margin + 5, yPos);
+      const evidenceFiles = draft.evidenceFiles || [];
+      if (evidenceFiles.length > 0) {
+        evidenceFiles.forEach(file => {
+          const isImage = file.type.startsWith('image/');
+          doc.text(`- ${file.name} ${isImage ? '(Imagen adjunta en anexo)' : ''}`, margin + 5, yPos);
           yPos += 5;
         });
       } else {
@@ -193,7 +204,7 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
       doc.setFontSize(9);
 
       const legalText = [
-        "PRIMERO.- Se admita y realicen las acciones necesarias a fin de corroborar la existencia de los actos, hechos y omisiones denunciados, en cumplimiento a lo dispuesto en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente.",
+        "PRIMERO.- Se admita y realicen las acciones necesarias a fin de corroborar la existence de los actos, hechos y omisiones denunciados, en cumplimiento a lo dispuesto en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente.",
         "TERCERO.- Se me reconozca el carácter de coadyuvante, de conformidad con el artículo 193 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente.",
         "CUARTO.- Se me permita acceder al o los expedientes que con motivo de esta denuncia se integren, de conformidad con lo dispuesto en el artículo 33 de la Ley Federal del Procedimiento Administrativo.",
         "QUINTO.- Se mantenga la confidencialidad y reserva de mis datos personales y los de mis autorizados, de conformidad a lo dispuesto en los artículos 1 y 6 de la CPEUM, 113, fracción V, 116 de la Ley General de Transparencia y Acceso a la Información Pública."
@@ -219,6 +230,55 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
       yPos += 5;
       doc.setFontSize(8);
       doc.text(draft.isAnonymous ? "Firma Digital Anónima" : draft.fullName, pageWidth / 2, yPos, { align: "center" });
+
+      // --- ANEXO: EVIDENCE ---
+      const imageFiles = evidenceFiles.filter(f => f.type.startsWith('image/'));
+
+      if (imageFiles.length > 0) {
+        doc.addPage();
+        yPos = 20;
+        doc.setFont("times", "bold");
+        doc.setFontSize(14);
+        doc.text("ANEXO: EVIDENCIA FOTOGRÁFICA", pageWidth / 2, yPos, { align: "center" });
+        yPos += 15;
+
+        for (const file of imageFiles) {
+          try {
+            const base64 = await fileToBase64(file);
+
+            // Check if we need a new page for the next image
+            if (yPos > pageHeight - 110) {
+              doc.addPage();
+              yPos = 20;
+            }
+
+            doc.setFont("times", "italic");
+            doc.setFontSize(10);
+            doc.text(`Archivo: ${file.name}`, margin, yPos);
+            yPos += 5;
+
+            // Maintain aspect ratio
+            const imgProps = doc.getImageProperties(base64);
+            const imgWidth = contentWidth;
+            const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
+
+            // Scale if too tall
+            const maxHeight = 80;
+            let finalWidth = imgWidth;
+            let finalHeight = imgHeight;
+
+            if (imgHeight > maxHeight) {
+              finalHeight = maxHeight;
+              finalWidth = (imgProps.width * finalHeight) / imgProps.height;
+            }
+
+            doc.addImage(base64, 'JPEG', margin + (contentWidth - finalWidth) / 2, yPos, finalWidth, finalHeight);
+            yPos += finalHeight + 15;
+          } catch (e) {
+            console.error(`Error embedding image ${file.name}:`, e);
+          }
+        }
+      }
 
       doc.save("Denuncia_Popular_Formato_2025.pdf");
 
