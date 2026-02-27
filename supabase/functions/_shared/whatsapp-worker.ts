@@ -1,4 +1,6 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { calculateSHA256 } from "./crypto.ts";
+import { callGeminiTriage } from "./gemini.ts";
 
 // --- Interfaces ---
 
@@ -26,80 +28,100 @@ interface WorkerResult {
 const TWILIO_ACCOUNT_SID = Deno.env.get("TWILIO_ACCOUNT_SID")!;
 const TWILIO_AUTH_TOKEN = Deno.env.get("TWILIO_AUTH_TOKEN")!;
 const TWILIO_PHONE_NUMBER = Deno.env.get("TWILIO_PHONE_NUMBER")!; // Format: whatsapp:+14155238886
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 /**
  * Worker Logic for Twilio Messages
  */
 export async function processWhatsAppMessage(message: NormalizedMessage): Promise<WorkerResult> {
     console.log(`Processing message type: ${message.type} from ${message.from}`);
+    const phoneNumber = message.from;
 
-    // 1. Handle TEXT Messages (Triaging)
-    if (message.type === "text") {
-        const userText = message.body || "";
+    // Fetch or create session
+    let { data: sessionData, error: sessionError } = await supabase
+        .from('whatsapp_sessions')
+        .select('*')
+        .eq('phone_number', phoneNumber)
+        .single();
 
-        // Simple Keyword Triaging for MVP (Replacing Gemini for speed in this step, but logic place holds)
-        // const triageResult = await callGeminiTriage(userText); 
-        const isReport = userText.toLowerCase().includes("denuncia") || userText.toLowerCase().includes("reporte");
-
-        if (isReport) {
-            // Request Location via Text (Twilio doesn't support interactive location request easily on all numbers)
-            const replyText = "Para procesar tu denuncia, por favor envía tu ubicación actual usando el clip 📎 -> Ubicación.";
-            await sendTwilioReply(message.from, replyText);
-            return { action: "reply", replyPayload: replyText };
-        } else {
-            const replyText = "Hola. Soy tu asistente legal personal. Escribe 'Denuncia' para comenzar.";
-            await sendTwilioReply(message.from, replyText);
-            return { action: "reply", replyPayload: replyText };
+    if (!sessionData) {
+        const { data: newSession, error: createError } = await supabase
+            .from('whatsapp_sessions')
+            .insert({ phone_number: phoneNumber })
+            .select()
+            .single();
+        sessionData = newSession;
+        if (createError || !sessionData) {
+            console.error("Failed to create session:", createError);
+            return { action: "ignore" };
         }
     }
 
-    // 2. Handle IMAGE Messages (SHIELD Protocol)
+    const history: { role: 'user' | 'model', content: string }[] = sessionData.context_history || [];
+    let extractedData = sessionData.extracted_data || {};
+
+    let userText = message.body || "";
+
+    // Parse incoming message type
     if (message.type === "image" && message.mediaUrl) {
         console.log("Processing Image with SHIELD Protocol...");
-
-        // Download Image from Twilio URL
-        // Twilio Media URLs are public (with auth token sometimes if protected, but generally accessible short term)
-        // Usually requires Basic Auth if "Enforce HTTP Auth on Media URLs" is enabled in Console.
         const authHeaders = new Headers();
         authHeaders.set("Authorization", "Basic " + btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`));
-
         const imageResponse = await fetch(message.mediaUrl, { headers: authHeaders });
         const imageBuffer = await imageResponse.arrayBuffer();
-
-        // Calculate SHA-256
         const shieldHash = await calculateSHA256(imageBuffer);
-        console.log(`[SHIELD] Calculated SHA-256: ${shieldHash}`);
 
-        await sendTwilioReply(message.from, "Imagen recibida y asegurada. 🛡️ Procesando...");
-
-        return {
-            action: "store",
-            data: {
-                type: "evidence",
-                file_hash: shieldHash,
-                media_url: message.mediaUrl, // Store original URL or upload to Supabase Storage
-            }
-        };
-    }
-
-    // 3. Handle LOCATION Messages
-    if (message.type === "location" && message.latitude && message.longitude) {
+        extractedData.evidence = { type: 'image', hash: shieldHash, url: message.mediaUrl };
+        userText = "[El usuario ha enviado una imagen como evidencia con HASH SHA-256: " + shieldHash + "]";
+    } else if (message.type === "location" && message.latitude && message.longitude) {
         console.log(`Location received: ${message.latitude}, ${message.longitude}`);
-
-        const replyText = `Ubicación recibida (${message.latitude}, ${message.longitude}). Generando reporte... 📄`;
-        await sendTwilioReply(message.from, replyText);
-
-        return {
-            action: "store",
-            data: {
-                type: "location_update",
-                lat: parseFloat(message.latitude),
-                lng: parseFloat(message.longitude),
-            }
-        };
+        extractedData.location = { lat: message.latitude, lng: message.longitude };
+        userText = `[El usuario ha enviado su ubicación GPS: Lat ${message.latitude}, Lng ${message.longitude}]`;
     }
 
-    return { action: "ignore" };
+    if (!userText.trim()) return { action: "ignore" };
+
+    // Update history
+    history.push({ role: 'user', content: userText });
+
+    // Call Gemini
+    console.log("Calling Gemini LORE Engine...");
+    let aiResponse = await callGeminiTriage(history);
+
+    // Check if report is ready
+    let reportReady = false;
+    if (aiResponse.includes("[REPORT_READY]")) {
+        reportReady = true;
+        aiResponse = aiResponse.replace("[REPORT_READY]", "").trim();
+        // Here we could trigger the PDF generation webhook or logic
+        aiResponse += "\n\n📄 Tu reporte ha sido formalizado. Recibirás tu PDF de constancia con Audit ID en breve.";
+    }
+
+    history.push({ role: 'model', content: aiResponse });
+
+    // Save session state
+    await supabase
+        .from('whatsapp_sessions')
+        .update({
+            context_history: history,
+            extracted_data: extractedData,
+            status: reportReady ? 'generating_report' : 'collecting_facts'
+        })
+        .eq('id', sessionData.id);
+
+    // Send reply to user
+    await sendTwilioReply(phoneNumber, aiResponse);
+
+    return {
+        action: "reply",
+        data: {
+            extractedData,
+            reportReady
+        }
+    };
 }
 
 // --- Helpers ---

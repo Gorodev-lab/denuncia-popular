@@ -24,7 +24,14 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [auditId, setAuditId] = useState('');
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Generate Governance Audit ID
+    const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+    setAuditId(`ESO-${randomStr}`);
+  }, []);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -111,13 +118,13 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
 
       {/* Input */}
       <div className="p-4 bg-zinc-900/50 border-t border-zinc-800">
-        <div className="relative">
+        <div className="relative mb-3">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="Pregunta algo..."
+            placeholder="Analizar hechos..."
             className="w-full bg-zinc-950 border border-zinc-800 rounded-full pl-4 pr-10 py-3 text-xs text-white focus:ring-1 focus:ring-pink-500 outline-none"
           />
           <button
@@ -126,6 +133,15 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
           >
             <Send size={14} />
           </button>
+        </div>
+        <div className="flex justify-between items-center px-1">
+          <div className="flex items-center gap-1.5 opacity-50 hover:opacity-100 transition-opacity">
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]"></div>
+            <span className="text-[9px] font-mono text-zinc-500 uppercase tracking-tighter">LORE Engine Active</span>
+          </div>
+          <div className="text-[9px] font-mono text-zinc-600 bg-zinc-950/50 px-2 py-0.5 rounded border border-zinc-900/50">
+            Audit ID: <span className="text-zinc-400">{auditId}</span>
+          </div>
         </div>
       </div>
     </div>

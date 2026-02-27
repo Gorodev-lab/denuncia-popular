@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, Autocomplete } from '@react-google-maps/api';
 import { DenunciaDraft } from '../../types';
-import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X, Edit2, Check } from 'lucide-react';
+import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X, Edit2, Check, Navigation2 } from 'lucide-react';
 
 const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
 
@@ -141,6 +141,9 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
   const [manualAddress, setManualAddress] = useState('');
   const [autocomplete, setAutocomplete] = useState<google.maps.places.Autocomplete | null>(null);
   const [gpsError, setGpsError] = useState<string | null>(null);
+  const [isManualCoordMode, setIsManualCoordMode] = useState(false);
+  const [manualLat, setManualLat] = useState<string>('');
+  const [manualLng, setManualLng] = useState<string>('');
 
   // Sync manual address with display address when not in manual mode
   useEffect(() => {
@@ -362,6 +365,21 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     }
   };
 
+  const handleManualCoordSubmit = () => {
+    const lat = parseFloat(manualLat);
+    const lng = parseFloat(manualLng);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      setPosition({ lat, lng });
+      if (map) {
+        map.panTo({ lat, lng });
+        map.setZoom(16);
+      }
+      setGpsError(null);
+    } else {
+      setGpsError("Coordenadas inválidas. Verifica el formato numérico.");
+    }
+  };
+
   if (loadError) {
     return <div className="text-red-500 p-4">Error loading Google Maps</div>;
   }
@@ -412,22 +430,70 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
           </div>
         )}
 
-        {/* Search Input */}
-        <div className="pointer-events-auto relative flex items-center shadow-xl">
-          <div className="absolute left-3 text-zinc-400 z-10">
-            <Search size={16} />
+        {/* Search Input and Manual Coords Toggle */}
+        <div className="pointer-events-auto flex flex-col gap-2 mt-1">
+          <div className="flex gap-2 bg-zinc-900/80 p-1 rounded-xl border border-zinc-800/50 backdrop-blur-sm self-start shadow-xl">
+            <button
+              onClick={() => setIsManualCoordMode(false)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${!isManualCoordMode ? 'bg-pink-600 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
+            >
+              Buscar Dirección
+            </button>
+            <button
+              onClick={() => setIsManualCoordMode(true)}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${isManualCoordMode ? 'bg-pink-600 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
+            >
+              Ingresar Coordenadas
+            </button>
           </div>
-          <Autocomplete
-            onLoad={onAutocompleteLoad}
-            onPlaceChanged={onPlaceChanged}
-            className="w-full"
-          >
-            <input
-              type="text"
-              placeholder="Buscar calle, colonia o ciudad..."
-              className="w-full bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 pl-10 pr-10 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
-            />
-          </Autocomplete>
+
+          {!isManualCoordMode ? (
+            <div className="relative flex items-center shadow-xl">
+              <div className="absolute left-3 text-zinc-400 z-10">
+                <Search size={16} />
+              </div>
+              <Autocomplete
+                onLoad={onAutocompleteLoad}
+                onPlaceChanged={onPlaceChanged}
+                className="w-full"
+              >
+                <input
+                  type="text"
+                  placeholder="Buscar calle, colonia o ciudad..."
+                  className="w-full bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 pl-10 pr-10 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
+                />
+              </Autocomplete>
+            </div>
+          ) : (
+            <div className="flex gap-2 shadow-xl">
+              <input
+                type="number"
+                step="any"
+                placeholder="Latitud (ej. 19.4326)"
+                value={manualLat}
+                onChange={(e) => setManualLat(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleManualCoordSubmit()}
+                className="flex-1 min-w-0 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 px-3 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
+              />
+              <input
+                type="number"
+                step="any"
+                placeholder="Longitud (ej. -99.1332)"
+                value={manualLng}
+                onChange={(e) => setManualLng(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleManualCoordSubmit()}
+                className="flex-1 min-w-0 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 px-3 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
+              />
+              <button
+                onClick={handleManualCoordSubmit}
+                disabled={!manualLat || !manualLng}
+                className="bg-zinc-800 border border-zinc-700 rounded-xl px-4 hover:bg-pink-900/40 text-pink-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
+                title="Ir a coordenadas"
+              >
+                <Navigation2 size={18} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
