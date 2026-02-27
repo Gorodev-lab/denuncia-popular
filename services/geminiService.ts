@@ -263,7 +263,6 @@ export const interactWithComplaintGuide = async (
             config: {
                 systemInstruction: systemInstruction,
                 responseMimeType: "application/json",
-                thinkingConfig: { thinkingBudget: 1024 }, // Enable CoT for better reasoning
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
@@ -279,12 +278,17 @@ export const interactWithComplaintGuide = async (
         });
 
         const text = response.text;
-        if (!text) throw new Error("No response from AI");
+        if (!text) throw new Error("Empty response from Gemini API");
 
         return JSON.parse(text) as ChatGuideResponse;
 
-    } catch (error) {
-        console.error("Guide Error:", error);
+    } catch (error: any) {
+        console.error("🔴 Intelligence Infrastructure Error:", {
+            message: error.message,
+            status: error.status,
+            details: error.details,
+            stack: error.stack
+        });
         throw error;
     }
 };
