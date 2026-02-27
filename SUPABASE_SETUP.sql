@@ -4,6 +4,10 @@ VALUES ('evidence', 'evidence', true)
 ON CONFLICT (id) DO NOTHING;
 
 -- 2. Set up Storage Policies (Allow public upload and read)
+-- Cleanup existing policies to avoid "already exists" errors
+DROP POLICY IF EXISTS "Public Access Evidence" ON storage.objects;
+DROP POLICY IF EXISTS "Public Upload Evidence" ON storage.objects;
+
 -- Policy: Allow public read access (necessary for viewing evidence in dashboard/PDF)
 CREATE POLICY "Public Access Evidence"
 ON storage.objects FOR SELECT
@@ -18,6 +22,8 @@ WITH CHECK ( bucket_id = 'evidence' );
 ALTER TABLE denuncias ENABLE ROW LEVEL SECURITY;
 
 -- 4. Set up Table Policies
+DROP POLICY IF EXISTS "Enable insert for everyone" ON denuncias;
+
 -- Policy: Allow anyone to INSERT a new complaint (Anonymous & Registered)
 CREATE POLICY "Enable insert for everyone"
 ON denuncias FOR INSERT

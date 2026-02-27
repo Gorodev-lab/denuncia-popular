@@ -49,7 +49,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
 
     try {
       // Use gemini-2.5-flash for fast general responses or gemini-3-pro-preview if configured
-      const modelId = 'gemini-2.0-flash-exp';
+      const modelId = 'gemini-1.5-flash';
 
       const response = await ai.models.generateContent({
         model: modelId,

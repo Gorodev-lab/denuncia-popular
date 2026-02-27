@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from '@google/genai';
+import { GoogleGenAI } from '@google/genai';
 
 /**
  * Auto-tag reports using Google's Gemini AI
@@ -20,8 +20,7 @@ export async function suggestTags(description: string): Promise<string[]> {
         }
 
         // Initialize the AI client
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' });
+        const genAI = new GoogleGenAI({ apiKey });
 
         // Craft the prompt
         const prompt = `Analyze this citizen report and suggest exactly 3 relevant tags in Spanish.
@@ -36,9 +35,11 @@ Format: ["tag1", "tag2", "tag3"]
 JSON array:`;
 
         // Generate content
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text().trim();
+        const result = await genAI.models.generateContent({
+            model: 'gemini-1.5-flash',
+            contents: prompt
+        });
+        const text = result.text.trim();
 
         // Parse the JSON response
         try {

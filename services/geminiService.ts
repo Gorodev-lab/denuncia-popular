@@ -1,10 +1,17 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AIAnalysisResult } from '../types';
 
-const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+const getApiKey = () => {
+    const key = import.meta.env.VITE_GEMINI_API_KEY ||
+        (typeof process !== 'undefined' ? process.env.VITE_GEMINI_API_KEY : undefined) ||
+        (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : undefined);
+    return key;
+};
+
+const apiKey = getApiKey();
 
 if (!apiKey) {
-    console.warn("⚠️ VITE_GEMINI_API_KEY no detectada. El Asistente IA funcionará en Modo Demo.");
+    console.warn("⚠️ Intelligence Infrastructure: API Key not detected. Falling back to Demo Mode.");
 }
 
 const ai = new GoogleGenAI({ apiKey: apiKey || '' });
@@ -42,7 +49,7 @@ export const analyzeComplaint = async (description: string, locationContext?: st
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-1.5-flash',
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -87,7 +94,7 @@ export const getAddressFromCoordinates = async (lat: number, lng: number): Promi
     while (attempt < maxAttempts) {
         try {
             const response = await ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-1.5-flash',
                 contents: prompt,
                 config: {
                     tools: [{ googleMaps: {} }],
@@ -154,7 +161,7 @@ export const getGroundedLegalInfo = async (query: string): Promise<GroundedRespo
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-1.5-flash',
             contents: prompt,
             config: {
                 tools: [{ googleSearch: {} }], // Enable Search Grounding
@@ -249,7 +256,7 @@ export const interactWithComplaintGuide = async (
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-1.5-flash',
             contents: contents,
             config: {
                 systemInstruction: systemInstruction,
@@ -293,7 +300,7 @@ export const parseAddressComponents = async (fullAddress: string): Promise<{ est
 
     try {
         const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-1.5-flash',
             contents: prompt,
             config: {
                 responseMimeType: "application/json",
@@ -330,7 +337,7 @@ export const getLocationDetails = async (lat: number, lng: number): Promise<{ th
         `;
         try {
             const res = await ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-1.5-flash',
                 contents: prompt,
                 config: { tools: [{ googleSearch: {} }] }
             });
