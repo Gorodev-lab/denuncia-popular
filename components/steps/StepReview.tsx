@@ -24,7 +24,7 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
       const { error } = await supabase.from('denuncias').insert({
         folio,
         is_anonymous: draft.isAnonymous,
-        full_name: draft.fullName,
+        full_name: draft.isAnonymous ? 'ANÓNIMO' : draft.fullName,
         email: draft.email,
         description: draft.description,
         category: draft.category,
@@ -41,7 +41,12 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
         evidence_urls: draft.evidenceUrls || []
       });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('Anonymous')) {
+          throw new Error('CONFIG_ERROR: El servidor no permite denuncias anónimas. Contacta a un administrador.');
+        }
+        throw error;
+      }
 
       // Success
       onSubmit();
@@ -236,26 +241,40 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
 
       if (imageFiles.length > 0) {
         doc.addPage();
-        yPos = 20;
+        yPos = 30;
+
+        // Annex Header
+        doc.setFillColor(30, 41, 59); // Slate-800
+        doc.rect(0, 0, pageWidth, 25, 'F');
+        doc.setTextColor(255, 255, 255);
         doc.setFont("times", "bold");
-        doc.setFontSize(14);
-        doc.text("ANEXO: EVIDENCIA FOTOGRÁFICA", pageWidth / 2, yPos, { align: "center" });
-        yPos += 15;
+        doc.setFontSize(16);
+        doc.text("ANEXO: EVIDENCIA FOTOGRÁFICA", pageWidth / 2, 17, { align: "center" });
+
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.setFont("times", "italic");
+        doc.text(`Denuncia Folio: ${Math.floor(Math.random() * 100000)}`, pageWidth - margin, 35, { align: "right" });
+        yPos = 45;
 
         for (const file of imageFiles) {
           try {
             const base64 = await fileToBase64(file);
 
             // Check if we need a new page for the next image
-            if (yPos > pageHeight - 110) {
+            if (yPos > pageHeight - 120) {
               doc.addPage();
-              yPos = 20;
+              yPos = 30;
             }
 
-            doc.setFont("times", "italic");
+            // Image Border & Caption
+            doc.setDrawColor(200, 200, 200);
+            doc.line(margin, yPos - 5, pageWidth - margin, yPos - 5);
+
+            doc.setFont("times", "bold");
             doc.setFontSize(10);
-            doc.text(`Archivo: ${file.name}`, margin, yPos);
-            yPos += 5;
+            doc.text(`Evidencia: ${file.name}`, margin, yPos);
+            yPos += 8;
 
             // Maintain aspect ratio
             const imgProps = doc.getImageProperties(base64);
@@ -263,7 +282,7 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
             const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
 
             // Scale if too tall
-            const maxHeight = 80;
+            const maxHeight = 100;
             let finalWidth = imgWidth;
             let finalHeight = imgHeight;
 
@@ -272,10 +291,19 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
               finalWidth = (imgProps.width * finalHeight) / imgProps.height;
             }
 
-            doc.addImage(base64, 'JPEG', margin + (contentWidth - finalWidth) / 2, yPos, finalWidth, finalHeight);
-            yPos += finalHeight + 15;
+            // Center image
+            const xOffset = margin + (contentWidth - finalWidth) / 2;
+            doc.addImage(base64, 'JPEG', xOffset, yPos, finalWidth, finalHeight);
+
+            // Subtle shadow / box for premium feel
+            doc.setDrawColor(230, 230, 230);
+            doc.rect(xOffset - 1, yPos - 1, finalWidth + 2, finalHeight + 2, 'S');
+
+            yPos += finalHeight + 20;
           } catch (e) {
             console.error(`Error embedding image ${file.name}:`, e);
+            doc.text(`Error al cargar imagen: ${file.name}`, margin, yPos);
+            yPos += 10;
           }
         }
       }
@@ -394,8 +422,8 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
                 señalando como medio para recibir notificaciones el correo electrónico <u>{draft.email}</u>, comparezco para exponer:
               </p>
 
-              <p className="text-justify">
-                Que por medio del presente instrumento vengo a denunciar los hechos que considero constitutivos de falta administrativa, fundamentando mi dicho en
+              <p className="text-justify pt-4">
+                Que por medio del presente instrumento vengo a denunciar hechos constitutivos de posibles faltas administrativas, fundamentando mi dicho en
                 <span className="font-bold mx-1">{draft.aiAnalysis?.legalBasis || 'la legislación aplicable'}</span>.
               </p>
 
