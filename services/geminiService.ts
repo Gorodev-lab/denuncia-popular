@@ -54,28 +54,20 @@ export const analyzeComplaint = async (description: string, locationContext?: st
             model: 'gemini-1.5-flash',
             contents: prompt,
             config: {
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        competency: {
-                            type: Type.STRING,
-                            enum: ['MUNICIPAL', 'ESTATAL', 'FEDERAL', 'UNKNOWN']
-                        },
-                        legalBasis: { type: Type.STRING },
-                        summary: { type: Type.STRING }
-                    },
-                    required: ['competency', 'legalBasis', 'summary']
-                }
+                responseMimeType: "application/json"
             }
         });
 
         const text = response.text;
-        if (!text) throw new Error("No response from AI");
+        if (!text) throw new Error("Empty response from AI Engine");
 
         return JSON.parse(text) as AIAnalysisResult;
 
-    } catch (error) {
+    } catch (error: any) {
+        if (error.message?.includes("PERMISSION_DENIED") || error.message?.includes("API_KEY_HTTP_REFERRER_BLOCKED")) {
+            console.error("❌ Intelligence Infrastructure: Google Cloud Restriction Found.");
+            throw new Error("RESTRICCION_DE_DOMINIO");
+        }
         console.error("Error analyzing complaint:", error);
         throw error;
     }
@@ -262,33 +254,20 @@ export const interactWithComplaintGuide = async (
             contents: contents,
             config: {
                 systemInstruction: systemInstruction,
-                responseMimeType: "application/json",
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: {
-                        message: { type: Type.STRING },
-                        draftNarrative: { type: Type.STRING },
-                        missingElements: { type: Type.ARRAY, items: { type: Type.STRING } },
-                        competency: { type: Type.STRING, enum: ['MUNICIPAL', 'ESTATAL', 'FEDERAL', 'UNKNOWN'] },
-                        legalBasis: { type: Type.STRING }
-                    },
-                    required: ['message', 'draftNarrative', 'competency', 'legalBasis']
-                }
+                responseMimeType: "application/json"
             }
         });
 
         const text = response.text;
-        if (!text) throw new Error("Empty response from Gemini API");
+        if (!text) throw new Error("Empty response from AI Engine");
 
         return JSON.parse(text) as ChatGuideResponse;
 
     } catch (error: any) {
-        console.error("🔴 Intelligence Infrastructure Error:", {
-            message: error.message,
-            status: error.status,
-            details: error.details,
-            stack: error.stack
-        });
+        if (error.message?.includes("PERMISSION_DENIED") || error.message?.includes("API_KEY_HTTP_REFERRER_BLOCKED")) {
+            throw new Error("RESTRICCION_DE_DOMINIO");
+        }
+        console.error("🔴 Intelligence Infrastructure Error:", error);
         throw error;
     }
 };

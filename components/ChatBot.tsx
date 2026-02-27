@@ -67,9 +67,19 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose }) => {
       };
       setMessages(prev => [...prev, aiMsg]);
 
-    } catch (error) {
-      console.error(error);
-      setMessages(prev => [...prev, { id: Date.now().toString(), role: 'model', text: "Error de conexión." }]);
+    } catch (error: any) {
+      console.error('Error in handleSend:', error);
+      let errorText = 'Tuve un problema conectando con el servidor legal. Por favor intenta de nuevo.';
+
+      if (error.message === 'RESTRICCION_DE_DOMINIO') {
+        errorText = '⚠️ Error de Acceso: La clave de Google Cloud está restringida y no permite este sitio web. Revisa la consola (F12) para más detalles.';
+      }
+
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'model',
+        text: errorText
+      }]);
     } finally {
       setIsLoading(false);
     }
