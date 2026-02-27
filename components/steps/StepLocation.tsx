@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, Autocomplete, Circle } from '@react-google-maps/api';
 import { DenunciaDraft } from '../../types';
-import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X, Edit2, Check, Navigation2 } from 'lucide-react';
+import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X, Edit2, Check, Navigation2, AlertCircle } from 'lucide-react';
 
 const libraries: ("places" | "geometry" | "drawing" | "visualization")[] = ["places"];
 
@@ -147,6 +147,9 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
   const [accuracy, setAccuracy] = useState<number | null>(null);
   const [isCalibrating, setIsCalibrating] = useState(false);
   const watchId = useRef<number | null>(null);
+  const [keyError, setKeyError] = useState<string | null>(null);
+
+  const GEMINI_KEY_EXISTS = !!import.meta.env.VITE_GEMINI_API_KEY;
 
   // Sync manual address with display address when not in manual mode
   useEffect(() => {
@@ -399,7 +402,18 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
   };
 
   if (loadError) {
-    return <div className="text-red-500 p-4">Error loading Google Maps</div>;
+    return (
+      <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] relative bg-zinc-950 rounded-2xl overflow-hidden border border-red-900/50 items-center justify-center p-8 text-center">
+        <AlertCircle className="text-red-500 mb-4" size={48} />
+        <h3 className="text-xl font-bold text-white mb-2">Error de Infraestructura</h3>
+        <p className="text-zinc-400 max-w-md">
+          No se pudo cargar el servicio de mapas. Esto suele deberse a que la API Key de Google no está autorizada para este dominio o ha expirado.
+        </p>
+        <div className="mt-6 p-4 bg-zinc-900 rounded-lg border border-zinc-800 text-xs text-zinc-500 font-mono">
+          ErrorCode: RefererNotAllowedMapError (Potencial)
+        </div>
+      </div>
+    );
   }
 
   if (!isLoaded) {
