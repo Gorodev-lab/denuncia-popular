@@ -12,6 +12,8 @@ const apiKey = getApiKey();
 
 if (!apiKey) {
     console.warn("⚠️ Intelligence Infrastructure: API Key not detected. Falling back to Demo Mode.");
+} else {
+    console.log("✅ Intelligence Infrastructure: Key detected (" + apiKey.substring(0, 6) + "...)");
 }
 
 const ai = new GoogleGenAI({ apiKey: apiKey || '' });
