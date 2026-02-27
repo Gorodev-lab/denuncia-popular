@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, Autocomplete } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Marker, Autocomplete, Circle } from '@react-google-maps/api';
 import { DenunciaDraft } from '../../types';
 import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X, Edit2, Check, Navigation2 } from 'lucide-react';
 
@@ -144,6 +144,9 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
   const [isManualCoordMode, setIsManualCoordMode] = useState(false);
   const [manualLat, setManualLat] = useState<string>('');
   const [manualLng, setManualLng] = useState<string>('');
+  const [accuracy, setAccuracy] = useState<number | null>(null);
+  const [isCalibrating, setIsCalibrating] = useState(false);
+  const watchId = useRef<number | null>(null);
 
   // Sync manual address with display address when not in manual mode
   useEffect(() => {
@@ -168,72 +171,84 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
   }, []);
 
   const handleLocateUser = (mapInstance: google.maps.Map | null = map) => {
-    setLoadingGPS(true);
     setGpsError(null);
     setIsManualMode(false);
+    setIsCalibrating(true);
 
     if (!navigator.geolocation) {
       setGpsError("Tu navegador no soporta geolocalización.");
       setLoadingGPS(false);
+      setIsCalibrating(false);
       return;
     }
 
-    const successCallback = (pos: GeolocationPosition) => {
-      const newPos = {
-        lat: pos.coords.latitude,
-        lng: pos.coords.longitude,
-      };
-      setPosition(newPos);
-      if (mapInstance) {
-        mapInstance.panTo(newPos);
-        mapInstance.setZoom(16);
+    let bestPos: GeolocationPosition | null = null;
+
+    const clearWatch = () => {
+      if (watchId.current !== null) {
+        navigator.geolocation.clearWatch(watchId.current);
+        watchId.current = null;
       }
-      setLoadingGPS(false);
+    };
+
+    const handleNewPosition = (pos: GeolocationPosition) => {
+      // If we find a position with better accuracy, or if it's the first one
+      if (!bestPos || pos.coords.accuracy < bestPos.coords.accuracy) {
+        bestPos = pos;
+        const newPos = {
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        };
+        setPosition(newPos);
+        setAccuracy(pos.coords.accuracy);
+
+        if (mapInstance && !bestPos) { // Only pan once on first lock or if significantly better
+          mapInstance.panTo(newPos);
+          mapInstance.setZoom(17);
+        }
+      }
     };
 
     const errorCallback = (err: GeolocationPositionError) => {
       console.error("GPS Error:", err);
-      let errorMessage = "Error al obtener ubicación.";
+      clearWatch();
+      setIsCalibrating(false);
+      setLoadingGPS(false);
 
+      let errorMessage = "Error al obtener ubicación.";
       switch (err.code) {
         case err.PERMISSION_DENIED:
-          errorMessage = "Permiso denegado. Habilita la ubicación en tu navegador.";
+          errorMessage = "Permiso denegado. Habilita la ubicación.";
           break;
         case err.POSITION_UNAVAILABLE:
           errorMessage = "Ubicación no disponible.";
           break;
         case err.TIMEOUT:
-          // Try again with low accuracy
-          console.log("Timeout with high accuracy, retrying with low accuracy...");
-          navigator.geolocation.getCurrentPosition(
-            successCallback,
-            (retryErr) => {
-              console.error("Retry GPS Error:", retryErr);
-              setLoadingGPS(false);
-              setGpsError("No se pudo obtener la ubicación. Intenta buscar manualmente.");
-            },
-            { enableHighAccuracy: false, timeout: 10000, maximumAge: 0 }
-          );
-          return; // Don't set error yet, wait for retry
-        default:
-          errorMessage = "Error desconocido de GPS.";
+          errorMessage = "Tiempo de espera agotado. Intenta de nuevo.";
+          break;
       }
-
-      setLoadingGPS(false);
       setGpsError(errorMessage);
-
-      // Fallback to default center if we don't have a position yet
-      if (!position && mapInstance) {
-        mapInstance.panTo(defaultCenter);
-        mapInstance.setZoom(13);
-      }
     };
 
-    navigator.geolocation.getCurrentPosition(
-      successCallback,
+    // Start watching position for high accuracy
+    watchId.current = navigator.geolocation.watchPosition(
+      handleNewPosition,
       errorCallback,
-      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     );
+
+    // Stop calibration after 5 seconds of gathering data
+    setTimeout(() => {
+      clearWatch();
+      setIsCalibrating(false);
+      setLoadingGPS(false);
+
+      if (bestPos && mapInstance) {
+        const finalPos = { lat: (bestPos as GeolocationPosition).coords.latitude, lng: (bestPos as GeolocationPosition).coords.longitude };
+        mapInstance.panTo(finalPos);
+        mapInstance.setZoom(18); // Zoom in closer for high precision
+      }
+    }, 5000);
   };
 
   const geocodePosition = async (lat: number, lng: number) => {
@@ -268,7 +283,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
           location: {
             lat,
             lng,
-            address: `Coordenadas: ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+            address: `Coordenadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`
           }
         });
       }
@@ -279,7 +294,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
         location: {
           lat,
           lng,
-          address: `Coordenadas: ${lat.toFixed(5)}, ${lng.toFixed(5)}`
+          address: `Coordenadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`
         }
       });
     } finally {
@@ -308,6 +323,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
       const lat = e.latLng.lat();
       const lng = e.latLng.lng();
       setPosition({ lat, lng });
+      setAccuracy(null); // Reset accuracy when manually adjusting
       setIsManualMode(false); // Reset manual mode on map click
     }
   }, []);
@@ -317,6 +333,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
       const lat = e.latLng.lat();
       const lng = e.latLng.lng();
       setPosition({ lat, lng });
+      setAccuracy(null);
       setIsManualMode(false);
     }
   }, []);
@@ -332,9 +349,10 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
         setPosition({ lat, lng });
+        setAccuracy(null);
         if (map) {
           map.panTo({ lat, lng });
-          map.setZoom(16);
+          map.setZoom(17);
         }
         setAddressDisplay(place.formatted_address || '');
         setIsManualMode(false);
@@ -508,12 +526,30 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
           onClick={onMapClick}
         >
           {position && (
-            <Marker
-              position={position}
-              draggable={true}
-              onDragEnd={onMarkerDragEnd}
-              animation={window.google.maps.Animation.DROP}
-            />
+            <>
+              <Marker
+                position={position}
+                draggable={true}
+                onDragEnd={onMarkerDragEnd}
+                animation={window.google.maps.Animation.DROP}
+              />
+              {accuracy && (
+                <Circle
+                  center={position}
+                  radius={accuracy}
+                  options={{
+                    fillColor: '#be185d',
+                    fillOpacity: 0.15,
+                    strokeColor: '#be185d',
+                    strokeOpacity: 0.3,
+                    strokeWeight: 1,
+                    clickable: false,
+                    editable: false,
+                    zIndex: 1,
+                  }}
+                />
+              )}
+            </>
           )}
         </GoogleMap>
         {/* Vignette Effect */}
@@ -531,7 +567,21 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
             <div className="flex-1 min-w-0">
               <div className="flex justify-between items-center mb-1">
                 <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
-                  {isManualMode ? 'Editar Dirección Manualmente' : 'Dirección Detectada'}
+                  {isManualMode ? 'Editar Dirección Manualmente' : (
+                    <span className="flex items-center gap-2">
+                      {isCalibrating ? (
+                        <span className="flex items-center gap-1 text-pink-400">
+                          <Loader2 size={10} className="animate-spin" />
+                          Calibrando Precisión...
+                        </span>
+                      ) : 'Dirección Detectada'}
+                      {accuracy && !isCalibrating && (
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded ${accuracy < 20 ? 'bg-green-900/40 text-green-400' : 'bg-yellow-900/40 text-yellow-500'}`}>
+                          Margen: ±{accuracy.toFixed(1)}m
+                        </span>
+                      )}
+                    </span>
+                  )}
                 </p>
                 {!loadingAddress && (
                   <button
