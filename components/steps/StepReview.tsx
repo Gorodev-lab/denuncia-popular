@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { DenunciaDraft } from '../../types';
 import { ChevronLeft, FileCheck, MapPin, Printer, FileText, Globe } from 'lucide-react';
 import { jsPDF } from 'jspdf';
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from 'docx';
 
 interface Props {
   draft: DenunciaDraft;
@@ -369,14 +370,106 @@ ${denunciante}
     }
   };
 
-  const handleDownloadTXT = () => {
+  const handleDownloadDOCX = async () => {
     const folio = `MX-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
-    const text = buildDocumentText(folio);
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const estado = getEstado(draft);
+    const municipio = getMunicipio(draft);
+    const colonia = draft.location?.colonia || draft.location?.localidad || 'No especificado';
+    const fecha = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+    const fechaEvento = draft.eventDate
+      ? new Date(draft.eventDate + 'T12:00:00').toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+      : '___________________________________';
+    const denunciante = draft.isAnonymous
+      ? 'CIUDADANO BAJO PROTECCIÓN DE ANONIMATO'
+      : (draft.fullName || '').toUpperCase();
+    const contacto = draft.isAnonymous
+      ? 'Solicita protección de datos personales'
+      : (draft.email || 'No especificado');
+    const legalBasis = draft.aiAnalysis?.legalBasis || 'los artículos pertinentes de la LGEEPA';
+    const competency = draft.aiAnalysis?.competency || 'COMPETENTE';
+
+    const hr = new Paragraph({
+      border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '000000' } },
+      spacing: { after: 120 },
+    });
+
+    const bold = (text: string) => new TextRun({ text, bold: true, font: 'Times New Roman', size: 22 });
+    const normal = (text: string) => new TextRun({ text, font: 'Times New Roman', size: 22 });
+    const para = (children: TextRun[], spacing = 160) =>
+      new Paragraph({ children, spacing: { after: spacing } });
+
+    const doc = new Document({
+      title: `Denuncia Popular ${folio}`,
+      description: 'Denuncia Popular – PROFEPA',
+      sections: [{
+        children: [
+          // Header
+          new Paragraph({
+            children: [bold('ASUNTO: '), normal('Denuncia Popular.')],
+            alignment: AlignmentType.LEFT,
+            spacing: { after: 80 },
+          }),
+          new Paragraph({
+            children: [bold(`FOLIO: ${folio}`)],
+            alignment: AlignmentType.RIGHT,
+            spacing: { after: 200 },
+          }),
+          new Paragraph({ children: [bold('Procuraduría Federal de Protección al Ambiente')], heading: HeadingLevel.HEADING_2, spacing: { after: 40 } }),
+          para([normal('(PROFEPA)')]),
+          para([normal(`Oficina de representación en el Estado de ${estado.toUpperCase()}.`)]),
+          para([bold('Presente:')]),
+          hr,
+          // Intro
+          para([
+            normal(`${denunciante}, señalando como medio para recibir notificaciones ${draft.isAnonymous ? 'la plataforma Denuncia Popular' : draft.email}, comparezco a interponer formal `),
+            bold('DENUNCIA POPULAR'),
+            normal(` con fundamento en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente (LGEEPA), así como en la normativa correlativa de la Ley Federal de Procedimiento Administrativo. Al respecto expongo:`),
+          ], 200),
+          // Sections
+          new Paragraph({ children: [bold('¿Qué se está denunciando?')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
+          para([normal(draft.description || 'Sin descripción proporcionada.')], 200),
+          new Paragraph({ children: [bold('¿Cuándo ocurrió o desde cuándo está ocurriendo?')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
+          para([bold('Fecha del incidente: '), normal(fechaEvento)]),
+          para([bold('Fecha de presentación: '), normal(fecha)], 200),
+          new Paragraph({ children: [bold('¿Dónde está ocurriendo?')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
+          para([bold('Estado:              '), normal(estado)]),
+          para([bold('Municipio/Alcaldía:  '), normal(municipio)]),
+          para([bold('Localidad/Colonia:   '), normal(colonia)]),
+          para([bold('Dirección completa:  '), normal(draft.location?.address || 'No especificado')]),
+          para([bold('Coordenadas GPS:     '), normal(`Latitud ${draft.location?.lat?.toFixed(6) || 'N/A'}, Longitud ${draft.location?.lng?.toFixed(6) || 'N/A'}`)], 200),
+          new Paragraph({ children: [bold('AUTORIDAD COMPETENTE Y FUNDAMENTO LEGAL')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
+          para([bold('Autoridad competente: '), normal(competency)]),
+          para([bold('Fundamento legal: '), normal(legalBasis)], 200),
+          new Paragraph({ children: [bold('PRUEBAS:')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
+          para([normal('Se adjuntan a la presente denuncia los siguientes medios de prueba:')]),
+          ...(draft.evidenceFiles.length > 0
+            ? draft.evidenceFiles.map(f => para([normal(`• ${f.name}`)]))
+            : [para([normal('• Sin archivos adjuntos.')])]),
+          new Paragraph({ children: [bold('DATOS DE LA PERSONA DENUNCIANTE:')], heading: HeadingLevel.HEADING_3, spacing: { before: 200, after: 80 } }),
+          para([bold('Nombre: '), normal(denunciante)]),
+          para([bold('Contacto: '), normal(contacto)], 300),
+          hr,
+          // SOLICITO
+          new Paragraph({ children: [bold('S O L I C I T O')], heading: HeadingLevel.HEADING_2, alignment: AlignmentType.CENTER, spacing: { after: 200 } }),
+          para([bold('PRIMERO.- '), normal('Se tenga por presentada y radicada la presente Denuncia Popular y se ordene el despliegue de las visitas de inspección o acciones tendientes a corroborar los actos y omisiones expuestos, con base en los artículos 189, 190, 191 y 192 de la LGEEPA.')]),
+          para([bold('SEGUNDO.- '), normal('Se me reconozca el carácter de coadyuvante en el procedimiento administrativo, de conformidad con el artículo 193 de la citada LGEEPA.')]),
+          para([bold('TERCERO.- '), normal('Se me permita ejercer el derecho de acceso al expediente que resulte con motivo de esta denuncia, conforme al artículo 33 de la Ley Federal de Procedimiento Administrativo.')]),
+          para([bold('CUARTO.- '), normal('Se garantice la confidencialidad de mis datos personales conforme a los artículos 1 y 6 de la Constitución Política de los Estados Unidos Mexicanos y la Ley General de Transparencia y Acceso a la Información Pública.')], 300),
+          hr,
+          para([bold('PROTESTO LO NECESARIO.')]),
+          para([normal(`A ${fecha}.`)], 400),
+          new Paragraph({ children: [normal('_'.repeat(50))], alignment: AlignmentType.CENTER, spacing: { after: 60 } }),
+          new Paragraph({ children: [bold('NOMBRE Y FIRMA')], alignment: AlignmentType.CENTER, spacing: { after: 60 } }),
+          new Paragraph({ children: [normal(denunciante)], alignment: AlignmentType.CENTER }),
+        ]
+      }]
+    });
+
+    const blob = await Packer.toBlob(doc);
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Denuncia_Popular_${folio}.txt`;
+    a.download = `Denuncia_Popular_${folio}.docx`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -454,12 +547,12 @@ ${denunciante}
 
             {/* Download TXT */}
             <button
-              onClick={handleDownloadTXT}
+              onClick={handleDownloadDOCX}
               className="w-full group relative px-8 py-3 rounded-full font-bold text-white overflow-hidden transition-all border border-zinc-700 hover:bg-zinc-800"
             >
               <span className="relative flex items-center justify-center gap-3">
                 <FileText size={18} className="text-zinc-400 group-hover:text-white transition-colors" />
-                Descargar .TXT
+                Descargar .DOCX
               </span>
             </button>
 
@@ -592,11 +685,11 @@ ${denunciante}
             </span>
           </button>
           <button
-            onClick={handleDownloadTXT}
+            onClick={handleDownloadDOCX}
             className="w-full group relative px-8 py-3 rounded-full font-bold text-white overflow-hidden transition-all border border-zinc-700 hover:bg-zinc-800"
           >
             <span className="relative flex items-center justify-center gap-3">
-              <FileText size={16} /> Descargar .TXT
+              <FileText size={16} /> Descargar .DOCX
             </span>
           </button>
           <button
