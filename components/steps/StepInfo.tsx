@@ -130,6 +130,57 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
         </div>
       </div>
 
+      {/* New Legal Fields */}
+      {!draft.isAnonymous && (
+        <>
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Domicilio Legal</label>
+            <input
+              type="text"
+              value={draft.domicilio || ''}
+              onChange={(e) => updateDraft({ domicilio: e.target.value })}
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-pink-500 outline-none"
+              placeholder="Calle, Número, Colonia, Ciudad..."
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Personas Autorizadas para Notificaciones</label>
+            <textarea
+              value={draft.personasAutorizadas || ''}
+              onChange={(e) => updateDraft({ personasAutorizadas: e.target.value })}
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-pink-500 outline-none h-20 resize-none"
+              placeholder="Nombres completos de personas autorizadas..."
+            />
+            <p className="text-[10px] text-zinc-500 italic">Opcional: Nombres de familiares o abogados autorizados.</p>
+          </div>
+        </>
+      )}
+
+      {/* Denunciado Section */}
+      <div className="space-y-3 pt-4 border-t border-zinc-800">
+        <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest block">¿Quién o quiénes están realizando esta acción?</label>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { id: 'NO_CONOCIMIENTO', label: 'No tengo conocimiento' },
+            { id: 'GOBIERNO', label: 'Gobierno' },
+            { id: 'EMPRESA', label: 'Empresa' },
+            { id: 'PARTICULAR', label: 'Particular' }
+          ].map((tipo) => (
+            <button
+              key={tipo.id}
+              type="button"
+              onClick={() => updateDraft({ denunciadoTipo: tipo.id as any })}
+              className={`px-4 py-3 rounded-lg border text-xs font-bold transition-all ${draft.denunciadoTipo === tipo.id
+                ? 'bg-pink-600 border-pink-500 text-white'
+                : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
+            >
+              {tipo.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {/* Event Date */}
       <div className="pt-8 border-t border-zinc-800 animate-fade-in">
         <div className="group">

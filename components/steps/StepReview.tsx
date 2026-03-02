@@ -81,81 +81,89 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
     }
   };
 
-  // ---------- Document Content Builder ----------
+  // ---------- Document Content Builder (for Google Docs / plain text) ----------
   const buildDocumentText = (folio: string): string => {
     const estado = getEstado(draft);
     const municipio = getMunicipio(draft);
+    const colonia = draft.location?.colonia || draft.location?.localidad || 'No especificado';
     const ubicacionCompleta = getUbicacionCompleta(draft);
     const fecha = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
     const denunciante = draft.isAnonymous ? 'CIUDADANO BAJO PROTECCIÓN DE ANONIMATO' : (draft.fullName || 'No especificado').toUpperCase();
     const contacto = draft.isAnonymous ? 'Solicita protección de datos personales' : (draft.email || 'No especificado');
+    const domicilio = draft.domicilio || 'No proporcionado';
+    const autorizados = draft.personasAutorizadas || 'No declarado';
+
+    const quien = {
+      'NO_CONOCIMIENTO': ' [X] No tengo conocimiento  [ ] Gobierno  [ ] Empresa  [ ] Particular',
+      'GOBIERNO': ' [ ] No tengo conocimiento  [X] Gobierno  [ ] Empresa  [ ] Particular',
+      'EMPRESA': ' [ ] No tengo conocimiento  [ ] Gobierno  [X] Empresa  [ ] Particular',
+      'PARTICULAR': ' [ ] No tengo conocimiento  [ ] Gobierno  [ ] Empresa  [X] Particular',
+    }[draft.denunciadoTipo || 'NO_CONOCIMIENTO'];
+
     const evidencia = (draft.evidenceFiles || []).length > 0
-      ? (draft.evidenceFiles || []).map(f => `  - ${f.name}`).join('\n')
+      ? (draft.evidenceFiles || []).map(f => `  - IMAGEN (archivo): ${f.name}`).join('\n')
       : '  - Sin archivos adjuntos.';
-    const legalBasis = draft.aiAnalysis?.legalBasis || 'los artículos pertinentes de la LGEEPA';
-    const competency = draft.aiAnalysis?.competency || 'COMPETENTE';
+
+    const legalBasis = draft.aiAnalysis?.legalBasis || 'artículos 189, 190, 191 y 192 de la LGEEPA';
 
     return `ASUNTO: Denuncia Popular.
 FOLIO: ${folio}
 
-Procuraduría Federal de Protección al Ambiente
-(PROFEPA)
+Procuraduría Federal de Protección al Ambiente (PROFEPA)
 Oficina de representación en el Estado de ${estado.toUpperCase()}.
 Presente.
 
-${'='.repeat(60)}
+------------------------------------------------------------
 
-${denunciante}, señalando como medio para recibir notificaciones: ${contacto}, comparezco a interponer formal DENUNCIA POPULAR con fundamento en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente (LGEEPA), y en la normativa correlativa de la Ley Federal de Procedimiento Administrativo.
+Por el presente procedo a DENUNCIAR hechos, actividades u omisiones que están produciendo o pueden producir desequilibrio ecológico y daños a los recursos naturales, así como infracciones a las disposiciones legales y reglamentarias en materia ambiental, con fundamento en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente (LGEEPA). Al respecto expongo:
 
-AUTORIDAD COMPETENTE: ${competency}
-FUNDAMENTO LEGAL: ${legalBasis}
-
-${'='.repeat(60)}
-
-¿QUÉ SE DENUNCIA?
-${'='.repeat(60)}
+¿QUÉ SE ESTÁ DENUNCIANDO?
+------------------------------------------------------------
 ${draft.description || 'Sin descripción proporcionada.'}
 
-¿CUÁNDO OCURRIÓ?
-${'='.repeat(60)}
+¿CUÁNDO OCURRIÓ O DESDE CUÁNDO ESTÁ OCURRIENDO?
+------------------------------------------------------------
 ${draft.eventDate ? new Date(draft.eventDate + 'T12:00:00').toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : '(fecha no declarada)'}
 
-¿DÓNDE OCURRIÓ?
-${'='.repeat(60)}
+¿DÓNDE ESTÁ OCURRIENDO?
+------------------------------------------------------------
 Estado:             ${estado}
 Municipio/Alcaldía: ${municipio}
-Localidad/Colonia:  ${draft.location?.colonia || draft.location?.localidad || 'No especificado'}
-Dirección completa: ${ubicacionCompleta}
+Localidad/Colonia:  ${colonia}
+Ubicación/Referencias: ${ubicacionCompleta}
 Coordenadas GPS:    Latitud ${draft.location?.lat?.toFixed(6) || 'N/A'}, Longitud ${draft.location?.lng?.toFixed(6) || 'N/A'}
 
-PRUEBAS ADJUNTAS:
-${'='.repeat(60)}
+¿QUIÉN O QUIENES ESTÁN REALIZANDO ESTA ACCIÓN?
+------------------------------------------------------------
+${quien}
+
+PRUEBAS:
+------------------------------------------------------------
+Fotografías o imágenes: [X]
 ${evidencia}
 
-DATOS DE LA PERSONA DENUNCIANTE:
-${'='.repeat(60)}
-Nombre: ${denunciante}
-Contacto: ${contacto}
+DATOS DE IDENTIFICACIÓN DE LA PERSONA DENUNCIANTE:
+------------------------------------------------------------
+Nombre completo: ${denunciante}
+Domicilio: ${domicilio}
+Correo electrónico: ${contacto}
+Personas autorizadas para oír y recibir notificaciones a: ${autorizados}
 
-${'='.repeat(60)}
-SOLICITO
-${'='.repeat(60)}
-
-PRIMERO.- Se tenga por presentada y radicada la presente Denuncia Popular y se ordene el despliegue de las visitas de inspección o acciones tendientes a corroborar los actos y omisiones expuestos, en cumplimiento de los artículos 189, 190, 191 y 192 de la LGEEPA.
-
-SEGUNDO.- Se me tenga como coadyuvante en el procedimiento administrativo instaurado, de conformidad con el artículo 193 de la citada LGEEPA.
+S O L I C I T O:
+------------------------------------------------------------
+PRIMERO.- Se tenga por presentada y radicada la presente Denuncia Popular y se ordene el despliegue de las visitas de inspección o acciones tendientes a corroborar los actos y omisiones expuestos, con base en los artículos 189, 190, 191 y 192 de la LGEEPA.
 
 TERCERO.- Se me permita ejercer el derecho de acceso al expediente que resulte con motivo de esta denuncia, conforme al artículo 33 de la Ley Federal de Procedimiento Administrativo.
 
 CUARTO.- Se garantice la confidencialidad de mis datos personales conforme a los artículos 1 y 6 de la Constitución Política de los Estados Unidos Mexicanos y la Ley General de Transparencia y Acceso a la Información Pública.
 
-PROTESTO LO NECESARIO.
+QUINTO.- Se emita la resolución correspondiente en los términos de ley.
 
-A ${fecha}.
-
+PROTESTO LO NECESARIO
+${municipio}, ${estado}, a la fecha de su presentación.
 
 ___________________________________
-FIRMA DEL DENUNCIANTE
+NOMBRE Y FIRMA
 ${denunciante}
 `;
   };
@@ -201,17 +209,15 @@ ${denunciante}
         yPos += (lines.length * (fontSize * 0.45)) + 3;
       };
 
-      // --- HEADER ---
+      // --- AUTHORITY ---
       doc.setFont('times', 'bold');
       doc.setFontSize(10);
+      doc.text(`ASUNTO: Denuncia Popular.`, margin, yPos);
       doc.text(`FOLIO: ${folio}`, pageWidth - margin, yPos, { align: 'right' });
-      doc.text('ASUNTO: Denuncia Popular.', margin, yPos);
-      yPos += 8;
+      yPos += 10;
 
-      doc.setFontSize(12);
-      doc.text('Procuraduría Federal de Protección al Ambiente', margin, yPos);
-      yPos += 5;
-      doc.text('(PROFEPA)', margin, yPos);
+      doc.setFontSize(11);
+      doc.text('Procuraduría Federal de Protección al Ambiente (PROFEPA)', margin, yPos);
       yPos += 5;
       doc.setFontSize(10);
       doc.text(`Oficina de representación en el Estado de ${estado.toUpperCase()}.`, margin, yPos);
@@ -221,22 +227,17 @@ ${denunciante}
 
       // --- INTRO ---
       doc.setFont('times', 'normal');
-      const intro = `${denunciante}, señalando como medio para recibir notificaciones ` +
-        `${draft.isAnonymous ? 'la plataforma Denuncia Popular' : draft.email}, ` +
-        `comparezco a interponer formal DENUNCIA POPULAR con fundamento en los artículos 189, 190, 191 y 192 ` +
-        `de la Ley General del Equilibrio Ecológico y la Protección al Ambiente (LGEEPA), ` +
-        `así como en la normativa correlativa de la Ley Federal de Procedimiento Administrativo. Al respecto expongo:`;
+      const intro = `Por el presente procedo a DENUNCIAR hechos, actividades u omisiones que están produciendo o pueden producir desequilibrio ecológico y daños a los recursos naturales, así como infracciones a las disposiciones legales y reglamentarias en materia ambiental, con fundamento en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente (LGEEPA). Al respecto expongo:`;
       addWrappedText(intro, 10, 'normal');
       yPos += 5;
 
       // --- 1. QUÉ SE DENUNCIA ---
-      addWrappedText('¿Qué se está denunciando?', 10, 'bold');
-
+      addWrappedText('¿QUÉ SE ESTÁ DENUNCIANDO?', 10, 'bold');
       addWrappedText(draft.description || 'Sin descripción proporcionada.', 10, 'normal');
       yPos += 5;
 
       // --- 2. CUÁNDO ---
-      addWrappedText('¿Cuándo ocurrió o desde cuándo está ocurriendo?', 10, 'bold');
+      addWrappedText('¿CUÁNDO OCURRIÓ O DESDE CUÁNDO ESTÁ OCURRIENDO?', 10, 'bold');
       const fechaEvento = draft.eventDate
         ? new Date(draft.eventDate + 'T12:00:00').toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
         : '___________________________________';
@@ -244,47 +245,55 @@ ${denunciante}
       yPos += 5;
 
       // --- 3. DÓNDE ---
-      addWrappedText('¿Dónde está ocurriendo?', 10, 'bold');
+      addWrappedText('¿DÓNDE ESTÁ OCURRIENDO?', 10, 'bold');
       addWrappedText(`Estado:              ${estado}`, 10, 'normal', 5);
       addWrappedText(`Municipio/Alcaldía:  ${municipio}`, 10, 'normal', 5);
       addWrappedText(`Localidad/Colonia:   ${colonia}`, 10, 'normal', 5);
-      addWrappedText(`Dirección completa:  ${draft.location?.address || 'No especificado'}`, 10, 'normal', 5);
+      addWrappedText(`Referencia:          ${getUbicacionCompleta(draft)}`, 10, 'normal', 5);
       addWrappedText(`Coordenadas GPS:     Latitud ${draft.location?.lat?.toFixed(6) || 'N/A'}, Longitud ${draft.location?.lng?.toFixed(6) || 'N/A'}`, 10, 'normal', 5);
       yPos += 5;
 
-      // --- 4. PRUEBAS ---
+      // --- 4. QUIÉN ---
+      addWrappedText('¿QUIÉN O QUIENES ESTÁN REALIZANDO ESTA ACCIÓN?', 10, 'bold');
+      const quienMap = {
+        'NO_CONOCIMIENTO': '[X] No tengo conocimiento  [ ] Gobierno  [ ] Empresa  [ ] Particular',
+        'GOBIERNO': '[ ] No tengo conocimiento  [X] Gobierno  [ ] Empresa  [ ] Particular',
+        'EMPRESA': '[ ] No tengo conocimiento  [ ] Gobierno  [X] Empresa  [ ] Particular',
+        'PARTICULAR': '[ ] No tengo conocimiento  [ ] Gobierno  [ ] Empresa  [X] Particular',
+      };
+      addWrappedText(quienMap[draft.denunciadoTipo || 'NO_CONOCIMIENTO'], 10, 'normal', 5);
+      yPos += 5;
+
+      // --- 5. PRUEBAS ---
       addWrappedText('PRUEBAS:', 10, 'bold');
-      addWrappedText('Se adjuntan a la presente denuncia los siguientes medios de prueba:', 10, 'normal');
+      addWrappedText('Fotografías o imágenes: [X]', 10, 'normal', 5);
       const evidenceFiles = draft.evidenceFiles || [];
       if (evidenceFiles.length > 0) {
         evidenceFiles.forEach(file => {
-          const isImage = file.type.startsWith('image/');
-          addWrappedText(`- ${file.name}${isImage ? ' (imagen fotográfica, incluida en Anexo)' : ''}`, 10, 'normal', 5);
+          addWrappedText(`- IMAGEN (archivo): ${file.name}`, 10, 'normal', 5);
         });
       } else {
         addWrappedText('- Sin archivos adjuntos.', 10, 'normal', 5);
       }
       yPos += 5;
 
-      // --- 5. DENUNCIANTE ---
+      // --- 6. DENUNCIANTE ---
       addWrappedText('DATOS DE IDENTIFICACIÓN DE LA PERSONA DENUNCIANTE:', 10, 'bold');
-      if (draft.isAnonymous) {
-        addWrappedText('Nombre: ANÓNIMO (Solicito protección de datos personales)', 10, 'normal');
-      } else {
-        addWrappedText(`Nombre completo: ${draft.fullName}`, 10, 'normal');
-        addWrappedText(`Correo electrónico: ${draft.email}`, 10, 'normal');
-      }
+      addWrappedText(`Nombre completo: ${denunciante}`, 10, 'normal');
+      addWrappedText(`Domicilio: ${draft.domicilio || 'No proporcionado'}`, 10, 'normal');
+      addWrappedText(`Correo electrónico: ${draft.email}`, 10, 'normal');
+      addWrappedText(`Personas autorizadas: ${draft.personasAutorizadas || 'No declarado'}`, 10, 'normal');
       yPos += 8;
 
       // --- SOLICITO ---
-      addWrappedText('SOLICITO', 12, 'bold');
+      addWrappedText('S O L I C I T O:', 11, 'bold');
       yPos += 3;
 
       const solicitudes = [
         'PRIMERO.- Se tenga por presentada y radicada la presente Denuncia Popular y se ordene el despliegue de las visitas de inspección o acciones tendientes a corroborar los actos y omisiones expuestos, con base en los artículos 189, 190, 191 y 192 de la LGEEPA.',
-        'SEGUNDO.- Se me reconozca el carácter de coadyuvante en el procedimiento administrativo, de conformidad con el artículo 193 de la citada LGEEPA.',
         'TERCERO.- Se me permita ejercer el derecho de acceso al expediente que resulte con motivo de esta denuncia, conforme al artículo 33 de la Ley Federal de Procedimiento Administrativo.',
         'CUARTO.- Se garantice la confidencialidad de mis datos personales conforme a los artículos 1 y 6 de la Constitución Política de los Estados Unidos Mexicanos y la Ley General de Transparencia y Acceso a la Información Pública.',
+        'QUINTO.- Se emita la resolución correspondiente en los términos de ley.',
       ];
 
       doc.setFontSize(9);
@@ -299,10 +308,10 @@ ${denunciante}
       yPos += 8;
       doc.setFont('times', 'bold');
       doc.setFontSize(10);
-      doc.text('PROTESTO LO NECESARIO.', margin, yPos);
+      doc.text('PROTESTO LO NECESARIO', margin + (contentWidth / 2), yPos, { align: 'center' });
       yPos += 5;
       doc.setFont('times', 'normal');
-      doc.text(`A ${fecha}.`, margin, yPos);
+      doc.text(`${municipio}, ${estado}, a la fecha de su presentación.`, margin + (contentWidth / 2), yPos, { align: 'center' });
       yPos += 22;
       doc.line(margin + 30, yPos, pageWidth - margin - 30, yPos);
       yPos += 5;
@@ -414,50 +423,60 @@ ${denunciante}
             alignment: AlignmentType.RIGHT,
             spacing: { after: 200 },
           }),
-          new Paragraph({ children: [bold('Procuraduría Federal de Protección al Ambiente')], heading: HeadingLevel.HEADING_2, spacing: { after: 40 } }),
-          para([normal('(PROFEPA)')]),
+          new Paragraph({ children: [bold('Procuraduría Federal de Protección al Ambiente (PROFEPA)')], heading: HeadingLevel.HEADING_2, spacing: { after: 40 } }),
           para([normal(`Oficina de representación en el Estado de ${estado.toUpperCase()}.`)]),
           para([bold('Presente:')]),
           hr,
           // Intro
           para([
-            normal(`${denunciante}, señalando como medio para recibir notificaciones ${draft.isAnonymous ? 'la plataforma Denuncia Popular' : draft.email}, comparezco a interponer formal `),
-            bold('DENUNCIA POPULAR'),
-            normal(` con fundamento en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente (LGEEPA), así como en la normativa correlativa de la Ley Federal de Procedimiento Administrativo. Al respecto expongo:`),
+            normal(`Por el presente procedo a DENUNCIAR hechos, actividades u omisiones que están produciendo o pueden producir desequilibrio ecológico y daños a los recursos naturales, así como infracciones a las disposiciones legales y reglamentarias en materia ambiental, con fundamento en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente (LGEEPA). Al respecto expongo:`),
           ], 200),
           // Sections
-          new Paragraph({ children: [bold('¿Qué se está denunciando?')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
-          para([normal(draft.description || 'Sin descripción proporcionada.')], 200),
-          new Paragraph({ children: [bold('¿Cuándo ocurrió o desde cuándo está ocurriendo?')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
-          para([bold('Fecha del incidente: '), normal(fechaEvento)]),
-          para([bold('Fecha de presentación: '), normal(fecha)], 200),
-          new Paragraph({ children: [bold('¿Dónde está ocurriendo?')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
+          new Paragraph({ children: [bold('¿QUÉ SE ESTÁ DENUNCIANDO?')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
+          para([normal(draft.description || 'Sin descripción proporcionada.')], 160),
+
+          new Paragraph({ children: [bold('¿CUÁNDO OCURRIÓ O DESDE CUÁNDO ESTÁ OCURRIENDO?')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
+          para([normal(fechaEvento)], 160),
+
+          new Paragraph({ children: [bold('¿DÓNDE ESTÁ OCURRIENDO?')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
           para([bold('Estado:              '), normal(estado)]),
           para([bold('Municipio/Alcaldía:  '), normal(municipio)]),
           para([bold('Localidad/Colonia:   '), normal(colonia)]),
-          para([bold('Dirección completa:  '), normal(draft.location?.address || 'No especificado')]),
-          para([bold('Coordenadas GPS:     '), normal(`Latitud ${draft.location?.lat?.toFixed(6) || 'N/A'}, Longitud ${draft.location?.lng?.toFixed(6) || 'N/A'}`)], 200),
-          new Paragraph({ children: [bold('AUTORIDAD COMPETENTE Y FUNDAMENTO LEGAL')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
-          para([bold('Autoridad competente: '), normal(competency)]),
-          para([bold('Fundamento legal: '), normal(legalBasis)], 200),
+          para([bold('Ubicación/Ref:       '), normal(getUbicacionCompleta(draft))]),
+          para([bold('Coordenadas GPS:     '), normal(`Latitud ${draft.location?.lat?.toFixed(6) || 'N/A'}, Longitud ${draft.location?.lng?.toFixed(6) || 'N/A'}`)], 160),
+
+          new Paragraph({ children: [bold('¿QUIÉN O QUIENES ESTÁN REALIZANDO ESTA ACCIÓN?')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
+          para([
+            normal(draft.denunciadoTipo === 'NO_CONOCIMIENTO' ? ' [X] No tengo conocimiento' : ' [ ] No tengo conocimiento'),
+            normal(draft.denunciadoTipo === 'GOBIERNO' ? '  [X] Gobierno' : '  [ ] Gobierno'),
+            normal(draft.denunciadoTipo === 'EMPRESA' ? '  [X] Empresa' : '  [ ] Empresa'),
+            normal(draft.denunciadoTipo === 'PARTICULAR' ? '  [X] Particular' : '  [ ] Particular'),
+          ], 160),
+
           new Paragraph({ children: [bold('PRUEBAS:')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
-          para([normal('Se adjuntan a la presente denuncia los siguientes medios de prueba:')]),
+          para([normal('Fotografías o imágenes: [X]')]),
           ...(draft.evidenceFiles.length > 0
-            ? draft.evidenceFiles.map(f => para([normal(`• ${f.name}`)]))
+            ? draft.evidenceFiles.map(f => para([normal(`• IMAGEN (archivo): ${f.name}`)]))
             : [para([normal('• Sin archivos adjuntos.')])]),
-          new Paragraph({ children: [bold('DATOS DE LA PERSONA DENUNCIANTE:')], heading: HeadingLevel.HEADING_3, spacing: { before: 200, after: 80 } }),
-          para([bold('Nombre: '), normal(denunciante)]),
-          para([bold('Contacto: '), normal(contacto)], 300),
+
+          new Paragraph({ children: [bold('DATOS DE IDENTIFICACIÓN DE LA PERSONA DENUNCIANTE:')], heading: HeadingLevel.HEADING_3, spacing: { before: 200, after: 80 } }),
+          para([bold('Nombre completo: '), normal(denunciante)]),
+          para([bold('Domicilio: '), normal(draft.domicilio || 'No proporcionado')]),
+          para([bold('Correo electrónico: '), normal(draft.email)]),
+          para([bold('Personas autorizadas: '), normal(draft.personasAutorizadas || 'No declarado')], 200),
+
           hr,
           // SOLICITO
-          new Paragraph({ children: [bold('S O L I C I T O')], heading: HeadingLevel.HEADING_2, alignment: AlignmentType.CENTER, spacing: { after: 200 } }),
+          new Paragraph({ children: [bold('S O L I C I T O :')], heading: HeadingLevel.HEADING_2, alignment: AlignmentType.CENTER, spacing: { after: 200 } }),
           para([bold('PRIMERO.- '), normal('Se tenga por presentada y radicada la presente Denuncia Popular y se ordene el despliegue de las visitas de inspección o acciones tendientes a corroborar los actos y omisiones expuestos, con base en los artículos 189, 190, 191 y 192 de la LGEEPA.')]),
-          para([bold('SEGUNDO.- '), normal('Se me reconozca el carácter de coadyuvante en el procedimiento administrativo, de conformidad con el artículo 193 de la citada LGEEPA.')]),
           para([bold('TERCERO.- '), normal('Se me permita ejercer el derecho de acceso al expediente que resulte con motivo de esta denuncia, conforme al artículo 33 de la Ley Federal de Procedimiento Administrativo.')]),
-          para([bold('CUARTO.- '), normal('Se garantice la confidencialidad de mis datos personales conforme a los artículos 1 y 6 de la Constitución Política de los Estados Unidos Mexicanos y la Ley General de Transparencia y Acceso a la Información Pública.')], 300),
+          para([bold('CUARTO.- '), normal('Se garantice la confidencialidad de mis datos personales conforme a los artículos 1 y 6 de la Constitución Política de los Estados Unidos Mexicanos y la Ley General de Transparencia y Acceso a la Información Pública.')]),
+          para([bold('QUINTO.- '), normal('Se emita la resolución correspondiente en los términos de ley.')], 300),
+
           hr,
-          para([bold('PROTESTO LO NECESARIO.')]),
-          para([normal(`A ${fecha}.`)], 400),
+          new Paragraph({ children: [bold('PROTESTO LO NECESARIO')], alignment: AlignmentType.CENTER, spacing: { after: 80 } }),
+          new Paragraph({ children: [normal(`${municipio}, ${estado}, a la fecha de su presentación.`)], alignment: AlignmentType.CENTER, spacing: { after: 300 } }),
+
           new Paragraph({ children: [normal('_'.repeat(50))], alignment: AlignmentType.CENTER, spacing: { after: 60 } }),
           new Paragraph({ children: [bold('NOMBRE Y FIRMA')], alignment: AlignmentType.CENTER, spacing: { after: 60 } }),
           new Paragraph({ children: [normal(denunciante)], alignment: AlignmentType.CENTER }),
@@ -612,52 +631,74 @@ ${denunciante}
               </p>
             </div>
 
-            <div className="space-y-6 text-sm md:text-base leading-relaxed text-slate-800">
+            <div className="space-y-6 text-sm md:text-base leading-relaxed text-slate-800 text-justify">
               <p className="font-bold">
                 A LA AUTORIDAD {draft.aiAnalysis?.competency || 'COMPETENTE'}
                 <br />PRESENTE.
               </p>
 
-              <p className="text-justify">
-                El que suscribe, <span className="font-bold bg-yellow-100 px-1">{draft.isAnonymous ? 'CIUDADANO BAJO PROTECCIÓN DE ANONIMATO' : draft.fullName.toUpperCase()}</span>,
-                señalando como medio para recibir notificaciones el correo electrónico <u>{draft.email}</u>, comparezco para exponer:
+              <p>
+                Por el presente procedo a <span className="font-bold">DENUNCIAR</span> hechos, actividades u omisiones que están produciendo o pueden producir desequilibrio ecológico y daños a los recursos naturales, así como infracciones a las disposiciones legales y reglamentarias en materia ambiental, con fundamento en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente (LGEEPA). Al respecto expongo:
               </p>
 
-              <p className="text-justify pt-4">
-                Que por medio del presente instrumento vengo a interponer formal DENUNCIA POPULAR respecto de hechos, actos y omisiones que producen o pueden producir desequilibrio ecológico, fundamentando mi dicho en
-                <span className="font-bold mx-1">{draft.aiAnalysis?.legalBasis || 'los artículos pertinentes de la LGEEPA'}</span>.
+              <p>
+                <span className="font-bold block uppercase border-b border-slate-300 mb-2">¿Qué se está denunciando?</span>
+                {draft.description}
               </p>
 
-              <div className="bg-slate-100 p-6 border-l-4 border-slate-400 italic my-6 text-slate-700">
-                " {draft.description} "
-              </div>
+              <p>
+                <span className="font-bold block uppercase border-b border-slate-300 mb-2">¿Cuándo ocurrió?</span>
+                {draft.eventDate ? new Date(draft.eventDate + 'T12:00:00').toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : '(fecha no declarada)'}
+              </p>
 
-              <div className="grid grid-cols-2 gap-4 mb-6 text-xs text-slate-600 border border-slate-300 p-4">
-                <div>
-                  <span className="block font-bold text-slate-900">UBICACIÓN GEO-REFERENCIADA:</span>
-                  <div className="flex items-center gap-1 mt-1">
-                    <MapPin size={12} />
-                    {draft.location ? `${draft.location.lat.toFixed(6)}, ${draft.location.lng.toFixed(6)}` : 'N/A'}
+              <div>
+                <span className="font-bold block uppercase border-b border-slate-300 mb-2">¿Dónde está ocurriendo?</span>
+                <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-3 rounded">
+                  <div>
+                    <span className="font-bold text-slate-900">Estado:</span> {getEstado(draft)}<br />
+                    <span className="font-bold text-slate-900">Municipio:</span> {getMunicipio(draft)}<br />
+                    <span className="font-bold text-slate-900">Localidad:</span> {draft.location?.colonia || draft.location?.localidad || 'N/A'}
                   </div>
-                  <div className="mt-2 text-slate-700">
-                    <div className="font-semibold">{getMunicipio(draft)}</div>
-                    <div className="text-[10px] uppercase text-slate-500">{getEstado(draft)}</div>
+                  <div>
+                    <span className="font-bold text-slate-900">Coordenadas:</span> {draft.location ? `${draft.location.lat.toFixed(6)}, ${draft.location.lng.toFixed(6)}` : 'N/A'}<br />
+                    <span className="font-bold text-slate-900">Referencia:</span> {getUbicacionCompleta(draft)}
                   </div>
-                </div>
-                <div>
-                  <span className="block font-bold text-slate-900">EVIDENCIA ADJUNTA:</span>
-                  <ul className="list-disc list-inside mt-1">
-                    {draft.evidenceFiles.length > 0 ? draft.evidenceFiles.map((f, i) => <li key={i}>{f.name}</li>) : <li>Sin adjuntos</li>}
-                  </ul>
                 </div>
               </div>
 
-              <div className="mt-12 pt-8 border-t border-dashed border-slate-400 flex flex-col items-center justify-center opacity-80">
+              <div>
+                <span className="font-bold block uppercase border-b border-slate-300 mb-2">¿Quién o quienes?</span>
+                <div className="flex flex-wrap gap-4 text-xs">
+                  {['NO_CONOCIMIENTO', 'GOBIERNO', 'EMPRESA', 'PARTICULAR'].map(tipo => (
+                    <div key={tipo} className="flex items-center gap-1">
+                      {draft.denunciadoTipo === tipo ? '☒' : '☐'} {tipo.replace('_', ' ').toLowerCase()}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <span className="font-bold block uppercase border-b border-slate-300 mb-2">Pruebas</span>
+                <p className="text-xs">Fotografías o imágenes: ☒ ({draft.evidenceFiles.length} archivos)</p>
+              </div>
+
+              <div>
+                <span className="font-bold block uppercase border-b border-slate-300 mb-2">Datos Denunciante</span>
+                <div className="text-xs space-y-1">
+                  <p><span className="font-bold">Nombre:</span> {draft.isAnonymous ? 'ANÓNIMO' : draft.fullName}</p>
+                  <p><span className="font-bold">Domicilio:</span> {draft.domicilio || 'No proporcionado'}</p>
+                  <p><span className="font-bold">Correo:</span> {draft.email}</p>
+                  <p><span className="font-bold">Autorizados:</span> {draft.personasAutorizadas || 'Ninguno'}</p>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-8 border-t border-slate-400 flex flex-col items-center justify-center">
+                <p className="font-bold uppercase mb-4 text-xs">PROTESTO LO NECESARIO</p>
                 <div className="font-dancing-script text-2xl mb-2 text-blue-900">
                   {draft.isAnonymous ? 'Firma Digital Anónima' : draft.fullName}
                 </div>
                 <div className="border-t border-slate-900 w-48"></div>
-                <p className="text-[10px] text-slate-500 mt-1 uppercase">Firma del Denunciante / Hash: {Math.random().toString(36).substring(7)}</p>
+                <p className="text-[10px] text-slate-500 mt-1 uppercase">NOMBRE y FIRMA</p>
               </div>
             </div>
           </div>

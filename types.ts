@@ -29,6 +29,12 @@ export interface DenunciaDraft {
   evidenceFiles: File[];
   evidenceUrls?: string[];
   aiAnalysis?: AIAnalysisResult;
+
+  // New Legal Fields for Reference Matching
+  domicilio?: string;
+  personasAutorizadas?: string;
+  denunciadoTipo?: 'NO_CONOCIMIENTO' | 'GOBIERNO' | 'EMPRESA' | 'PARTICULAR';
+
   // Market Research Data
   age?: string;
   gender?: 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY';
