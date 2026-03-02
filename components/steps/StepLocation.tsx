@@ -275,17 +275,33 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     const geocoder = new window.google.maps.Geocoder();
     try {
       const response = await geocoder.geocode({ location: { lat, lng } });
-      if (response.results && response.results[0]) {
-        const result = response.results[0];
-        const address = result.formatted_address;
-        const components = result.address_components;
-        const estado = extractComponent(components, 'administrative_area_level_1');
-        const municipio = extractComponent(components, 'administrative_area_level_2') ||
-          extractComponent(components, 'locality');
-        const localidad = extractComponent(components, 'locality');
-        const colonia = extractComponent(components, 'sublocality_level_1') ||
-          extractComponent(components, 'sublocality') ||
-          extractComponent(components, 'neighborhood');
+      if (response.results && response.results.length > 0) {
+        // Use the first result for display address and estado
+        const primaryResult = response.results[0];
+        const address = primaryResult.formatted_address;
+        const estado = extractComponent(primaryResult.address_components, 'administrative_area_level_1');
+
+        // For municipio: scan ALL results — rural/Plus Code addresses only carry
+        // administrative_area_level_2 in a later result (e.g. locality or political type)
+        let municipio = '';
+        let localidad = '';
+        let colonia = '';
+
+        for (const result of response.results) {
+          const c = result.address_components;
+          if (!municipio) municipio = extractComponent(c, 'administrative_area_level_2');
+          if (!localidad) localidad = extractComponent(c, 'locality');
+          if (!colonia) {
+            colonia = extractComponent(c, 'sublocality_level_1') ||
+              extractComponent(c, 'sublocality') ||
+              extractComponent(c, 'neighborhood');
+          }
+          if (municipio && localidad && colonia) break;
+        }
+
+        // Final fallback: if still no municipio, use locality
+        if (!municipio) municipio = localidad;
+
         setAddressDisplay(address);
         updateDraft({
           location: { lat, lng, address, estado, municipio, localidad, colonia }

@@ -130,7 +130,26 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
         </div>
       </div>
 
+      {/* Event Date */}
+      <div className="pt-8 border-t border-zinc-800 animate-fade-in">
+        <div className="group">
+          <label htmlFor="eventDate" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-pink-500 transition-colors">
+            Fecha del Incidente <span className="text-pink-500">*</span>
+          </label>
+          <p className="text-xs text-zinc-600 mb-3">Fecha en que ocurrió o se detectó el hecho denunciado.</p>
+          <input
+            id="eventDate"
+            type="date"
+            value={draft.eventDate || ''}
+            onChange={(e) => updateDraft({ eventDate: e.target.value })}
+            max={new Date().toISOString().split('T')[0]}
+            className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:ring-1 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all font-mono [color-scheme:dark]"
+          />
+        </div>
+      </div>
+
       {/* Market Research Section - Always Active */}
+
       <div className="pt-8 border-t border-zinc-800 animate-fade-in">
         <h3 className="text-xl font-bold mb-6 text-zinc-300 flex items-center gap-2">
           <Users size={20} className="text-pink-500" />

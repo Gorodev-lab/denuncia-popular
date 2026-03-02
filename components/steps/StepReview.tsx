@@ -117,7 +117,7 @@ ${draft.description || 'Sin descripción proporcionada.'}
 
 ¿CUÁNDO OCURRIÓ?
 ${'='.repeat(60)}
-Fecha de presentación: ${fecha}
+${draft.eventDate ? new Date(draft.eventDate + 'T12:00:00').toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : '(fecha no declarada)'}
 
 ¿DÓNDE OCURRIÓ?
 ${'='.repeat(60)}
@@ -230,13 +230,16 @@ ${denunciante}
 
       // --- 1. QUÉ SE DENUNCIA ---
       addWrappedText('¿Qué se está denunciando?', 10, 'bold');
-      addWrappedText('(Describa los hechos de la manera más específica posible.)', 9, 'italic');
+
       addWrappedText(draft.description || 'Sin descripción proporcionada.', 10, 'normal');
       yPos += 5;
 
       // --- 2. CUÁNDO ---
       addWrappedText('¿Cuándo ocurrió o desde cuándo está ocurriendo?', 10, 'bold');
-      addWrappedText(`Fecha de presentación: ${fecha}`, 10, 'normal');
+      const fechaEvento = draft.eventDate
+        ? new Date(draft.eventDate + 'T12:00:00').toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+        : '___________________________________';
+      addWrappedText(fechaEvento, 10, 'normal');
       yPos += 5;
 
       // --- 3. DÓNDE ---

@@ -25,6 +25,7 @@ export interface DenunciaDraft {
   location: LocationData | null;
   description: string;
   category: string;
+  eventDate?: string;          // ISO date string of when the incident occurred
   evidenceFiles: File[];
   evidenceUrls?: string[];
   aiAnalysis?: AIAnalysisResult;
