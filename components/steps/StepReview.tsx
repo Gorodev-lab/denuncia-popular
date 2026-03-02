@@ -397,7 +397,7 @@ ${denunciante}
     const legalBasis = draft.aiAnalysis?.legalBasis || 'los artículos pertinentes de la LGEEPA';
     const competency = draft.aiAnalysis?.competency || 'COMPETENTE';
 
-    const hr = new Paragraph({
+    const createHr = () => new Paragraph({
       border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '000000' } },
       spacing: { after: 120 },
     });
@@ -405,7 +405,7 @@ ${denunciante}
     const bold = (text: string) => new TextRun({ text, bold: true, font: 'Times New Roman', size: 22 });
     const normal = (text: string) => new TextRun({ text, font: 'Times New Roman', size: 22 });
     const para = (children: TextRun[], spacing = 160) =>
-      new Paragraph({ children, spacing: { after: spacing } });
+      new Paragraph({ children: children.length > 0 ? children : [new TextRun("")], spacing: { after: spacing } });
 
     const doc = new Document({
       title: `Denuncia Popular ${folio}`,
@@ -426,7 +426,7 @@ ${denunciante}
           new Paragraph({ children: [bold('Procuraduría Federal de Protección al Ambiente (PROFEPA)')], heading: HeadingLevel.HEADING_2, spacing: { after: 40 } }),
           para([normal(`Oficina de representación en el Estado de ${estado.toUpperCase()}.`)]),
           para([bold('Presente:')]),
-          hr,
+          createHr(),
           // Intro
           para([
             normal(`Por el presente procedo a DENUNCIAR hechos, actividades u omisiones que están produciendo o pueden producir desequilibrio ecológico y daños a los recursos naturales, así como infracciones a las disposiciones legales y reglamentarias en materia ambiental, con fundamento en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente (LGEEPA). Al respecto expongo:`),
@@ -464,9 +464,9 @@ ${denunciante}
           ...(draft.domicilio ? [para([bold('Domicilio: '), normal(draft.domicilio)])] : []),
           ...(draft.email ? [para([bold('Correo electrónico: '), normal(draft.email)])] : []),
           ...(draft.personasAutorizadas ? [para([bold('Personas autorizadas: '), normal(draft.personasAutorizadas)])] : []),
-          para([], 200),
+          para([normal("")], 200),
 
-          hr,
+          createHr(),
           // SOLICITO
           new Paragraph({ children: [bold('S O L I C I T O :')], heading: HeadingLevel.HEADING_2, alignment: AlignmentType.CENTER, spacing: { after: 200 } }),
           para([bold('PRIMERO.- '), normal('Se tenga por presentada y radicada la presente Denuncia Popular y se ordene el despliegue de las visitas de inspección o acciones tendientes a corroborar los actos y omisiones expuestos, con base en los artículos 189, 190, 191 y 192 de la LGEEPA.')]),
@@ -474,7 +474,7 @@ ${denunciante}
           para([bold('CUARTO.- '), normal('Se garantice la confidencialidad de mis datos personales conforme a los artículos 1 y 6 de la Constitución Política de los Estados Unidos Mexicanos y la Ley General de Transparencia y Acceso a la Información Pública.')]),
           para([bold('QUINTO.- '), normal('Se emita la resolución correspondiente en los términos de ley.')], 300),
 
-          hr,
+          createHr(),
           new Paragraph({ children: [bold('PROTESTO LO NECESARIO')], alignment: AlignmentType.CENTER, spacing: { after: 80 } }),
           new Paragraph({ children: [normal(`${municipio}, ${estado}, a la fecha de su presentación.`)], alignment: AlignmentType.CENTER, spacing: { after: 300 } }),
 
