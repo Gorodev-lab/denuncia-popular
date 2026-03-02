@@ -89,9 +89,6 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
     const ubicacionCompleta = getUbicacionCompleta(draft);
     const fecha = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
     const denunciante = draft.isAnonymous ? 'CIUDADANO BAJO PROTECCIÓN DE ANONIMATO' : (draft.fullName || 'No especificado').toUpperCase();
-    const contacto = draft.isAnonymous ? 'Solicita protección de datos personales' : (draft.email || 'No especificado');
-    const domicilio = draft.domicilio || 'No proporcionado';
-    const autorizados = draft.personasAutorizadas || 'No declarado';
 
     const quien = {
       'NO_CONOCIMIENTO': ' [X] No tengo conocimiento  [ ] Gobierno  [ ] Empresa  [ ] Particular',
@@ -104,7 +101,14 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
       ? (draft.evidenceFiles || []).map(f => `  - IMAGEN (archivo): ${f.name}`).join('\n')
       : '  - Sin archivos adjuntos.';
 
-    const legalBasis = draft.aiAnalysis?.legalBasis || 'artículos 189, 190, 191 y 192 de la LGEEPA';
+    const eventDateStr = draft.eventDate
+      ? new Date(draft.eventDate + 'T12:00:00').toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+      : '(fecha no declarada)';
+
+    let identifSection = `Nombre completo: ${denunciante}\n`;
+    if (draft.domicilio) identifSection += `Domicilio: ${draft.domicilio}\n`;
+    if (draft.email) identifSection += `Correo electrónico: ${draft.email}\n`;
+    if (draft.personasAutorizadas) identifSection += `Personas autorizadas para oír y recibir notificaciones a: ${draft.personasAutorizadas}\n`;
 
     return `ASUNTO: Denuncia Popular.
 FOLIO: ${folio}
@@ -123,7 +127,7 @@ ${draft.description || 'Sin descripción proporcionada.'}
 
 ¿CUÁNDO OCURRIÓ O DESDE CUÁNDO ESTÁ OCURRIENDO?
 ------------------------------------------------------------
-${draft.eventDate ? new Date(draft.eventDate + 'T12:00:00').toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' }) : '(fecha no declarada)'}
+${eventDateStr}
 
 ¿DÓNDE ESTÁ OCURRIENDO?
 ------------------------------------------------------------
@@ -144,11 +148,7 @@ ${evidencia}
 
 DATOS DE IDENTIFICACIÓN DE LA PERSONA DENUNCIANTE:
 ------------------------------------------------------------
-Nombre completo: ${denunciante}
-Domicilio: ${domicilio}
-Correo electrónico: ${contacto}
-Personas autorizadas para oír y recibir notificaciones a: ${autorizados}
-
+${identifSection}
 S O L I C I T O:
 ------------------------------------------------------------
 PRIMERO.- Se tenga por presentada y radicada la presente Denuncia Popular y se ordene el despliegue de las visitas de inspección o acciones tendientes a corroborar los actos y omisiones expuestos, con base en los artículos 189, 190, 191 y 192 de la LGEEPA.
@@ -280,9 +280,9 @@ ${denunciante}
       // --- 6. DENUNCIANTE ---
       addWrappedText('DATOS DE IDENTIFICACIÓN DE LA PERSONA DENUNCIANTE:', 10, 'bold');
       addWrappedText(`Nombre completo: ${denunciante}`, 10, 'normal');
-      addWrappedText(`Domicilio: ${draft.domicilio || 'No proporcionado'}`, 10, 'normal');
-      addWrappedText(`Correo electrónico: ${draft.email}`, 10, 'normal');
-      addWrappedText(`Personas autorizadas: ${draft.personasAutorizadas || 'No declarado'}`, 10, 'normal');
+      if (draft.domicilio) addWrappedText(`Domicilio: ${draft.domicilio}`, 10, 'normal');
+      if (draft.email) addWrappedText(`Correo electrónico: ${draft.email}`, 10, 'normal');
+      if (draft.personasAutorizadas) addWrappedText(`Personas autorizadas: ${draft.personasAutorizadas}`, 10, 'normal');
       yPos += 8;
 
       // --- SOLICITO ---
@@ -461,9 +461,10 @@ ${denunciante}
 
           new Paragraph({ children: [bold('DATOS DE IDENTIFICACIÓN DE LA PERSONA DENUNCIANTE:')], heading: HeadingLevel.HEADING_3, spacing: { before: 200, after: 80 } }),
           para([bold('Nombre completo: '), normal(denunciante)]),
-          para([bold('Domicilio: '), normal(draft.domicilio || 'No proporcionado')]),
-          para([bold('Correo electrónico: '), normal(draft.email)]),
-          para([bold('Personas autorizadas: '), normal(draft.personasAutorizadas || 'No declarado')], 200),
+          ...(draft.domicilio ? [para([bold('Domicilio: '), normal(draft.domicilio)])] : []),
+          ...(draft.email ? [para([bold('Correo electrónico: '), normal(draft.email)])] : []),
+          ...(draft.personasAutorizadas ? [para([bold('Personas autorizadas: '), normal(draft.personasAutorizadas)])] : []),
+          para([], 200),
 
           hr,
           // SOLICITO
@@ -686,9 +687,9 @@ ${denunciante}
                 <span className="font-bold block uppercase border-b border-slate-300 mb-2">Datos Denunciante</span>
                 <div className="text-xs space-y-1">
                   <p><span className="font-bold">Nombre:</span> {draft.isAnonymous ? 'ANÓNIMO' : draft.fullName}</p>
-                  <p><span className="font-bold">Domicilio:</span> {draft.domicilio || 'No proporcionado'}</p>
-                  <p><span className="font-bold">Correo:</span> {draft.email}</p>
-                  <p><span className="font-bold">Autorizados:</span> {draft.personasAutorizadas || 'Ninguno'}</p>
+                  {draft.domicilio && <p><span className="font-bold">Domicilio:</span> {draft.domicilio}</p>}
+                  {draft.email && <p><span className="font-bold">Correo:</span> {draft.email}</p>}
+                  {draft.personasAutorizadas && <p><span className="font-bold">Autorizados:</span> {draft.personasAutorizadas}</p>}
                 </div>
               </div>
 
