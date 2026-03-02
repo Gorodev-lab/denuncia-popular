@@ -254,11 +254,16 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     }, 5000);
   };
 
+  // Helper to pull named types from Google Maps address_components
+  const extractComponent = (components: google.maps.GeocoderAddressComponent[], type: string): string => {
+    const component = components.find(c => c.types.includes(type));
+    return component?.long_name || '';
+  };
+
   const geocodePosition = async (lat: number, lng: number) => {
     if (!window.google || !window.google.maps) return;
 
     setLoadingAddress(true);
-    // Temporary update
     updateDraft({
       location: {
         lat,
@@ -271,35 +276,30 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     try {
       const response = await geocoder.geocode({ location: { lat, lng } });
       if (response.results && response.results[0]) {
-        const address = response.results[0].formatted_address;
+        const result = response.results[0];
+        const address = result.formatted_address;
+        const components = result.address_components;
+        const estado = extractComponent(components, 'administrative_area_level_1');
+        const municipio = extractComponent(components, 'administrative_area_level_2') ||
+          extractComponent(components, 'locality');
+        const localidad = extractComponent(components, 'locality');
+        const colonia = extractComponent(components, 'sublocality_level_1') ||
+          extractComponent(components, 'sublocality') ||
+          extractComponent(components, 'neighborhood');
         setAddressDisplay(address);
         updateDraft({
-          location: {
-            lat,
-            lng,
-            address: address
-          }
+          location: { lat, lng, address, estado, municipio, localidad, colonia }
         });
       } else {
-        setAddressDisplay("Dirección desconocida");
-        updateDraft({
-          location: {
-            lat,
-            lng,
-            address: `Coordenadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`
-          }
-        });
+        const fallback = `Coordenadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+        setAddressDisplay('Dirección desconocida');
+        updateDraft({ location: { lat, lng, address: fallback } });
       }
     } catch (error) {
-      console.error("Geocoding error:", error);
-      setAddressDisplay("Error al obtener la dirección.");
-      updateDraft({
-        location: {
-          lat,
-          lng,
-          address: `Coordenadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`
-        }
-      });
+      console.error('Geocoding error:', error);
+      const fallback = `Coordenadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+      setAddressDisplay('Error al obtener la dirección.');
+      updateDraft({ location: { lat, lng, address: fallback } });
     } finally {
       setLoadingAddress(false);
     }
@@ -351,13 +351,23 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
       if (place.geometry && place.geometry.location) {
         const lat = place.geometry.location.lat();
         const lng = place.geometry.location.lng();
+        const components = place.address_components || [];
+        const address = place.formatted_address || '';
+        const estado = extractComponent(components, 'administrative_area_level_1');
+        const municipio = extractComponent(components, 'administrative_area_level_2') ||
+          extractComponent(components, 'locality');
+        const localidad = extractComponent(components, 'locality');
+        const colonia = extractComponent(components, 'sublocality_level_1') ||
+          extractComponent(components, 'sublocality') ||
+          extractComponent(components, 'neighborhood');
         setPosition({ lat, lng });
         setAccuracy(null);
         if (map) {
           map.panTo({ lat, lng });
           map.setZoom(17);
         }
-        setAddressDisplay(place.formatted_address || '');
+        setAddressDisplay(address);
+        updateDraft({ location: { lat, lng, address, estado, municipio, localidad, colonia } });
         setIsManualMode(false);
       } else {
         console.log("No details available for input: '" + place.name + "'");

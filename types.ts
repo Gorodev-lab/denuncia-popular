@@ -11,7 +11,11 @@ export enum Step {
 export interface LocationData {
   lat: number;
   lng: number;
-  address?: string;
+  address?: string;          // full formatted_address from Google
+  estado?: string;           // administrative_area_level_1
+  municipio?: string;        // administrative_area_level_2
+  localidad?: string;        // locality
+  colonia?: string;          // sublocality_level_1
 }
 
 export interface DenunciaDraft {

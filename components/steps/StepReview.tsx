@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { DenunciaDraft } from '../../types';
-import { ChevronLeft, FileCheck, MapPin, Download, Printer } from 'lucide-react';
+import { ChevronLeft, FileCheck, MapPin, Printer, FileText, Globe } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 
 interface Props {
@@ -10,6 +10,26 @@ interface Props {
 }
 
 import { supabase } from '../../services/supabase';
+
+
+// Get the official state name from draft.location (provided by Google Maps address_components)
+const getEstado = (draft: DenunciaDraft): string =>
+  draft.location?.estado || 'No especificado';
+
+// Get municipality/locality from draft.location
+const getMunicipio = (draft: DenunciaDraft): string =>
+  draft.location?.municipio || draft.location?.localidad || 'No especificado';
+
+// Full reference string: colonia + municipio + estado
+const getUbicacionCompleta = (draft: DenunciaDraft): string => {
+  const parts = [
+    draft.location?.colonia,
+    draft.location?.municipio || draft.location?.localidad,
+    draft.location?.estado,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(', ') : (draft.location?.address || 'No especificado');
+};
+
 
 export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -31,6 +51,8 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
         lat: draft.location?.lat,
         lng: draft.location?.lng,
         address: draft.location?.address,
+        estado: draft.location?.estado,
+        municipio: draft.location?.municipio,
         competency: draft.aiAnalysis?.competency,
         legal_basis: draft.aiAnalysis?.legalBasis,
         summary: draft.aiAnalysis?.summary,
@@ -48,7 +70,6 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
         throw error;
       }
 
-      // Success
       onSubmit();
 
     } catch (error) {
@@ -58,6 +79,86 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
       setIsSubmitting(false);
     }
   };
+
+  // ---------- Document Content Builder ----------
+  const buildDocumentText = (folio: string): string => {
+    const estado = getEstado(draft);
+    const municipio = getMunicipio(draft);
+    const ubicacionCompleta = getUbicacionCompleta(draft);
+    const fecha = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+    const denunciante = draft.isAnonymous ? 'CIUDADANO BAJO PROTECCIÓN DE ANONIMATO' : (draft.fullName || 'No especificado').toUpperCase();
+    const contacto = draft.isAnonymous ? 'Solicita protección de datos personales' : (draft.email || 'No especificado');
+    const evidencia = (draft.evidenceFiles || []).length > 0
+      ? (draft.evidenceFiles || []).map(f => `  - ${f.name}`).join('\n')
+      : '  - Sin archivos adjuntos.';
+    const legalBasis = draft.aiAnalysis?.legalBasis || 'los artículos pertinentes de la LGEEPA';
+    const competency = draft.aiAnalysis?.competency || 'COMPETENTE';
+
+    return `ASUNTO: Denuncia Popular.
+FOLIO: ${folio}
+
+Procuraduría Federal de Protección al Ambiente
+(PROFEPA)
+Oficina de representación en el Estado de ${estado.toUpperCase()}.
+Presente.
+
+${'='.repeat(60)}
+
+${denunciante}, señalando como medio para recibir notificaciones: ${contacto}, comparezco a interponer formal DENUNCIA POPULAR con fundamento en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente (LGEEPA), y en la normativa correlativa de la Ley Federal de Procedimiento Administrativo.
+
+AUTORIDAD COMPETENTE: ${competency}
+FUNDAMENTO LEGAL: ${legalBasis}
+
+${'='.repeat(60)}
+
+¿QUÉ SE DENUNCIA?
+${'='.repeat(60)}
+${draft.description || 'Sin descripción proporcionada.'}
+
+¿CUÁNDO OCURRIÓ?
+${'='.repeat(60)}
+Fecha de presentación: ${fecha}
+
+¿DÓNDE OCURRIÓ?
+${'='.repeat(60)}
+Estado:             ${estado}
+Municipio/Alcaldía: ${municipio}
+Localidad/Colonia:  ${draft.location?.colonia || draft.location?.localidad || 'No especificado'}
+Dirección completa: ${ubicacionCompleta}
+Coordenadas GPS:    Latitud ${draft.location?.lat?.toFixed(6) || 'N/A'}, Longitud ${draft.location?.lng?.toFixed(6) || 'N/A'}
+
+PRUEBAS ADJUNTAS:
+${'='.repeat(60)}
+${evidencia}
+
+DATOS DE LA PERSONA DENUNCIANTE:
+${'='.repeat(60)}
+Nombre: ${denunciante}
+Contacto: ${contacto}
+
+${'='.repeat(60)}
+SOLICITO
+${'='.repeat(60)}
+
+PRIMERO.- Se tenga por presentada y radicada la presente Denuncia Popular y se ordene el despliegue de las visitas de inspección o acciones tendientes a corroborar los actos y omisiones expuestos, en cumplimiento de los artículos 189, 190, 191 y 192 de la LGEEPA.
+
+SEGUNDO.- Se me tenga como coadyuvante en el procedimiento administrativo instaurado, de conformidad con el artículo 193 de la citada LGEEPA.
+
+TERCERO.- Se me permita ejercer el derecho de acceso al expediente que resulte con motivo de esta denuncia, conforme al artículo 33 de la Ley Federal de Procedimiento Administrativo.
+
+CUARTO.- Se garantice la confidencialidad de mis datos personales conforme a los artículos 1 y 6 de la Constitución Política de los Estados Unidos Mexicanos y la Ley General de Transparencia y Acceso a la Información Pública.
+
+PROTESTO LO NECESARIO.
+
+A ${fecha}.
+
+
+___________________________________
+FIRMA DEL DENUNCIANTE
+${denunciante}
+`;
+  };
+
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -79,243 +180,217 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
       const contentWidth = pageWidth - (margin * 2);
       let yPos = 20;
 
-      // Helper for text wrapping
-      const addWrappedText = (text: string, fontSize: number = 10, fontType: string = "normal", indent: number = 0) => {
-        doc.setFont("times", fontType);
+      const folio = `MX-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+      const fecha = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+      const estado = getEstado(draft);
+      const municipio = getMunicipio(draft);
+      const colonia = draft.location?.colonia || draft.location?.localidad || 'No especificado';
+      const denunciante = draft.isAnonymous ? 'CIUDADANO BAJO PROTECCIÓN DE ANONIMATO' : (draft.fullName || '').toUpperCase();
+
+      const addWrappedText = (text: string, fontSize: number = 10, fontType: 'normal' | 'bold' | 'italic' | 'bolditalic' = 'normal', indent: number = 0) => {
+        doc.setFont('times', fontType);
         doc.setFontSize(fontSize);
         const lines = doc.splitTextToSize(text, contentWidth - indent);
+        // New page if needed
+        if (yPos + lines.length * (fontSize * 0.45) > pageHeight - 20) {
+          doc.addPage();
+          yPos = 20;
+        }
         doc.text(lines, margin + indent, yPos);
-        yPos += (lines.length * (fontSize * 0.5)) + 2;
+        yPos += (lines.length * (fontSize * 0.45)) + 3;
       };
 
-      // --- Header ---
-      doc.setFont("times", "bold");
+      // --- HEADER ---
+      doc.setFont('times', 'bold');
       doc.setFontSize(10);
-      doc.text("ASUNTO: Denuncia Popular.", pageWidth - margin, yPos, { align: "right" });
-      yPos += 10;
+      doc.text(`FOLIO: ${folio}`, pageWidth - margin, yPos, { align: 'right' });
+      doc.text('ASUNTO: Denuncia Popular.', margin, yPos);
+      yPos += 8;
 
       doc.setFontSize(12);
-      doc.text("Procuraduría Federal de Protección al Ambiente", margin, yPos);
+      doc.text('Procuraduría Federal de Protección al Ambiente', margin, yPos);
       yPos += 5;
-      doc.text("(PROFEPA)", margin, yPos);
-      yPos += 10;
-      doc.setFont("times", "normal");
+      doc.text('(PROFEPA)', margin, yPos);
+      yPos += 5;
       doc.setFontSize(10);
-      doc.text("Oficina de representación en el Estado de ______________________________________.", margin, yPos);
-      yPos += 10;
-      doc.setFont("times", "bold");
-      doc.text("Presente:", margin, yPos);
-      yPos += 10;
-
-      // --- Intro ---
-      doc.setFont("times", "normal");
-      const intro = "Por el presente, y con fundamento en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente (LGEEPA), así como en la normatividad correlativa de la Ley Federal de Procedimiento Administrativo, comparezco para interponer formal DENUNCIA POPULAR respecto de hechos, actos y omisiones que producen o pueden producir desequilibrio ecológico, daños al ambiente y a los recursos naturales, contraviniendo las disposiciones legales aplicables. Al respecto, expongo lo siguiente:";
-      addWrappedText(intro, 10, "normal");
+      doc.text(`Oficina de representación en el Estado de ${estado.toUpperCase()}.`, margin, yPos);
       yPos += 5;
-
-      // --- 1. ¿Qué se está denunciando? ---
-      doc.setFont("times", "bold");
-      doc.text("¿Qué se está denunciando?", margin, yPos);
-      yPos += 5;
-      doc.setFont("times", "italic");
-      doc.setFontSize(9);
-      doc.text("(ser lo más específicas posible)", margin, yPos);
-      yPos += 5;
-
-      doc.setFont("times", "normal");
-      doc.setFontSize(10);
-      const description = draft.description || "Sin descripción proporcionada.";
-      addWrappedText(description, 10, "normal");
-      yPos += 5;
-
-      // --- 2. ¿Cuándo ocurrió? ---
-      doc.setFont("times", "bold");
-      doc.text("¿Cuándo ocurrió o desde cuándo está ocurriendo?", margin, yPos);
-      yPos += 7;
-      doc.setFont("times", "normal");
-      doc.text("Fecha aproximada: " + new Date().toLocaleDateString(), margin, yPos);
+      doc.text('Presente:', margin, yPos);
       yPos += 10;
 
-      // --- 3. ¿Dónde está ocurriendo? ---
-      doc.setFont("times", "bold");
-      doc.text("¿Dónde está ocurriendo?", margin, yPos);
-      yPos += 7;
-
-      doc.setFont("times", "normal");
-      doc.text(`- Estado: ${draft.location?.address?.split(',').pop()?.trim() || 'No especificado'}`, margin + 5, yPos);
-      yPos += 7;
-      doc.text(`- Municipio/Localidad: ${draft.location?.address || 'No especificado'}`, margin + 5, yPos);
-      yPos += 7;
-      doc.text(`- Coordenadas: Norte ${draft.location?.lat.toFixed(6)}, Oeste ${draft.location?.lng.toFixed(6)}`, margin + 5, yPos);
-      yPos += 7;
-      doc.text("- Referencias: Ubicación geo-referenciada en mapa digital.", margin + 5, yPos);
-      yPos += 10;
-
-      // --- 4. ¿Quién? ---
-      doc.setFont("times", "bold");
-      doc.text("¿Quién o quienes están realizando esta acción?", margin, yPos);
-      yPos += 7;
-      doc.setFont("times", "normal");
-      doc.text("● Posiblemente sea: " + (draft.isAnonymous ? "No tengo conocimiento exacto / Por investigar" : "Ver descripción"), margin + 5, yPos);
-      yPos += 10;
-
-      // --- 5. Pruebas ---
-      doc.setFont("times", "bold");
-      doc.text("PRUEBAS:", margin, yPos);
+      // --- INTRO ---
+      doc.setFont('times', 'normal');
+      const intro = `${denunciante}, señalando como medio para recibir notificaciones ` +
+        `${draft.isAnonymous ? 'la plataforma Denuncia Popular' : draft.email}, ` +
+        `comparezco a interponer formal DENUNCIA POPULAR con fundamento en los artículos 189, 190, 191 y 192 ` +
+        `de la Ley General del Equilibrio Ecológico y la Protección al Ambiente (LGEEPA), ` +
+        `así como en la normativa correlativa de la Ley Federal de Procedimiento Administrativo. Al respecto expongo:`;
+      addWrappedText(intro, 10, 'normal');
       yPos += 5;
-      doc.setFont("times", "normal");
-      doc.text("Adjunto a la presente denuncia las siguientes pruebas:", margin, yPos);
-      yPos += 7;
 
+      // --- 1. QUÉ SE DENUNCIA ---
+      addWrappedText('¿Qué se está denunciando?', 10, 'bold');
+      addWrappedText('(Describa los hechos de la manera más específica posible.)', 9, 'italic');
+      addWrappedText(draft.description || 'Sin descripción proporcionada.', 10, 'normal');
+      yPos += 5;
+
+      // --- 2. CUÁNDO ---
+      addWrappedText('¿Cuándo ocurrió o desde cuándo está ocurriendo?', 10, 'bold');
+      addWrappedText(`Fecha de presentación: ${fecha}`, 10, 'normal');
+      yPos += 5;
+
+      // --- 3. DÓNDE ---
+      addWrappedText('¿Dónde está ocurriendo?', 10, 'bold');
+      addWrappedText(`Estado:              ${estado}`, 10, 'normal', 5);
+      addWrappedText(`Municipio/Alcaldía:  ${municipio}`, 10, 'normal', 5);
+      addWrappedText(`Localidad/Colonia:   ${colonia}`, 10, 'normal', 5);
+      addWrappedText(`Dirección completa:  ${draft.location?.address || 'No especificado'}`, 10, 'normal', 5);
+      addWrappedText(`Coordenadas GPS:     Latitud ${draft.location?.lat?.toFixed(6) || 'N/A'}, Longitud ${draft.location?.lng?.toFixed(6) || 'N/A'}`, 10, 'normal', 5);
+      yPos += 5;
+
+      // --- 4. PRUEBAS ---
+      addWrappedText('PRUEBAS:', 10, 'bold');
+      addWrappedText('Se adjuntan a la presente denuncia los siguientes medios de prueba:', 10, 'normal');
       const evidenceFiles = draft.evidenceFiles || [];
       if (evidenceFiles.length > 0) {
         evidenceFiles.forEach(file => {
           const isImage = file.type.startsWith('image/');
-          doc.text(`- ${file.name} ${isImage ? '(Imagen adjunta en anexo)' : ''}`, margin + 5, yPos);
-          yPos += 5;
+          addWrappedText(`- ${file.name}${isImage ? ' (imagen fotográfica, incluida en Anexo)' : ''}`, 10, 'normal', 5);
         });
       } else {
-        doc.text("- Sin archivos adjuntos.", margin + 5, yPos);
-        yPos += 5;
+        addWrappedText('- Sin archivos adjuntos.', 10, 'normal', 5);
       }
       yPos += 5;
 
-      // --- 6. Datos del Denunciante ---
-      doc.setFont("times", "bold");
-      doc.text("DATOS DE IDENTIFICACIÓN DE LA PERSONA DENUNCIANTE", margin, yPos);
-      yPos += 7;
-      doc.setFont("times", "normal");
+      // --- 5. DENUNCIANTE ---
+      addWrappedText('DATOS DE IDENTIFICACIÓN DE LA PERSONA DENUNCIANTE:', 10, 'bold');
       if (draft.isAnonymous) {
-        doc.text("Nombre: ANÓNIMO (Solicito protección de datos personales)", margin, yPos);
+        addWrappedText('Nombre: ANÓNIMO (Solicito protección de datos personales)', 10, 'normal');
       } else {
-        doc.text(`Nombre completo: ${draft.fullName}`, margin, yPos);
-        yPos += 5;
-        doc.text(`Correo electrónico: ${draft.email}`, margin, yPos);
+        addWrappedText(`Nombre completo: ${draft.fullName}`, 10, 'normal');
+        addWrappedText(`Correo electrónico: ${draft.email}`, 10, 'normal');
       }
-      yPos += 10;
+      yPos += 8;
 
-      // --- Legal / Solicito ---
-      // Check if we need a new page
-      if (yPos > pageHeight - 100) {
-        doc.addPage();
-        yPos = 20;
-      }
+      // --- SOLICITO ---
+      addWrappedText('SOLICITO', 12, 'bold');
+      yPos += 3;
 
-      doc.setFont("times", "bold");
-      doc.text("SOLICITO", margin, yPos, { align: "center" });
-      yPos += 10;
-
-      doc.setFont("times", "normal");
-      doc.setFontSize(9);
-
-      const legalText = [
-        "PRIMERO.- Se tenga por presentada y radicada la presente Denuncia Popular; y en consecuencia, se ordene el despliegue de las visitas de inspección o acciones tendientes a corroborar los actos y omisiones expuestos, en estricto cumplimiento y ejercicio de lo contemplado por los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente.",
-        "SEGUNDO.- Se me reconozca formal y expresamente el carácter de coadyuvante en el procedimiento administrativo instaurado, de conformidad con lo preceptuado por el artículo 193 de la citada Ley General del Equilibrio Ecológico y la Protección al Ambiente.",
-        "TERCERO.- Se me permita ejercer plenamente el derecho de acceso al expediente o expedientes que resulten y se sustancien con motivo de esta denuncia, de acuerdo a la prerrogativa que concede el artículo 33 de la Ley Federal de Procedimiento Administrativo.",
-        "CUARTO.- Se garantice, en todo momento, la absoluta confidencialidad y reserva de mis datos personales de localización e identidad, lo anterior con sustento en los artículos 1 y 6 de la Constitución Política de los Estados Unidos Mexicanos y en la Ley General de Transparencia y Acceso a la Información Pública."
+      const solicitudes = [
+        'PRIMERO.- Se tenga por presentada y radicada la presente Denuncia Popular y se ordene el despliegue de las visitas de inspección o acciones tendientes a corroborar los actos y omisiones expuestos, con base en los artículos 189, 190, 191 y 192 de la LGEEPA.',
+        'SEGUNDO.- Se me reconozca el carácter de coadyuvante en el procedimiento administrativo, de conformidad con el artículo 193 de la citada LGEEPA.',
+        'TERCERO.- Se me permita ejercer el derecho de acceso al expediente que resulte con motivo de esta denuncia, conforme al artículo 33 de la Ley Federal de Procedimiento Administrativo.',
+        'CUARTO.- Se garantice la confidencialidad de mis datos personales conforme a los artículos 1 y 6 de la Constitución Política de los Estados Unidos Mexicanos y la Ley General de Transparencia y Acceso a la Información Pública.',
       ];
 
-      legalText.forEach(text => {
+      doc.setFontSize(9);
+      solicitudes.forEach(text => {
         const lines = doc.splitTextToSize(text, contentWidth);
+        if (yPos + lines.length * 4 > pageHeight - 60) { doc.addPage(); yPos = 20; }
+        doc.setFont('times', 'normal');
         doc.text(lines, margin, yPos);
-        yPos += (lines.length * 4) + 3;
+        yPos += (lines.length * 4) + 4;
       });
 
-      yPos += 10;
-      doc.setFont("times", "bold");
-      doc.text("PROTESTO LO NECESARIO", margin, yPos);
+      yPos += 8;
+      doc.setFont('times', 'bold');
+      doc.setFontSize(10);
+      doc.text('PROTESTO LO NECESARIO.', margin, yPos);
       yPos += 5;
-      doc.setFont("times", "normal");
-      doc.text(`A la fecha de su presentación: ${new Date().toLocaleDateString()}`, margin, yPos);
-
-      yPos += 20;
-      doc.line(margin + 40, yPos, pageWidth - margin - 40, yPos); // Signature line
+      doc.setFont('times', 'normal');
+      doc.text(`A ${fecha}.`, margin, yPos);
+      yPos += 22;
+      doc.line(margin + 30, yPos, pageWidth - margin - 30, yPos);
       yPos += 5;
-      doc.text("NOMBRE Y FIRMA", pageWidth / 2, yPos, { align: "center" });
-      yPos += 5;
+      doc.text('NOMBRE Y FIRMA', pageWidth / 2, yPos, { align: 'center' });
+      yPos += 4;
       doc.setFontSize(8);
-      doc.text(draft.isAnonymous ? "Firma Digital Anónima" : draft.fullName, pageWidth / 2, yPos, { align: "center" });
+      doc.text(denunciante, pageWidth / 2, yPos, { align: 'center' });
 
-      // --- ANEXO: EVIDENCE ---
+      // --- ANNEXES ---
       const imageFiles = evidenceFiles.filter(f => f.type.startsWith('image/'));
-
       if (imageFiles.length > 0) {
         doc.addPage();
         yPos = 30;
-
-        // Annex Header
-        doc.setFillColor(30, 41, 59); // Slate-800
+        doc.setFillColor(30, 41, 59);
         doc.rect(0, 0, pageWidth, 25, 'F');
         doc.setTextColor(255, 255, 255);
-        doc.setFont("times", "bold");
-        doc.setFontSize(16);
-        doc.text("ANEXO: EVIDENCIA FOTOGRÁFICA", pageWidth / 2, 17, { align: "center" });
-
+        doc.setFont('times', 'bold');
+        doc.setFontSize(14);
+        doc.text('ANEXO: EVIDENCIA FOTOGRÁFICA', pageWidth / 2, 17, { align: 'center' });
         doc.setTextColor(0, 0, 0);
         doc.setFontSize(10);
-        doc.setFont("times", "italic");
-        doc.text(`Denuncia Folio: ${Math.floor(Math.random() * 100000)}`, pageWidth - margin, 35, { align: "right" });
+        doc.setFont('times', 'italic');
+        doc.text(`Folio: ${folio}`, pageWidth - margin, 35, { align: 'right' });
         yPos = 45;
 
         for (const file of imageFiles) {
           try {
             const base64 = await fileToBase64(file);
-
-            // Check if we need a new page for the next image
-            if (yPos > pageHeight - 120) {
-              doc.addPage();
-              yPos = 30;
-            }
-
-            // Image Border & Caption
+            if (yPos > pageHeight - 120) { doc.addPage(); yPos = 30; }
             doc.setDrawColor(200, 200, 200);
             doc.line(margin, yPos - 5, pageWidth - margin, yPos - 5);
-
-            doc.setFont("times", "bold");
+            doc.setFont('times', 'bold');
             doc.setFontSize(10);
             doc.text(`Evidencia: ${file.name}`, margin, yPos);
             yPos += 8;
-
-            // Maintain aspect ratio
             const imgProps = doc.getImageProperties(base64);
             const imgWidth = contentWidth;
             const imgHeight = (imgProps.height * imgWidth) / imgProps.width;
-
-            // Scale if too tall
             const maxHeight = 100;
             let finalWidth = imgWidth;
             let finalHeight = imgHeight;
-
             if (imgHeight > maxHeight) {
               finalHeight = maxHeight;
               finalWidth = (imgProps.width * finalHeight) / imgProps.height;
             }
-
-            // Center image
             const xOffset = margin + (contentWidth - finalWidth) / 2;
             doc.addImage(base64, 'JPEG', xOffset, yPos, finalWidth, finalHeight);
-
-            // Subtle shadow / box for premium feel
-            doc.setDrawColor(230, 230, 230);
+            doc.setDrawColor(200, 200, 200);
             doc.rect(xOffset - 1, yPos - 1, finalWidth + 2, finalHeight + 2, 'S');
-
             yPos += finalHeight + 20;
           } catch (e) {
             console.error(`Error embedding image ${file.name}:`, e);
-            doc.text(`Error al cargar imagen: ${file.name}`, margin, yPos);
-            yPos += 10;
+            addWrappedText(`Error al cargar imagen: ${file.name}`, 10, 'normal');
           }
         }
       }
 
-      doc.save("Denuncia_Popular_Formato_2025.pdf");
+      doc.save(`Denuncia_Popular_${folio}.pdf`);
 
     } catch (error) {
-      console.error("Error generating PDF:", error);
-      alert("Hubo un error al generar el PDF.");
+      console.error('Error generating PDF:', error);
+      alert('Hubo un error al generar el PDF.');
     } finally {
       setIsGeneratingPdf(false);
     }
+  };
+
+  const handleDownloadTXT = () => {
+    const folio = `MX-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+    const text = buildDocumentText(folio);
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Denuncia_Popular_${folio}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const [gdocsMsg, setGdocsMsg] = useState<string | null>(null);
+
+  const handleExportGoogleDocs = async () => {
+    const folio = `MX-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+    const text = buildDocumentText(folio);
+    try {
+      await navigator.clipboard.writeText(text);
+      setGdocsMsg('¡Texto copiado! Pega el contenido (Ctrl+V) en el documento de Google Docs.');
+    } catch {
+      setGdocsMsg('No se pudo copiar automáticamente. Usa el botón de TXT y luego pégalo en Google Docs.');
+    }
+    window.open(`https://docs.google.com/document/create?title=Denuncia_Popular_${folio}`, '_blank');
+    setTimeout(() => setGdocsMsg(null), 6000);
   };
 
   return (
@@ -349,7 +424,14 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
           </div>
 
           <div className="hidden lg:block pt-4 space-y-3">
-            {/* Download PDF Button */}
+            {/* Google Docs Toast */}
+            {gdocsMsg && (
+              <div className="p-3 bg-blue-900/50 border border-blue-700 rounded-xl text-xs text-blue-200 animate-in fade-in">
+                {gdocsMsg}
+              </div>
+            )}
+
+            {/* Download PDF */}
             <button
               onClick={handleDownloadPDF}
               disabled={isGeneratingPdf}
@@ -361,12 +443,35 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
                 ) : (
                   <>
                     <Printer size={18} className="text-zinc-400 group-hover:text-white transition-colors" />
-                    Descargar PDF para Imprimir
+                    Descargar PDF
                   </>
                 )}
               </span>
             </button>
 
+            {/* Download TXT */}
+            <button
+              onClick={handleDownloadTXT}
+              className="w-full group relative px-8 py-3 rounded-full font-bold text-white overflow-hidden transition-all border border-zinc-700 hover:bg-zinc-800"
+            >
+              <span className="relative flex items-center justify-center gap-3">
+                <FileText size={18} className="text-zinc-400 group-hover:text-white transition-colors" />
+                Descargar .TXT
+              </span>
+            </button>
+
+            {/* Export to Google Docs */}
+            <button
+              onClick={handleExportGoogleDocs}
+              className="w-full group relative px-8 py-3 rounded-full font-bold text-white overflow-hidden transition-all border border-blue-800/60 hover:bg-blue-900/30"
+            >
+              <span className="relative flex items-center justify-center gap-3">
+                <Globe size={18} className="text-blue-400 group-hover:text-blue-300 transition-colors" />
+                Exportar a Google Docs
+              </span>
+            </button>
+
+            {/* Submit */}
             <button
               onClick={handleSubmit}
               disabled={isSubmitting}
@@ -438,7 +543,10 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
                     <MapPin size={12} />
                     {draft.location ? `${draft.location.lat.toFixed(6)}, ${draft.location.lng.toFixed(6)}` : 'N/A'}
                   </div>
-                  <div className="mt-1">{draft.location?.address}</div>
+                  <div className="mt-2 text-slate-700">
+                    <div className="font-semibold">{getMunicipio(draft)}</div>
+                    <div className="text-[10px] uppercase text-slate-500">{getEstado(draft)}</div>
+                  </div>
                 </div>
                 <div>
                   <span className="block font-bold text-slate-900">EVIDENCIA ADJUNTA:</span>
@@ -466,16 +574,36 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
 
         {/* Mobile Buttons */}
         <div className="lg:hidden mt-6 pb-6 space-y-3">
+          {gdocsMsg && (
+            <div className="p-3 bg-blue-900/50 border border-blue-700 rounded-xl text-xs text-blue-200">
+              {gdocsMsg}
+            </div>
+          )}
           <button
             onClick={handleDownloadPDF}
             disabled={isGeneratingPdf}
             className="w-full group relative px-8 py-3 rounded-full font-bold text-white overflow-hidden disabled:opacity-80 transition-all border border-zinc-700 hover:bg-zinc-800"
           >
             <span className="relative flex items-center justify-center gap-3">
-              {isGeneratingPdf ? 'Generando...' : 'Descargar PDF'}
+              {isGeneratingPdf ? 'Generando...' : <><Printer size={16} /> Descargar PDF</>}
             </span>
           </button>
-
+          <button
+            onClick={handleDownloadTXT}
+            className="w-full group relative px-8 py-3 rounded-full font-bold text-white overflow-hidden transition-all border border-zinc-700 hover:bg-zinc-800"
+          >
+            <span className="relative flex items-center justify-center gap-3">
+              <FileText size={16} /> Descargar .TXT
+            </span>
+          </button>
+          <button
+            onClick={handleExportGoogleDocs}
+            className="w-full group relative px-8 py-3 rounded-full font-bold text-white overflow-hidden transition-all border border-blue-800/60 hover:bg-blue-900/30"
+          >
+            <span className="relative flex items-center justify-center gap-3">
+              <Globe size={16} className="text-blue-400" /> Exportar a Google Docs
+            </span>
+          </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
@@ -483,7 +611,7 @@ export const StepReview: React.FC<Props> = ({ draft, onBack, onSubmit }) => {
           >
             <div className="absolute inset-0 bg-gradient-to-r from-green-600 to-teal-600 transition-all duration-300 group-hover:scale-105"></div>
             <span className="relative flex items-center justify-center gap-3">
-              {isSubmitting ? 'Firmando...' : 'Firmar y Presentar'}
+              {isSubmitting ? 'Firmando...' : <><FileCheck size={18} /> Firmar y Presentar</>}
             </span>
           </button>
         </div>

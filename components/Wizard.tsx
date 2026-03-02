@@ -21,6 +21,14 @@ export const Wizard: React.FC<WizardProps> = ({ step, setStep, draft, updateDraf
   const next = () => setStep(step + 1);
   const back = () => setStep(step - 1);
 
+  // Expose for E2E testing
+  React.useEffect(() => {
+    if (import.meta.env.DEV) {
+      (window as any).__UPDATE_DRAFT__ = updateDraft;
+      (window as any).__SET_STEP__ = setStep;
+    }
+  }, [updateDraft, setStep]);
+
   const renderContent = () => {
     switch (step) {
       case Step.HOME:
