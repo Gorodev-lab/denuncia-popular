@@ -3,7 +3,7 @@
 Si ves un error de "RefererNotAllowedMapError" o el mapa no carga en producción, sigue estos pasos:
 
 1.  Ve a [Google Cloud Console - Credentials](https://console.cloud.google.com/google/maps-apis/credentials).
-2.  Busca tu API Key: `AIzaSyDkYPSf1SUQDHfLaqsL_kHkn3YNyYEfjLk`.
+2.  Busca tu API Key en Google Cloud Console (la que creaste para este proyecto).
 3.  En **Key restrictions**, selecciona **Websites**.
 4.  En **Website restrictions**, añade los siguientes items:
     - `http://localhost:5173/*`
