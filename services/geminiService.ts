@@ -17,15 +17,15 @@ export interface GroundedResponse {
 
 // Fast analysis using Flash Lite
 export const analyzeComplaint = async (description: string, locationContext?: string): Promise<AIAnalysisResult> => {
-  if (!apiKey) {
-    return {
-      competency: 'MUNICIPAL',
-      legalBasis: 'Simulación: Falta API Key.',
-      summary: 'Análisis simulado.'
-    };
-  }
+    if (!apiKey) {
+        return {
+            competency: 'MUNICIPAL',
+            legalBasis: 'Simulación: Falta API Key.',
+            summary: 'Análisis simulado.'
+        };
+    }
 
-  const prompt = `
+    const prompt = `
     Analiza la siguiente denuncia ciudadana en México.
     Descripción: "${description}"
     Contexto de ubicación: "${locationContext || 'No especificado'}"
@@ -36,105 +36,105 @@ export const analyzeComplaint = async (description: string, locationContext?: st
     3. Un resumen formal de los hechos.
   `;
 
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-lite',
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            competency: {
-              type: Type.STRING,
-              enum: ['MUNICIPAL', 'ESTATAL', 'FEDERAL', 'UNKNOWN']
-            },
-            legalBasis: { type: Type.STRING },
-            summary: { type: Type.STRING }
-          },
-          required: ['competency', 'legalBasis', 'summary']
-        }
-      }
-    });
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-lite',
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        competency: {
+                            type: Type.STRING,
+                            enum: ['MUNICIPAL', 'ESTATAL', 'FEDERAL', 'UNKNOWN']
+                        },
+                        legalBasis: { type: Type.STRING },
+                        summary: { type: Type.STRING }
+                    },
+                    required: ['competency', 'legalBasis', 'summary']
+                }
+            }
+        });
 
-    const text = response.text;
-    if (!text) throw new Error("No response from AI");
-    
-    return JSON.parse(text) as AIAnalysisResult;
+        const text = response.text;
+        if (!text) throw new Error("No response from AI");
 
-  } catch (error) {
-    console.error("Error analyzing complaint:", error);
-    throw error;
-  }
+        return JSON.parse(text) as AIAnalysisResult;
+
+    } catch (error) {
+        console.error("Error analyzing complaint:", error);
+        throw error;
+    }
 };
 
 // Refined Geocoding Function
 export const getAddressFromCoordinates = async (lat: number, lng: number): Promise<{ address: string; uri?: string }> => {
-  if (!apiKey) return { address: "Ubicación aproximada (Sin API Key)" };
+    if (!apiKey) return { address: "Ubicación aproximada (Sin API Key)" };
 
-  const prompt = `
+    const prompt = `
     Find the precise postal address for the coordinates: latitude=${lat}, longitude=${lng}.
     Return only the full address string.
   `;
-  
-  let attempt = 0;
-  const maxAttempts = 3;
 
-  while (attempt < maxAttempts) {
-      try {
-        const response = await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
-          contents: prompt,
-          config: {
-            tools: [{ googleMaps: {} }],
-            // responseMimeType and responseSchema are NOT supported with googleMaps tool
-          }
-        });
+    let attempt = 0;
+    const maxAttempts = 3;
 
-        const text = response.text;
-        let address = text ? text.trim() : "Dirección no encontrada";
-        
-        // Extract Google Maps URI from grounding metadata
-        let uri: string | undefined;
-        const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
-        
-        if (chunks) {
-          for (const chunk of chunks) {
-            // @ts-ignore
-            if (chunk.maps?.desktopUri) {
-              // @ts-ignore
-              uri = chunk.maps.desktopUri;
-              break;
+    while (attempt < maxAttempts) {
+        try {
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt,
+                config: {
+                    tools: [{ googleMaps: {} }],
+                    // responseMimeType and responseSchema are NOT supported with googleMaps tool
+                }
+            });
+
+            const text = response.text;
+            let address = text ? text.trim() : "Dirección no encontrada";
+
+            // Extract Google Maps URI from grounding metadata
+            let uri: string | undefined;
+            const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
+
+            if (chunks) {
+                for (const chunk of chunks) {
+                    // @ts-ignore
+                    if (chunk.maps?.desktopUri) {
+                        // @ts-ignore
+                        uri = chunk.maps.desktopUri;
+                        break;
+                    }
+                    // @ts-ignore
+                    if (chunk.maps?.uri) {
+                        // @ts-ignore
+                        uri = chunk.maps.uri;
+                        break;
+                    }
+                }
             }
-            // @ts-ignore
-            if (chunk.maps?.uri) {
-              // @ts-ignore
-              uri = chunk.maps.uri;
-              break;
+
+            return { address, uri };
+
+        } catch (error: any) {
+            // Retry only on server errors (5xx)
+            if (error.status >= 500 && error.status < 600) {
+                attempt++;
+                console.warn(`Attempt ${attempt} failed with 500 error. Retrying...`);
+                if (attempt >= maxAttempts) {
+                    console.error("Max retries reached for Geocoding.");
+                    return { address: "Error temporal del servicio de mapas. Intente más tarde." };
+                }
+                // Exponential backoff
+                await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
+            } else {
+                console.error("Error fetching address:", error);
+                return { address: "Error al consultar la API de mapas" };
             }
-          }
         }
-
-        return { address, uri };
-
-      } catch (error: any) {
-        // Retry only on server errors (5xx)
-        if (error.status >= 500 && error.status < 600) {
-            attempt++;
-            console.warn(`Attempt ${attempt} failed with 500 error. Retrying...`);
-            if (attempt >= maxAttempts) {
-                console.error("Max retries reached for Geocoding.");
-                return { address: "Error temporal del servicio de mapas. Intente más tarde." };
-            }
-            // Exponential backoff
-            await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt)));
-        } else {
-            console.error("Error fetching address:", error);
-            return { address: "Error al consultar la API de mapas" };
-        }
-      }
-  }
-  return { address: "Error desconocido" };
+    }
+    return { address: "Error desconocido" };
 };
 
 // New: Grounded Legal Search
@@ -159,7 +159,7 @@ export const getGroundedLegalInfo = async (query: string): Promise<GroundedRespo
         });
 
         const text = response.text || "No se encontró información.";
-        
+
         // Extract Sources (Citations)
         const sources: GroundingSource[] = [];
         const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks;
@@ -176,7 +176,7 @@ export const getGroundedLegalInfo = async (query: string): Promise<GroundedRespo
         }
 
         // Deduplicate sources
-        const uniqueSources = sources.filter((v,i,a)=>a.findIndex(v2=>(v2.uri===v.uri))===i);
+        const uniqueSources = sources.filter((v, i, a) => a.findIndex(v2 => (v2.uri === v.uri)) === i);
 
         return { text, sources: uniqueSources };
 
@@ -201,7 +201,7 @@ export const interactWithComplaintGuide = async (
     if (!apiKey) {
         return {
             message: "Modo Demo: Describe los hechos.",
-            draftNarrative: history[history.length-1]?.text || '',
+            draftNarrative: history[history.length - 1]?.text || '',
             missingElements: [],
             competency: 'MUNICIPAL',
             legalBasis: 'N/A'
@@ -209,26 +209,33 @@ export const interactWithComplaintGuide = async (
     }
 
     const systemInstruction = `
-    Act as an expert legal assistant for 'Denuncia Popular' in Mexico (PROFEPA/Local Authorities).
-    Your goal is to interview the citizen to build a formal administrative complaint document.
+    Eres un asistente legal experto en "Denuncia Popular" en México (PROFEPA/Autoridades Locales).
+    Tu objetivo es entrevistar al ciudadano para construir la NARRACIÓN DE HECHOS de una denuncia administrativa formal.
 
-    INSTRUCTIONS (Chain of Thought):
-    1. Analyze the conversation history and the user's latest input.
-    2. Check for the presence of these KEY ELEMENTS:
-       - **Time**: When did it happen? (Date/Time)
-       - **Mode**: Detailed description of the events.
-       - **Place**: Specific location details/references (beyond just coordinates).
-       - **Responsibility**: Who is the alleged offender? (Name, Company, Plate Number, Description).
-    3. **Reasoning**: Think about what is missing. If something is missing, formulate a follow-up question.
-    4. **Drafting**: Update the 'draftNarrative'. This text must be written in **FORMAL, THIRD-PERSON LEGAL SPANISH** (e.g., "El que suscribe hace constar que...", "Se observó que en el domicilio..."). This narrative will be put directly into the PDF.
-    5. **Legal Analysis**: Based on the facts, determine the 'competency' and suggest a 'legalBasis' (e.g., LGEEPA, Reglamento de Tránsito, etc.).
+    INSTRUCCIONES CRÍTICAS PARA 'draftNarrative':
+    - El texto debe contener ÚNICAMENTE la narración objetiva y cronológica de los HECHOS observados.
+    - Redactar en ESPAÑOL LEGAL FORMAL en TERCERA PERSONA ("Se constató que...", "Se observó que...", "En la fecha indicada se detectó...").
+    - NO incluir frases de fórmula legal como: "en ejercicio de su derecho a la Denuncia Popular", "solicitando la confidencialidad y reserva de sus datos personales", "reconocimiento del principio de coadyuvancia", "acceso al expediente", etc. Esas cláusulas SE INCLUYEN AUTOMÁTICAMENTE en otra sección del documento.
+    - NO incluir encabezados, salutaciones ni cierres. Solo los hechos.
+    - Ser lo más específico y detallado posible (hora, descripción de vehículos, número de personas, materiales, etc.).
 
-    OUTPUT FORMAT:
-    Return ONLY a JSON object with this structure:
+    PROCESO (Chain of Thought):
+    1. Analiza el historial y el último mensaje del usuario.
+    2. Verifica si están presentes estos ELEMENTOS CLAVE:
+       - **Tiempo**: ¿Cuándo ocurrió? (Fecha/Hora aproximada)
+       - **Hechos**: Descripción detallada de lo observado.
+       - **Lugar**: Detalles específicos de la ubicación (más allá de coordenadas).
+       - **Responsables**: ¿Quién lo hace? (Nombre, empresa, placas, descripción física/vehicular).
+    3. Si falta algún elemento, formula una pregunta de seguimiento específica.
+    4. Actualiza 'draftNarrative' con SOLO la narración objetiva acumulada.
+    5. Determina la 'competency' y 'legalBasis' aplicable (ej. LGEEPA, etc.).
+
+    FORMATO DE RESPUESTA:
+    Devuelve ÚNICAMENTE un JSON con esta estructura:
     {
-      "message": "Your conversational response to the user (e.g. asking for the missing date).",
-      "draftNarrative": "The full formal legal description of facts accumulated so far.",
-      "missingElements": ["Time", "Responsibility"],
+      "message": "Tu respuesta conversacional al usuario (ej. preguntando la fecha o descripción faltante).",
+      "draftNarrative": "Narración formal y objetiva de los hechos, sin fórmulas legales.",
+      "missingElements": ["Tiempo", "Responsables"],
       "competency": "FEDERAL",
       "legalBasis": "Art. 190 LGEEPA"
     }
@@ -268,7 +275,7 @@ export const interactWithComplaintGuide = async (
 
         const text = response.text;
         if (!text) throw new Error("No response from AI");
-        
+
         return JSON.parse(text) as ChatGuideResponse;
 
     } catch (error) {
@@ -317,7 +324,7 @@ export const getLocationDetails = async (lat: number, lng: number): Promise<{ th
     if (!apiKey) return { description: "Ubicación seleccionada." };
 
     // Parallel execution: Image Generation + Grounded Description
-    
+
     // 1. Description (Grounded)
     const descPromise = (async () => {
         const prompt = `
@@ -349,10 +356,10 @@ export const getLocationDetails = async (lat: number, lng: number): Promise<{ th
                 model: 'gemini-3-pro-image-preview',
                 contents: prompt,
                 config: {
-                   imageConfig: { aspectRatio: "16:9", imageSize: "1K" }
+                    imageConfig: { aspectRatio: "16:9", imageSize: "1K" }
                 }
             });
-            
+
             // Extract image
             for (const part of res.candidates?.[0]?.content?.parts || []) {
                 if (part.inlineData) {
