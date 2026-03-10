@@ -32,7 +32,7 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
     <div className="p-8 md:p-12 h-full flex flex-col justify-center max-w-3xl mx-auto">
       <div className="mb-8 animate-fade-in">
         <h2 className="text-3xl md:text-4xl font-bold mb-2">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 via-pink-500 to-purple-500">
+          <span className="text-red-600">
             Identidad del Denunciante
           </span>
         </h2>
@@ -50,16 +50,16 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
           aria-label="Activar Denuncia Anónima"
           className={`
             w-full text-left relative p-6 rounded-xl border flex items-center justify-between cursor-pointer transition-all duration-300
-            focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-zinc-950
+            focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2 focus:ring-offset-zinc-950
             ${draft.isAnonymous
-              ? 'bg-pink-900/10 border-pink-500/30 shadow-[0_0_15px_rgba(236,72,153,0.1)]'
+              ? 'bg-red-900/10 border-red-700/30 shadow-[0_0_15px_rgba(236,72,153,0.1)]'
               : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-700'}
           `}
           onClick={handleToggle}
           onKeyDown={handleKeyDown}
         >
           <div className="pr-4">
-            <h3 className={`font-bold text-lg transition-colors ${draft.isAnonymous ? 'text-pink-400' : 'text-white'}`}>
+            <h3 className={`font-bold text-lg transition-colors ${draft.isAnonymous ? 'text-red-600' : 'text-white'}`}>
               Denuncia Anónima
             </h3>
             <p className="text-sm text-zinc-500 mt-1">
@@ -74,7 +74,7 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
             <div
               className={`
                     w-14 h-8 flex items-center rounded-full p-1 transition-all duration-300 ease-in-out shadow-inner
-                    ${draft.isAnonymous ? 'bg-gradient-to-r from-red-500 to-pink-600' : 'bg-zinc-700'}
+                    ${draft.isAnonymous ? 'bg-red-700' : 'bg-zinc-700'}
                 `}
             >
               <div
@@ -96,9 +96,9 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
 
           <div className={`space-y-6 transition-all duration-500 ${draft.isAnonymous ? 'opacity-40 grayscale' : 'opacity-100'}`}>
             <div className="group">
-              <label htmlFor="fullName" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-pink-500 transition-colors">Nombre Completo</label>
+              <label htmlFor="fullName" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">Nombre Completo</label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-pink-500 transition-colors" size={20} />
+                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-red-700 transition-colors" size={20} />
                 <input
                   id="fullName"
                   type="text"
@@ -106,15 +106,15 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
                   onChange={(e) => updateDraft({ fullName: e.target.value })}
                   placeholder="EJ. JUAN PÉREZ HERNÁNDEZ"
                   disabled={draft.isAnonymous}
-                  className="w-full pl-12 pr-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-700 focus:ring-1 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all font-mono disabled:bg-zinc-900/50"
+                  className="w-full pl-12 pr-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-700 focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all font-mono disabled:bg-zinc-900/50"
                 />
               </div>
             </div>
 
             <div className="group">
-              <label htmlFor="email" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-pink-500 transition-colors">Correo Electrónico</label>
+              <label htmlFor="email" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">Correo Electrónico</label>
               <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-pink-500 transition-colors" size={20} />
+                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-red-700 transition-colors" size={20} />
                 <input
                   id="email"
                   type="email"
@@ -122,7 +122,7 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
                   onChange={(e) => updateDraft({ email: e.target.value })}
                   placeholder="CONTACTO@EJEMPLO.COM"
                   disabled={draft.isAnonymous}
-                  className="w-full pl-12 pr-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-700 focus:ring-1 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all font-mono disabled:bg-zinc-900/50"
+                  className="w-full pl-12 pr-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-700 focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all font-mono disabled:bg-zinc-900/50"
                 />
               </div>
             </div>
@@ -139,7 +139,7 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
               type="text"
               value={draft.domicilio || ''}
               onChange={(e) => updateDraft({ domicilio: e.target.value })}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-pink-500 outline-none"
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-red-700 outline-none"
               placeholder="Calle, Número, Colonia, Ciudad..."
             />
           </div>
@@ -149,7 +149,7 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
             <textarea
               value={draft.personasAutorizadas || ''}
               onChange={(e) => updateDraft({ personasAutorizadas: e.target.value })}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-pink-500 outline-none h-20 resize-none"
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-red-700 outline-none h-20 resize-none"
               placeholder="Nombres completos de personas autorizadas..."
             />
             <p className="text-[10px] text-zinc-500 italic">Opcional: Nombres de familiares o abogados autorizados.</p>
@@ -172,7 +172,7 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
               type="button"
               onClick={() => updateDraft({ denunciadoTipo: tipo.id as any })}
               className={`px-4 py-3 rounded-lg border text-xs font-bold transition-all ${draft.denunciadoTipo === tipo.id
-                ? 'bg-pink-600 border-pink-500 text-white'
+                ? 'bg-red-800 border-red-700 text-white'
                 : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
             >
               {tipo.label}
@@ -184,8 +184,8 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
       {/* Event Date */}
       <div className="pt-8 border-t border-zinc-800 animate-fade-in">
         <div className="group">
-          <label htmlFor="eventDate" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-pink-500 transition-colors">
-            Fecha del Incidente <span className="text-pink-500">*</span>
+          <label htmlFor="eventDate" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">
+            Fecha del Incidente <span className="text-red-700">*</span>
           </label>
           <p className="text-xs text-zinc-600 mb-3">Fecha en que ocurrió o se detectó el hecho denunciado.</p>
           <input
@@ -194,7 +194,7 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
             value={draft.eventDate || ''}
             onChange={(e) => updateDraft({ eventDate: e.target.value })}
             max={new Date().toISOString().split('T')[0]}
-            className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:ring-1 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all font-mono [color-scheme:dark]"
+            className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all font-mono [color-scheme:dark]"
           />
         </div>
       </div>
@@ -203,32 +203,32 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
 
       <div className="pt-8 border-t border-zinc-800 animate-fade-in">
         <h3 className="text-xl font-bold mb-6 text-zinc-300 flex items-center gap-2">
-          <Users size={20} className="text-pink-500" />
+          <Users size={20} className="text-red-700" />
           Información Estadística <span className="text-xs font-normal text-zinc-500 bg-zinc-900 px-2 py-1 rounded-full border border-zinc-800 ml-2">OPCIONAL</span>
         </h3>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Age */}
           <div className="group">
-            <label htmlFor="age" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-pink-500 transition-colors">Edad</label>
+            <label htmlFor="age" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">Edad</label>
             <input
               id="age"
               type="number"
               value={draft.age || ''}
               onChange={(e) => updateDraft({ age: e.target.value })}
               placeholder="EJ. 35"
-              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-700 focus:ring-1 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all font-mono"
+              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-700 focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all font-mono"
             />
           </div>
 
           {/* Gender */}
           <div className="group">
-            <label htmlFor="gender" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-pink-500 transition-colors">Género</label>
+            <label htmlFor="gender" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">Género</label>
             <select
               id="gender"
               value={draft.gender || ''}
               onChange={(e) => updateDraft({ gender: e.target.value as any })}
-              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:ring-1 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all appearance-none cursor-pointer"
+              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all appearance-none cursor-pointer"
             >
               <option value="">Seleccionar...</option>
               <option value="MALE">Masculino</option>
@@ -240,30 +240,30 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
 
           {/* Occupation */}
           <div className="group">
-            <label htmlFor="occupation" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-pink-500 transition-colors">Ocupación</label>
+            <label htmlFor="occupation" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">Ocupación</label>
             <div className="relative">
-              <Briefcase className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-pink-500 transition-colors" size={18} />
+              <Briefcase className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-red-700 transition-colors" size={18} />
               <input
                 id="occupation"
                 type="text"
                 value={draft.occupation || ''}
                 onChange={(e) => updateDraft({ occupation: e.target.value })}
                 placeholder="EJ. ABOGADO"
-                className="w-full pl-12 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-700 focus:ring-1 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all font-mono"
+                className="w-full pl-12 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-700 focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all font-mono"
               />
             </div>
           </div>
 
           {/* Referral */}
           <div className="group">
-            <label htmlFor="referral" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-pink-500 transition-colors">¿Cómo nos conociste?</label>
+            <label htmlFor="referral" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">¿Cómo nos conociste?</label>
             <div className="relative">
-              <HelpCircle className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-pink-500 transition-colors" size={18} />
+              <HelpCircle className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-red-700 transition-colors" size={18} />
               <select
                 id="referral"
                 value={draft.referralSource || ''}
                 onChange={(e) => updateDraft({ referralSource: e.target.value as any })}
-                className="w-full pl-12 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:ring-1 focus:ring-pink-500 focus:border-pink-500 outline-none transition-all appearance-none cursor-pointer"
+                className="w-full pl-12 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all appearance-none cursor-pointer"
               >
                 <option value="">Seleccionar...</option>
                 <option value="SOCIAL_MEDIA">Redes Sociales</option>
@@ -301,7 +301,7 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
                 disabled:opacity-50 disabled:cursor-not-allowed transition-all
             "
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-pink-600 transition-all duration-300 group-hover:scale-105"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-800 transition-all duration-300 group-hover:scale-105"></div>
             <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             <span className="relative flex items-center gap-2">
               Siguiente Paso

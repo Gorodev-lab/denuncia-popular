@@ -150,7 +150,7 @@ export const StepEvidence: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
             <div className="lg:w-1/2 flex flex-col border-r border-zinc-800 h-[500px] lg:h-auto">
                 <div className="p-4 border-b border-zinc-800 bg-zinc-900/50 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${searchMode ? 'bg-blue-600' : 'bg-gradient-to-tr from-pink-600 to-purple-600'}`}>
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${searchMode ? 'bg-blue-600' : 'bg-red-800'}`}>
                             {searchMode ? <BookOpen size={16} className="text-white" /> : <Bot size={16} className="text-white" />}
                         </div>
                         <div>
@@ -171,7 +171,7 @@ export const StepEvidence: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
                 <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-zinc-950" ref={scrollRef}>
                     {messages.map((msg) => (
                         <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
-                            <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${msg.role === 'user' ? 'bg-zinc-800 text-zinc-400' : (msg.sources ? 'bg-blue-900/20 text-blue-400' : 'bg-pink-900/20 text-pink-500')}`}>
+                            <div className={`w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center ${msg.role === 'user' ? 'bg-zinc-800 text-zinc-400' : (msg.sources ? 'bg-blue-900/20 text-blue-400' : 'bg-red-900/20 text-red-700')}`}>
                                 {msg.role === 'user' ? <UserIcon size={14} /> : (msg.sources ? <BookOpen size={14} /> : <Sparkles size={14} />)}
                             </div>
                             <div className="max-w-[85%] flex flex-col gap-2">
@@ -201,13 +201,13 @@ export const StepEvidence: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
                     ))}
                     {isLoading && (
                         <div className="flex gap-3">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${searchMode ? 'bg-blue-900/20 text-blue-500' : 'bg-pink-900/20 text-pink-500'}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${searchMode ? 'bg-blue-900/20 text-blue-500' : 'bg-red-900/20 text-red-700'}`}>
                                 {searchMode ? <BookOpen size={14} className="animate-pulse" /> : <Sparkles size={14} className="animate-pulse" />}
                             </div>
                             <div className="bg-zinc-900 border border-zinc-800 p-3 rounded-2xl rounded-tl-none text-xs text-zinc-500 flex items-center gap-2">
-                                <span className={`w-1.5 h-1.5 rounded-full animate-bounce ${searchMode ? 'bg-blue-500' : 'bg-pink-500'}`}></span>
-                                <span className={`w-1.5 h-1.5 rounded-full animate-bounce delay-100 ${searchMode ? 'bg-blue-500' : 'bg-pink-500'}`}></span>
-                                <span className={`w-1.5 h-1.5 rounded-full animate-bounce delay-200 ${searchMode ? 'bg-blue-500' : 'bg-pink-500'}`}></span>
+                                <span className={`w-1.5 h-1.5 rounded-full animate-bounce ${searchMode ? 'bg-blue-500' : 'bg-red-700'}`}></span>
+                                <span className={`w-1.5 h-1.5 rounded-full animate-bounce delay-100 ${searchMode ? 'bg-blue-500' : 'bg-red-700'}`}></span>
+                                <span className={`w-1.5 h-1.5 rounded-full animate-bounce delay-200 ${searchMode ? 'bg-blue-500' : 'bg-red-700'}`}></span>
                                 {searchMode ? 'Buscando leyes en gob.mx...' : 'Analizando hechos...'}
                             </div>
                         </div>
@@ -223,12 +223,12 @@ export const StepEvidence: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
                             onKeyDown={handleKeyDown}
                             placeholder={searchMode ? "Ej: ¿Cuál es la multa por talar árboles?" : "Escribe aquí lo sucedido..."}
                             disabled={isLoading}
-                            className={`w-full bg-zinc-950 border rounded-full pl-4 pr-12 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-600 ${searchMode ? 'border-blue-900/50 focus:ring-1 focus:ring-blue-500' : 'border-zinc-800 focus:ring-1 focus:ring-pink-500'}`}
+                            className={`w-full bg-zinc-950 border rounded-full pl-4 pr-12 py-3 text-sm text-white outline-none transition-all placeholder:text-zinc-600 ${searchMode ? 'border-blue-900/50 focus:ring-1 focus:ring-blue-500' : 'border-zinc-800 focus:ring-1 focus:ring-red-700'}`}
                         />
                         <button
                             onClick={handleSendMessage}
                             disabled={isLoading || !input.trim()}
-                            className={`absolute right-1 top-1 bottom-1 w-10 rounded-full flex items-center justify-center transition-colors ${searchMode ? 'bg-zinc-800 hover:bg-blue-600 text-zinc-400 hover:text-white' : 'bg-zinc-800 hover:bg-pink-600 text-zinc-400 hover:text-white'}`}
+                            className={`absolute right-1 top-1 bottom-1 w-10 rounded-full flex items-center justify-center transition-colors ${searchMode ? 'bg-zinc-800 hover:bg-blue-600 text-zinc-400 hover:text-white' : 'bg-zinc-800 hover:bg-red-800 text-zinc-400 hover:text-white'}`}
                         >
                             <Send size={16} />
                         </button>
@@ -244,11 +244,11 @@ export const StepEvidence: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
                     <div className="bg-zinc-950 border border-zinc-800 rounded-xl overflow-hidden shadow-xl">
                         <div className="bg-zinc-900 p-3 border-b border-zinc-800 flex justify-between items-center">
                             <div className="flex items-center gap-2">
-                                <FileText size={16} className="text-pink-500" />
+                                <FileText size={16} className="text-red-700" />
                                 <span className="text-xs font-bold text-zinc-300 uppercase tracking-wider">Borrador Legal en Vivo</span>
                             </div>
                             {guideState.competency && (
-                                <span className="text-[10px] font-bold bg-pink-900/30 text-pink-400 px-2 py-0.5 rounded border border-pink-500/20">
+                                <span className="text-[10px] font-bold bg-red-900/30 text-red-600 px-2 py-0.5 rounded border border-red-700/20">
                                     {guideState.competency}
                                 </span>
                             )}
@@ -277,10 +277,10 @@ export const StepEvidence: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
                     <div>
                         <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3 block">Adjuntar Evidencia</label>
                         <div className="flex gap-4 overflow-x-auto pb-2">
-                            <div className="relative flex-shrink-0 w-24 h-24 bg-zinc-900 border border-zinc-800 border-dashed rounded-xl flex flex-col items-center justify-center text-zinc-500 hover:text-pink-500 hover:border-pink-500/50 transition-colors cursor-pointer">
+                            <div className="relative flex-shrink-0 w-24 h-24 bg-zinc-900 border border-zinc-800 border-dashed rounded-xl flex flex-col items-center justify-center text-zinc-500 hover:text-red-700 hover:border-red-700/50 transition-colors cursor-pointer">
                                 <input type="file" multiple onChange={handleFileChange} disabled={isUploading} className="absolute inset-0 opacity-0 cursor-pointer disabled:cursor-not-allowed" />
                                 {isUploading ? (
-                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-pink-500"></div>
+                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-red-700"></div>
                                 ) : (
                                     <>
                                         <Upload size={20} />
@@ -308,7 +308,7 @@ export const StepEvidence: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
                         disabled={!draft.description || draft.description.length < 20}
                         className="group relative px-6 py-3 rounded-full font-bold text-white overflow-hidden text-xs uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-pink-600 transition-all duration-300 group-hover:scale-105"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-800 transition-all duration-300 group-hover:scale-105"></div>
                         <span className="relative flex items-center gap-2">
                             Finalizar <ChevronRight size={14} />
                         </span>

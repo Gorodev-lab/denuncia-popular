@@ -688,7 +688,7 @@ ${denunciante}
             </div>
             <div className="flex justify-between items-center text-sm border-b border-zinc-800 pb-3">
               <span className="text-zinc-500">Competencia</span>
-              <span className="text-purple-400 font-bold">{draft.aiAnalysis?.competency || 'PENDIENTE'}</span>
+              <span className="text-red-600 font-bold">{draft.aiAnalysis?.competency || 'PENDIENTE'}</span>
             </div>
             <div className="flex justify-between items-center text-sm">
               <span className="text-zinc-500">Archivos</span>

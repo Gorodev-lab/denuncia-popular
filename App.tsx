@@ -30,7 +30,7 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-background text-white font-sans flex flex-col selection:bg-pink-500 selection:text-white overflow-hidden">
+    <div className="min-h-screen bg-background text-white font-sans flex flex-col selection:bg-red-700 selection:text-white overflow-hidden esoteria-glow">
 
       {/* Navigation Header */}
       <nav className="w-full py-4 px-6 md:px-12 flex justify-between items-center z-40 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800 h-16">
@@ -41,13 +41,13 @@ const App: React.FC = () => {
           className="flex items-center gap-1 text-lg font-bold tracking-tight cursor-pointer bg-transparent border-none p-0 hover:opacity-80 transition-opacity"
           aria-label="Visit Esoteria AI"
         >
-          <span className="text-white"><span className="text-accent mr-1">&gt;</span>Esoteria AI</span>
-          <span className="w-1.5 h-4 bg-pink-500 animate-blink ml-1"></span>
+          <span className="text-white font-bold"><span className="text-accent mr-1">&gt;</span>Esoteria<span className="text-accent">_</span></span>
+
         </a>
 
         <div className="flex items-center gap-4">
           <span className="hidden md:block text-xs font-mono text-zinc-500">
-            DENUNCIA POPULAR v2.0
+            DENUNCIA POPULAR v3.0
           </span>
           {/* Language Toggle */}
           <div className="flex items-center text-[10px] font-bold border border-zinc-800 rounded-md overflow-hidden p-0.5 bg-zinc-900">
@@ -61,7 +61,7 @@ const App: React.FC = () => {
             <button
               onClick={() => setLanguage('ES')}
               aria-pressed={language === 'ES'}
-              className={`px-2 py-1 rounded transition-all duration-300 ${language === 'ES' ? 'bg-gradient-to-r from-red-600 to-pink-600 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+              className={`px-2 py-1 rounded transition-all duration-300 ${language === 'ES' ? 'bg-red-800 text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
             >
               ES
             </button>
@@ -91,7 +91,7 @@ const App: React.FC = () => {
           onClick={() => setIsChatOpen(!isChatOpen)}
           className={`
                 w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 border border-zinc-700
-                ${isChatOpen ? 'bg-zinc-900 text-zinc-400 rotate-90' : 'bg-black text-pink-500 hover:text-white hover:bg-pink-600 hover:border-pink-500'}
+                ${isChatOpen ? 'bg-zinc-900 text-zinc-400 rotate-90' : 'bg-black text-red-600 hover:text-white hover:bg-red-800 hover:border-red-700'}
             `}
         >
           {isChatOpen ? <X size={20} /> : <MessageCircle size={20} />}

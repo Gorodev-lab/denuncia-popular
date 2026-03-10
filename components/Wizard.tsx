@@ -60,7 +60,7 @@ export const Wizard: React.FC<WizardProps> = ({ step, setStep, draft, updateDraf
             </h2>
 
             <p className="text-zinc-400 max-w-lg mb-12 text-lg leading-relaxed">
-              Se ha generado el folio <strong className="text-white font-mono bg-zinc-800 px-2 py-1 rounded border border-zinc-700">#MX-2025-8492</strong>.
+              Se ha generado el folio <strong className="text-white font-mono bg-zinc-800 px-2 py-1 border border-zinc-700">#MX-2026-8492</strong>.
               <br />Hemos enviado una copia del PDF firmado a tu correo.
             </p>
 
@@ -84,8 +84,8 @@ export const Wizard: React.FC<WizardProps> = ({ step, setStep, draft, updateDraf
       <div className="flex-1 w-full max-w-5xl mx-auto p-4">
         {/* Card Container with Glow Effect */}
         <div className="relative w-full h-full">
-          <div className="absolute -inset-0.5 bg-gradient-to-r from-red-500 via-pink-500 to-purple-600 rounded-2xl opacity-20 blur-lg"></div>
-          <div className="relative w-full h-full bg-zinc-950 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden">
+          <div className="absolute -inset-0.5 bg-red-800/20 blur-lg"></div>
+          <div className="relative w-full h-full bg-zinc-950 border border-zinc-800 shadow-2xl overflow-hidden">
             {renderContent()}
           </div>
         </div>

@@ -445,7 +445,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
   if (!isLoaded) {
     return (
       <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] relative bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800 items-center justify-center">
-        <Loader2 className="animate-spin text-pink-500" size={48} />
+        <Loader2 className="animate-spin text-red-700" size={48} />
         <p className="text-zinc-400 mt-4">Cargando mapa...</p>
       </div>
     );
@@ -460,18 +460,18 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
         {/* Header Title */}
         <div className="pointer-events-auto bg-zinc-900/90 backdrop-blur-md p-3 rounded-xl border border-zinc-800 shadow-2xl flex justify-between items-center mb-2">
           <h2 className="text-md md:text-lg font-bold text-white flex items-center gap-2">
-            <MapPin size={18} className="text-pink-500" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-500">
+            <MapPin size={18} className="text-red-700" />
+            <span className="text-red-600">
               Paso 1: Ubicación
             </span>
           </h2>
           <button
             onClick={() => handleLocateUser()}
             disabled={loadingGPS}
-            className="p-2 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-pink-900/20 hover:border-pink-500/50 text-zinc-300 hover:text-pink-400 transition-all disabled:opacity-50"
+            className="p-2 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-red-900/20 hover:border-red-700/50 text-zinc-300 hover:text-red-600 transition-all disabled:opacity-50"
             title="Usar mi ubicación actual"
           >
-            {loadingGPS ? <Loader2 size={18} className="animate-spin text-pink-500" /> : <Crosshair size={18} />}
+            {loadingGPS ? <Loader2 size={18} className="animate-spin text-red-700" /> : <Crosshair size={18} />}
           </button>
         </div>
 
@@ -493,13 +493,13 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
           <div className="flex gap-2 bg-zinc-900/80 p-1 rounded-xl border border-zinc-800/50 backdrop-blur-sm self-start shadow-xl">
             <button
               onClick={() => setIsManualCoordMode(false)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${!isManualCoordMode ? 'bg-pink-600 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${!isManualCoordMode ? 'bg-red-800 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
             >
               Buscar Dirección
             </button>
             <button
               onClick={() => setIsManualCoordMode(true)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${isManualCoordMode ? 'bg-pink-600 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
+              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${isManualCoordMode ? 'bg-red-800 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
             >
               Ingresar Coordenadas
             </button>
@@ -518,7 +518,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
                 <input
                   type="text"
                   placeholder="Buscar calle, colonia o ciudad..."
-                  className="w-full bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 pl-10 pr-10 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
+                  className="w-full bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 pl-10 pr-10 focus:ring-2 focus:ring-red-700 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
                 />
               </Autocomplete>
             </div>
@@ -531,7 +531,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
                 value={manualLat}
                 onChange={(e) => setManualLat(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleManualCoordSubmit()}
-                className="flex-1 min-w-0 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 px-3 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
+                className="flex-1 min-w-0 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 px-3 focus:ring-2 focus:ring-red-700 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
               />
               <input
                 type="number"
@@ -540,12 +540,12 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
                 value={manualLng}
                 onChange={(e) => setManualLng(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleManualCoordSubmit()}
-                className="flex-1 min-w-0 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 px-3 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
+                className="flex-1 min-w-0 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 px-3 focus:ring-2 focus:ring-red-700 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
               />
               <button
                 onClick={handleManualCoordSubmit}
                 disabled={!manualLat || !manualLng}
-                className="bg-zinc-800 border border-zinc-700 rounded-xl px-4 hover:bg-pink-900/40 text-pink-400 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
+                className="bg-zinc-800 border border-zinc-700 rounded-xl px-4 hover:bg-red-900/40 text-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
                 title="Ir a coordenadas"
               >
                 <Navigation2 size={18} />
@@ -600,7 +600,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
       <div className="p-4 md:p-6 bg-zinc-950 border-t border-zinc-900 z-[10]" aria-live="polite">
         {position && (
           <div className="mb-4 md:mb-6 bg-zinc-900 p-3 md:p-4 rounded-xl border border-zinc-800 flex items-start gap-4 animate-fade-in">
-            <div className={`mt-1 p-2 rounded-lg ${loadingAddress ? 'bg-zinc-800 text-zinc-500' : 'bg-pink-900/20 text-pink-500'}`}>
+            <div className={`mt-1 p-2 rounded-lg ${loadingAddress ? 'bg-zinc-800 text-zinc-500' : 'bg-red-900/20 text-red-700'}`}>
               {loadingAddress ? <Loader2 className="animate-spin" size={16} /> : <MapPin size={16} />}
             </div>
 
@@ -610,7 +610,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
                   {isManualMode ? 'Editar Dirección Manualmente' : (
                     <span className="flex items-center gap-2">
                       {isCalibrating ? (
-                        <span className="flex items-center gap-1 text-pink-400">
+                        <span className="flex items-center gap-1 text-red-600">
                           <Loader2 size={10} className="animate-spin" />
                           Calibrando Precisión...
                         </span>
@@ -626,7 +626,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
                 {!loadingAddress && (
                   <button
                     onClick={toggleManualMode}
-                    className="text-zinc-500 hover:text-pink-500 transition-colors p-1"
+                    className="text-zinc-500 hover:text-red-700 transition-colors p-1"
                     title={isManualMode ? "Guardar dirección" : "Editar dirección manualmente"}
                   >
                     {isManualMode ? <Check size={14} /> : <Edit2 size={14} />}
@@ -638,7 +638,7 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
                 <textarea
                   value={manualAddress}
                   onChange={(e) => setManualAddress(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-sm text-zinc-200 focus:ring-2 focus:ring-pink-500 outline-none resize-none"
+                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-sm text-zinc-200 focus:ring-2 focus:ring-red-700 outline-none resize-none"
                   rows={2}
                   placeholder="Escribe la dirección exacta aquí..."
                   autoFocus
@@ -668,10 +668,10 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
               disabled={!position || loadingAddress || (isManualMode && !manualAddress.trim())}
               className="
                 group relative px-6 py-3 rounded-full font-bold text-white overflow-hidden text-xs md:text-sm
-                disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-pink-900/20
+                disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-red-900/20
               "
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-pink-600 transition-all duration-300 group-hover:scale-105"></div>
+              <div className="absolute inset-0 bg-red-800 transition-all duration-300 group-hover:scale-105"></div>
               <span className="relative flex items-center gap-2">
                 {loadingAddress ? 'Procesando...' : 'Confirmar Ubicación'}
                 <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
