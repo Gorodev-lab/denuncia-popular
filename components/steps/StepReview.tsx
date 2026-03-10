@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { DenunciaDraft } from '../../types';
-import { ChevronLeft, FileCheck, MapPin, Printer, FileText, Globe } from 'lucide-react';
+import { ChevronLeft, FileCheck, MapPin, Printer, FileText, Globe, FileCode } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, BorderStyle } from 'docx';
 
@@ -227,10 +227,6 @@ ${denunciante}
       doc.setFont("times", "bold");
       doc.text("¿Qué se está denunciando?", margin, yPos);
       yPos += 5;
-      doc.setFont("times", "italic");
-      doc.setFontSize(9);
-      doc.text("(ser lo más específicas posible)", margin, yPos);
-      yPos += 5;
 
       doc.setFont("times", "normal");
       doc.setFontSize(10);
@@ -270,7 +266,14 @@ ${denunciante}
       doc.text("¿Quién o quienes están realizando esta acción?", margin, yPos);
       yPos += 7;
       doc.setFont("times", "normal");
-      doc.text("● Posiblemente sea: " + (draft.isAnonymous ? "No tengo conocimiento exacto / Por investigar" : "Ver descripción"), margin + 5, yPos);
+      doc.text("*tachar casilla de respuesta*", margin, yPos);
+      yPos += 6;
+      const checkNone = draft.denunciadoTipo === 'NO_CONOCIMIENTO' || !draft.denunciadoTipo;
+      doc.text(`${checkNone ? '[X]' : '[ ]'} No tengo conocimiento`, margin + 5, yPos); yPos += 5;
+      doc.text("Posiblemente sea:", margin + 5, yPos); yPos += 5;
+      doc.text(`  ${draft.denunciadoTipo === 'GOBIERNO' ? '[X]' : '[ ]'} Gobierno`, margin + 5, yPos); yPos += 5;
+      doc.text(`  ${draft.denunciadoTipo === 'EMPRESA' ? '[X]' : '[ ]'} Empresa`, margin + 5, yPos); yPos += 5;
+      doc.text(`  ${draft.denunciadoTipo === 'PARTICULAR' ? '[X]' : '[ ]'} Particular`, margin + 5, yPos);
       yPos += 10;
 
       // --- 5. Pruebas ---
@@ -482,12 +485,12 @@ ${denunciante}
           createHr(),
           para([normal('*tachar casilla de respuesta*')], 80),
           para([
-            normal(draft.denunciadoTipo === 'NO_CONOCIMIENTO' ? ' [X] No tengo conocimiento' : ' [ ] No tengo conocimiento'),
+            normal((draft.denunciadoTipo === 'NO_CONOCIMIENTO' || !draft.denunciadoTipo) ? ' [X] No tengo conocimiento' : ' [ ] No tengo conocimiento'),
           ]),
-          para([normal('Posiblemente sea:')]),
-          para([normal(draft.denunciadoTipo === 'GOBIERNO' ? '  [X] Gobierno' : '  [ ] Gobierno')]),
-          para([normal(draft.denunciadoTipo === 'EMPRESA' ? '  [X] Empresa' : '  [ ] Empresa')]),
-          para([normal(draft.denunciadoTipo === 'PARTICULAR' ? '  [X] Particular' : '  [ ] Particular')], 160),
+          para([normal('  Posiblemente sea:')], 60),
+          para([normal(draft.denunciadoTipo === 'GOBIERNO' ? '    [X] Gobierno' : '    [ ] Gobierno')]),
+          para([normal(draft.denunciadoTipo === 'EMPRESA' ? '    [X] Empresa' : '    [ ] Empresa')]),
+          para([normal(draft.denunciadoTipo === 'PARTICULAR' ? '    [X] Particular' : '    [ ] Particular')], 160),
 
           new Paragraph({ children: [bold('PRUEBAS:')], heading: HeadingLevel.HEADING_3, spacing: { after: 80 } }),
           createHr(),
@@ -530,6 +533,120 @@ ${denunciante}
     const a = document.createElement('a');
     a.href = url;
     a.download = `Denuncia_Popular_${folio}.docx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadMD = () => {
+    const folio = `MX-${new Date().getFullYear()}-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`;
+    const estado = getEstado(draft);
+    const municipio = getMunicipio(draft);
+    const colonia = draft.location?.colonia || draft.location?.localidad || 'No especificado';
+    const denunciante = draft.isAnonymous
+      ? 'ANÓNIMO'
+      : (draft.fullName || 'No especificado').toUpperCase();
+    const fechaEvento = draft.eventDate
+      ? new Date(draft.eventDate + 'T12:00:00').toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })
+      : '_Sin fecha proporcionada_';
+    const checkNone = draft.denunciadoTipo === 'NO_CONOCIMIENTO' || !draft.denunciadoTipo;
+    const evidencia = (draft.evidenceFiles || []).length > 0
+      ? (draft.evidenceFiles || []).map((f, i) => `${i + 1}. \`${f.name}\``).join('\n')
+      : '_Sin archivos adjuntos._';
+    const solicitudDatos = draft.isAnonymous
+      ? ''
+      : `\n**QUINTO.-** Se mantenga la confidencialidad y reserva de mis datos personales y los de mis autorizados, de conformidad a lo dispuesto en los artículos 1 y 6 de la CPEUM, 113, fracción V, 116 de la Ley General de Transparencia y Acceso a la Información Pública, 4, fracción III, 5, 13, fracción IV, 18, 19, 20 y 21 de la Ley Federal de Transparencia y Acceso a la Información Pública Gubernamental.`;
+
+    let identifSection = `**Nombre completo:** ${denunciante}  \n`;
+    if (!draft.isAnonymous) {
+      if (draft.domicilio) identifSection += `**Domicilio:** ${draft.domicilio}  \n`;
+      if (draft.email) identifSection += `**Correo electrónico:** ${draft.email}  \n`;
+      if (draft.personasAutorizadas) identifSection += `\n**Personas autorizadas para oír y recibir notificaciones:**  \n${draft.personasAutorizadas}  \n`;
+    }
+
+    const md = `# DENUNCIA POPULAR
+
+**FOLIO:** ${folio}
+
+---
+
+## ¿Qué se está denunciando?
+
+${draft.description || '_Sin descripción proporcionada._'}
+
+---
+
+## ¿Cuándo ocurrió o desde cuándo está ocurriendo?
+
+${fechaEvento}
+
+---
+
+## ¿Dónde está ocurriendo?
+
+| Campo | Valor |
+|---|---|
+| **Estado** | ${estado} |
+| **Municipio/Alcaldía** | ${municipio} |
+| **Localidad/Colonia** | ${colonia} |
+| **Ubicación/Referencias** | ${getUbicacionCompleta(draft)} |
+| **Coordenadas GPS** | ${draft.location?.lat?.toFixed(6) || 'N/A'}, ${draft.location?.lng?.toFixed(6) || 'N/A'} |
+
+---
+
+## ¿Quién o quienes están realizando esta acción?
+
+*tachar casilla de respuesta*
+
+${checkNone ? '- [x]' : '- [ ]'} No tengo conocimiento
+
+Posiblemente sea:
+
+${draft.denunciadoTipo === 'GOBIERNO' ? '- [x]' : '- [ ]'} Gobierno  
+${draft.denunciadoTipo === 'EMPRESA' ? '- [x]' : '- [ ]'} Empresa  
+${draft.denunciadoTipo === 'PARTICULAR' ? '- [x]' : '- [ ]'} Particular
+
+---
+
+## PRUEBAS
+
+**[x] Fotografías o imágenes:**
+
+${evidencia}
+
+---
+
+## DATOS DE IDENTIFICACIÓN DE LA PERSONA DENUNCIANTE
+
+${identifSection}
+
+---
+
+## SOLICITO
+
+**PRIMERO.-** Se admita y realicen las acciones necesarias a fin de corroborar la existencia de los actos, hechos y omisiones denunciados, en cumplimiento a lo dispuesto en los artículos 189, 190, 191 y 192 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente.
+
+**TERCERO.-** Se me reconozca el carácter de coadyuvante, de conformidad con el artículo 193 de la Ley General del Equilibrio Ecológico y la Protección al Ambiente.
+
+**CUARTO.-** Se me permita acceder al o los expedientes que con motivo de esta denuncia se integren, de conformidad con lo dispuesto en el artículo 33 de la Ley Federal del Procedimiento Administrativo.${solicitudDatos}
+
+---
+
+**PROTESTO LO NECESARIO**
+
+${municipio}, ${estado}, a la fecha de su presentación.
+
+&nbsp;
+
+___________________________________________________  
+**NOMBRE y FIRMA**  
+${denunciante}
+`;
+
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Denuncia_Popular_${folio}.md`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -613,6 +730,17 @@ ${denunciante}
               <span className="relative flex items-center justify-center gap-3">
                 <FileText size={18} className="text-zinc-400 group-hover:text-white transition-colors" />
                 Descargar .DOCX
+              </span>
+            </button>
+
+            {/* Download MD */}
+            <button
+              onClick={handleDownloadMD}
+              className="w-full group relative px-8 py-3 rounded-full font-bold text-white overflow-hidden transition-all border border-zinc-700 hover:bg-zinc-800"
+            >
+              <span className="relative flex items-center justify-center gap-3">
+                <FileCode size={18} className="text-zinc-400 group-hover:text-white transition-colors" />
+                Descargar .MD
               </span>
             </button>
 
@@ -752,6 +880,14 @@ ${denunciante}
           >
             <span className="relative flex items-center justify-center gap-3">
               <FileText size={16} /> Descargar .DOCX
+            </span>
+          </button>
+          <button
+            onClick={handleDownloadMD}
+            className="w-full group relative px-8 py-3 rounded-full font-bold text-white overflow-hidden transition-all border border-zinc-700 hover:bg-zinc-800"
+          >
+            <span className="relative flex items-center justify-center gap-3">
+              <FileCode size={16} /> Descargar .MD
             </span>
           </button>
           <button
