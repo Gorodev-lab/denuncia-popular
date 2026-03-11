@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { GoogleMap, useJsApiLoader, Marker, Autocomplete, Circle } from '@react-google-maps/api';
 import { DenunciaDraft } from '../../types';
 import { ChevronRight, ChevronLeft, MapPin, Crosshair, Loader2, Search, X, Edit2, Check, Navigation2, AlertCircle } from 'lucide-react';
@@ -12,128 +12,173 @@ interface Props {
   onBack?: () => void;
 }
 
-const mapContainerStyle = {
-  width: '100%',
-  height: '100%',
-  borderRadius: '1rem',
-};
-
-const defaultCenter = {
-  lat: 19.4326,
-  lng: -99.1332,
-};
-
+const mapContainerStyle = { width: '100%', height: '100%', borderRadius: '1rem' };
+const defaultCenter = { lat: 19.4326, lng: -99.1332 };
 const mapOptions = {
-  disableDefaultUI: true,
-  zoomControl: false,
-  streetViewControl: false,
-  mapTypeControl: false,
-  fullscreenControl: false,
+  disableDefaultUI: true, zoomControl: false, streetViewControl: false, mapTypeControl: false, fullscreenControl: false,
   styles: [
-    {
-      featureType: "all",
-      elementType: "geometry",
-      stylers: [{ color: "#242f3e" }]
-    },
-    {
-      featureType: "all",
-      elementType: "labels.text.stroke",
-      stylers: [{ color: "#242f3e" }, { lightness: -80 }]
-    },
-    {
-      featureType: "all",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#746855" }]
-    },
-    {
-      featureType: "administrative.locality",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#d59563" }]
-    },
-    {
-      featureType: "poi",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#d59563" }]
-    },
-    {
-      featureType: "poi.park",
-      elementType: "geometry",
-      stylers: [{ color: "#263c3f" }]
-    },
-    {
-      featureType: "poi.park",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#6b9a76" }]
-    },
-    {
-      featureType: "road",
-      elementType: "geometry",
-      stylers: [{ color: "#38414e" }]
-    },
-    {
-      featureType: "road",
-      elementType: "geometry.stroke",
-      stylers: [{ color: "#212a37" }]
-    },
-    {
-      featureType: "road",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#9ca5b3" }]
-    },
-    {
-      featureType: "road.highway",
-      elementType: "geometry",
-      stylers: [{ color: "#746855" }]
-    },
-    {
-      featureType: "road.highway",
-      elementType: "geometry.stroke",
-      stylers: [{ color: "#1f2835" }]
-    },
-    {
-      featureType: "road.highway",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#f3d19c" }]
-    },
-    {
-      featureType: "transit",
-      elementType: "geometry",
-      stylers: [{ color: "#2f3948" }]
-    },
-    {
-      featureType: "transit.station",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#d59563" }]
-    },
-    {
-      featureType: "water",
-      elementType: "geometry",
-      stylers: [{ color: "#17263c" }]
-    },
-    {
-      featureType: "water",
-      elementType: "labels.text.fill",
-      stylers: [{ color: "#515c6d" }]
-    },
-    {
-      featureType: "water",
-      elementType: "labels.text.stroke",
-      stylers: [{ lightness: -20 }]
-    }
+    { featureType: "all", elementType: "geometry", stylers: [{ color: "#242f3e" }] },
+    { featureType: "all", elementType: "labels.text.stroke", stylers: [{ color: "#242f3e" }, { lightness: -80 }] },
+    { featureType: "all", elementType: "labels.text.fill", stylers: [{ color: "#746855" }] },
+    { featureType: "administrative.locality", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+    { featureType: "poi", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+    { featureType: "poi.park", elementType: "geometry", stylers: [{ color: "#263c3f" }] },
+    { featureType: "poi.park", elementType: "labels.text.fill", stylers: [{ color: "#6b9a76" }] },
+    { featureType: "road", elementType: "geometry", stylers: [{ color: "#38414e" }] },
+    { featureType: "road", elementType: "geometry.stroke", stylers: [{ color: "#212a37" }] },
+    { featureType: "road", elementType: "labels.text.fill", stylers: [{ color: "#9ca5b3" }] },
+    { featureType: "road.highway", elementType: "geometry", stylers: [{ color: "#746855" }] },
+    { featureType: "road.highway", elementType: "geometry.stroke", stylers: [{ color: "#1f2835" }] },
+    { featureType: "road.highway", elementType: "labels.text.fill", stylers: [{ color: "#f3d19c" }] },
+    { featureType: "transit", elementType: "geometry", stylers: [{ color: "#2f3948" }] },
+    { featureType: "transit.station", elementType: "labels.text.fill", stylers: [{ color: "#d59563" }] },
+    { featureType: "water", elementType: "geometry", stylers: [{ color: "#17263c" }] },
+    { featureType: "water", elementType: "labels.text.fill", stylers: [{ color: "#515c6d" }] },
+    { featureType: "water", elementType: "labels.text.stroke", stylers: [{ lightness: -20 }] }
   ]
 };
 
-export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }) => {
-  const { isLoaded, loadError } = useJsApiLoader({
-    id: 'google-map-script',
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-    libraries: libraries,
-  });
+// --- SUB-COMPONENTS ---
 
+const ErrorState = () => (
+  <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] relative bg-zinc-950 rounded-2xl overflow-hidden border border-red-900/50 items-center justify-center p-8 text-center">
+    <AlertCircle className="text-red-500 mb-4" size={48} />
+    <h3 className="text-xl font-bold text-white mb-2">Error de Infraestructura</h3>
+    <p className="text-zinc-400 max-w-md">No se pudo cargar el servicio de mapas. Esto suele deberse a que la API Key de Google no está autorizada para este dominio o ha expirado.</p>
+    <div className="mt-6 p-4 bg-zinc-900 rounded-lg border border-zinc-800 text-xs text-zinc-500 font-mono">ErrorCode: RefererNotAllowedMapError (Potencial)</div>
+  </div>
+);
+
+const LoadingState = () => (
+  <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] relative bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800 items-center justify-center">
+    <Loader2 className="animate-spin text-red-700" size={48} />
+    <p className="text-zinc-400 mt-4">Cargando mapa...</p>
+  </div>
+);
+
+const ControlsOverlay = ({ 
+  loadingGPS, onLocate, gpsError, onDismissError, 
+  isManualCoordMode, setIsManualCoordMode, 
+  onAutocompleteLoad, onPlaceChanged,
+  manualLat, setManualLat, manualLng, setManualLng, onManualCoordSubmit
+}: any) => (
+  <div className="absolute top-4 left-4 right-4 z-[10] flex flex-col gap-2 pointer-events-none">
+    <div className="pointer-events-auto bg-zinc-900/90 backdrop-blur-md p-3 rounded-xl border border-zinc-800 shadow-2xl flex justify-between items-center mb-2">
+      <h2 className="text-md md:text-lg font-bold text-white flex items-center gap-2">
+        <MapPin size={18} className="text-red-700" />
+        <span className="text-red-600">Paso 1: Ubicación</span>
+      </h2>
+      <button
+        onClick={onLocate}
+        disabled={loadingGPS}
+        className="p-2 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-red-900/20 hover:border-red-700/50 text-zinc-300 hover:text-red-600 transition-all disabled:opacity-50"
+        title="Usar mi ubicación actual"
+      >
+        {loadingGPS ? <Loader2 size={18} className="animate-spin text-red-700" /> : <Crosshair size={18} />}
+      </button>
+    </div>
+
+    {gpsError && (
+      <div className="pointer-events-auto bg-red-900/90 backdrop-blur-md p-3 rounded-xl border border-red-700 shadow-xl flex justify-between items-center mb-2 animate-in fade-in slide-in-from-top-2">
+        <span className="text-white text-xs flex items-center gap-2">
+          <X size={14} className="text-red-300" /> {gpsError}
+        </span>
+        <button onClick={onDismissError} className="text-red-300 hover:text-white"><X size={14} /></button>
+      </div>
+    )}
+
+    <div className="pointer-events-auto flex flex-col gap-2 mt-1">
+      <div className="flex gap-2 bg-zinc-900/80 p-1 rounded-xl border border-zinc-800/50 backdrop-blur-sm self-start shadow-xl">
+        <button onClick={() => setIsManualCoordMode(false)} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${!isManualCoordMode ? 'bg-red-800 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}>Buscar Dirección</button>
+        <button onClick={() => setIsManualCoordMode(true)} className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${isManualCoordMode ? 'bg-red-800 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}>Ingresar Coordenadas</button>
+      </div>
+
+      {!isManualCoordMode ? (
+        <div className="relative flex items-center shadow-xl">
+          <div className="absolute left-3 text-zinc-400 z-10"><Search size={16} /></div>
+          <Autocomplete onLoad={onAutocompleteLoad} onPlaceChanged={onPlaceChanged} className="w-full">
+            <input type="text" placeholder="Buscar calle, colonia o ciudad..." className="w-full bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 pl-10 pr-10 focus:ring-2 focus:ring-red-700 focus:border-transparent outline-none transition-all placeholder:text-zinc-500" />
+          </Autocomplete>
+        </div>
+      ) : (
+        <div className="flex gap-2 shadow-xl">
+          <input type="number" step="any" placeholder="Latitud (ej. 19.4326)" value={manualLat} onChange={(e) => setManualLat(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && onManualCoordSubmit()} className="flex-1 min-w-0 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 px-3 focus:ring-2 focus:ring-red-700 focus:border-transparent outline-none transition-all placeholder:text-zinc-500" />
+          <input type="number" step="any" placeholder="Longitud (ej. -99.1332)" value={manualLng} onChange={(e) => setManualLng(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && onManualCoordSubmit()} className="flex-1 min-w-0 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 px-3 focus:ring-2 focus:ring-red-700 focus:border-transparent outline-none transition-all placeholder:text-zinc-500" />
+          <button onClick={onManualCoordSubmit} disabled={!manualLat || !manualLng} className="bg-zinc-800 border border-zinc-700 rounded-xl px-4 hover:bg-red-900/40 text-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shrink-0" title="Ir a coordenadas"><Navigation2 size={18} /></button>
+        </div>
+      )}
+    </div>
+  </div>
+);
+
+const LocationBottomPanel = ({ 
+  position, loadingAddress, isManualMode, isCalibrating, accuracy, 
+  addressDisplay, manualAddress, setManualAddress, toggleManualMode,
+  onBack, onNext 
+}: any) => (
+  <div className="p-4 md:p-6 bg-zinc-950 border-t border-zinc-900 z-[10]" aria-live="polite">
+    {position && (
+      <div className="mb-4 md:mb-6 bg-zinc-900 p-3 md:p-4 rounded-xl border border-zinc-800 flex items-start gap-4 animate-fade-in">
+        <div className={`mt-1 p-2 rounded-lg ${loadingAddress ? 'bg-zinc-800 text-zinc-500' : 'bg-red-900/20 text-red-700'}`}>
+          {loadingAddress ? <Loader2 className="animate-spin" size={16} /> : <MapPin size={16} />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex justify-between items-center mb-1">
+            <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
+              {isManualMode ? 'Editar Dirección Manualmente' : (
+                <span className="flex items-center gap-2">
+                  {isCalibrating ? (
+                    <span className="flex items-center gap-1 text-red-600">
+                      <Loader2 size={10} className="animate-spin" /> Calibrando Precisión...
+                    </span>
+                  ) : 'Dirección Detectada'}
+                  {accuracy && !isCalibrating && (
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded ${accuracy < 20 ? 'bg-green-900/40 text-green-400' : 'bg-yellow-900/40 text-yellow-500'}`}>
+                      Margen: ±{accuracy.toFixed(1)}m
+                    </span>
+                  )}
+                </span>
+              )}
+            </p>
+            {!loadingAddress && (
+              <button onClick={toggleManualMode} className="text-zinc-500 hover:text-red-700 transition-colors p-1" title={isManualMode ? "Guardar dirección" : "Editar dirección manualmente"}>
+                {isManualMode ? <Check size={14} /> : <Edit2 size={14} />}
+              </button>
+            )}
+          </div>
+          {isManualMode ? (
+            <textarea value={manualAddress} onChange={(e) => setManualAddress(e.target.value)} className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-sm text-zinc-200 focus:ring-2 focus:ring-red-700 outline-none resize-none" rows={2} placeholder="Escribe la dirección exacta aquí..." autoFocus />
+          ) : (
+            <p className={`text-xs md:text-sm ${loadingAddress ? 'text-zinc-600 italic' : 'text-zinc-200 line-clamp-2'}`}>{loadingAddress ? 'Obteniendo dirección...' : addressDisplay}</p>
+          )}
+        </div>
+      </div>
+    )}
+    <div className="flex justify-between items-center">
+      {onBack && (
+        <button onClick={onBack} className="text-zinc-500 hover:text-white font-medium flex items-center gap-2 px-4 py-2 transition-colors uppercase text-xs tracking-widest">
+          <ChevronLeft size={14} /> Volver
+        </button>
+      )}
+      <div className={onBack ? '' : 'w-full flex justify-end'}>
+        <button onClick={onNext} disabled={!position || loadingAddress || (isManualMode && !manualAddress.trim())} className="group relative px-6 py-3 rounded-full font-bold text-white overflow-hidden text-xs md:text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-red-900/20">
+          <div className="absolute inset-0 bg-red-800 transition-all duration-300 group-hover:scale-105"></div>
+          <span className="relative flex items-center gap-2">
+            {loadingAddress ? 'Procesando...' : 'Confirmar Ubicación'}
+            <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+);
+
+// --- MAIN COMPONENT ---
+
+export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }) => {
+  const { isLoaded, loadError } = useJsApiLoader({ id: 'google-map-script', googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '', libraries: libraries });
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(
-    draft.location ? { lat: draft.location.lat, lng: draft.location.lng } : null
-  );
+  const [position, setPosition] = useState<{ lat: number; lng: number } | null>(draft.location ? { lat: draft.location.lat, lng: draft.location.lng } : null);
   const [addressDisplay, setAddressDisplay] = useState<string>(draft.location?.address || '');
   const [loadingAddress, setLoadingAddress] = useState(false);
   const [loadingGPS, setLoadingGPS] = useState(false);
@@ -147,15 +192,9 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
   const [accuracy, setAccuracy] = useState<number | null>(null);
   const [isCalibrating, setIsCalibrating] = useState(false);
   const watchId = useRef<number | null>(null);
-  const [keyError, setKeyError] = useState<string | null>(null);
 
-  const GEMINI_KEY_EXISTS = !!import.meta.env.VITE_GEMINI_API_KEY;
-
-  // Sync manual address with display address when not in manual mode
   useEffect(() => {
-    if (!isManualMode) {
-      setManualAddress(addressDisplay);
-    }
+    if (!isManualMode) setManualAddress(addressDisplay);
   }, [addressDisplay, isManualMode]);
 
   const onLoad = useCallback(function callback(map: google.maps.Map) {
@@ -164,19 +203,17 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
       map.panTo(position);
       map.setZoom(16);
     } else {
-      // If no position, try to locate user or default
       handleLocateUser(map);
     }
   }, []);
 
-  const onUnmount = useCallback(function callback(map: google.maps.Map) {
-    setMap(null);
-  }, []);
+  const onUnmount = useCallback(function callback(map: google.maps.Map) { setMap(null); }, []);
 
   const handleLocateUser = (mapInstance: google.maps.Map | null = map) => {
     setGpsError(null);
     setIsManualMode(false);
     setIsCalibrating(true);
+    setLoadingGPS(true);
 
     if (!navigator.geolocation) {
       setGpsError("Tu navegador no soporta geolocalización.");
@@ -186,75 +223,40 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     }
 
     let bestPos: GeolocationPosition | null = null;
-
-    const clearWatch = () => {
-      if (watchId.current !== null) {
-        navigator.geolocation.clearWatch(watchId.current);
-        watchId.current = null;
-      }
-    };
-
+    const clearWatch = () => { if (watchId.current !== null) { navigator.geolocation.clearWatch(watchId.current); watchId.current = null; } };
     const handleNewPosition = (pos: GeolocationPosition) => {
-      // If we find a position with better accuracy, or if it's the first one
       if (!bestPos || pos.coords.accuracy < bestPos.coords.accuracy) {
         bestPos = pos;
-        const newPos = {
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        };
+        const newPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
         setPosition(newPos);
         setAccuracy(pos.coords.accuracy);
-
-        if (mapInstance && !bestPos) { // Only pan once on first lock or if significantly better
-          mapInstance.panTo(newPos);
-          mapInstance.setZoom(17);
-        }
+        if (mapInstance && !bestPos) { mapInstance.panTo(newPos); mapInstance.setZoom(17); }
       }
     };
-
     const errorCallback = (err: GeolocationPositionError) => {
-      console.error("GPS Error:", err);
       clearWatch();
       setIsCalibrating(false);
       setLoadingGPS(false);
-
       let errorMessage = "Error al obtener ubicación.";
-      switch (err.code) {
-        case err.PERMISSION_DENIED:
-          errorMessage = "Permiso denegado. Habilita la ubicación.";
-          break;
-        case err.POSITION_UNAVAILABLE:
-          errorMessage = "Ubicación no disponible.";
-          break;
-        case err.TIMEOUT:
-          errorMessage = "Tiempo de espera agotado. Intenta de nuevo.";
-          break;
-      }
+      if (err.code === err.PERMISSION_DENIED) errorMessage = "Permiso denegado. Habilita la ubicación.";
+      if (err.code === err.POSITION_UNAVAILABLE) errorMessage = "Ubicación no disponible.";
+      if (err.code === err.TIMEOUT) errorMessage = "Tiempo de espera agotado. Intenta de nuevo.";
       setGpsError(errorMessage);
     };
 
-    // Start watching position for high accuracy
-    watchId.current = navigator.geolocation.watchPosition(
-      handleNewPosition,
-      errorCallback,
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
-    );
+    watchId.current = navigator.geolocation.watchPosition(handleNewPosition, errorCallback, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
 
-    // Stop calibration after 5 seconds of gathering data
     setTimeout(() => {
       clearWatch();
       setIsCalibrating(false);
       setLoadingGPS(false);
-
       if (bestPos && mapInstance) {
-        const finalPos = { lat: (bestPos as GeolocationPosition).coords.latitude, lng: (bestPos as GeolocationPosition).coords.longitude };
-        mapInstance.panTo(finalPos);
-        mapInstance.setZoom(18); // Zoom in closer for high precision
+        mapInstance.panTo({ lat: (bestPos as GeolocationPosition).coords.latitude, lng: (bestPos as GeolocationPosition).coords.longitude });
+        mapInstance.setZoom(18);
       }
     }, 5000);
   };
 
-  // Helper to pull named types from Google Maps address_components
   const extractComponent = (components: google.maps.GeocoderAddressComponent[], type: string): string => {
     const component = components.find(c => c.types.includes(type));
     return component?.long_name || '';
@@ -262,50 +264,26 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
 
   const geocodePosition = async (lat: number, lng: number) => {
     if (!window.google || !window.google.maps) return;
-
     setLoadingAddress(true);
-    updateDraft({
-      location: {
-        lat,
-        lng,
-        address: 'Consultando dirección...'
-      }
-    });
-
+    updateDraft({ location: { lat, lng, address: 'Consultando dirección...' } });
     const geocoder = new window.google.maps.Geocoder();
     try {
       const response = await geocoder.geocode({ location: { lat, lng } });
       if (response.results && response.results.length > 0) {
-        // Use the first result for display address and estado
         const primaryResult = response.results[0];
         const address = primaryResult.formatted_address;
         const estado = extractComponent(primaryResult.address_components, 'administrative_area_level_1');
-
-        // For municipio: scan ALL results — rural/Plus Code addresses only carry
-        // administrative_area_level_2 in a later result (e.g. locality or political type)
-        let municipio = '';
-        let localidad = '';
-        let colonia = '';
-
+        let municipio = '', localidad = '', colonia = '';
         for (const result of response.results) {
           const c = result.address_components;
           if (!municipio) municipio = extractComponent(c, 'administrative_area_level_2');
           if (!localidad) localidad = extractComponent(c, 'locality');
-          if (!colonia) {
-            colonia = extractComponent(c, 'sublocality_level_1') ||
-              extractComponent(c, 'sublocality') ||
-              extractComponent(c, 'neighborhood');
-          }
+          if (!colonia) colonia = extractComponent(c, 'sublocality_level_1') || extractComponent(c, 'sublocality') || extractComponent(c, 'neighborhood');
           if (municipio && localidad && colonia) break;
         }
-
-        // Final fallback: if still no municipio, use locality
         if (!municipio) municipio = localidad;
-
         setAddressDisplay(address);
-        updateDraft({
-          location: { lat, lng, address, estado, municipio, localidad, colonia }
-        });
+        updateDraft({ location: { lat, lng, address, estado, municipio, localidad, colonia } });
       } else {
         const fallback = `Coordenadas: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
         setAddressDisplay('Dirección desconocida');
@@ -321,45 +299,31 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     }
   };
 
-  // Effect to geocode when position changes (and not in manual mode)
   useEffect(() => {
     if (position && !isManualMode) {
       geocodePosition(position.lat, position.lng);
     } else if (position && isManualMode) {
-      // Just update coords
-      updateDraft({
-        location: {
-          lat: position.lat,
-          lng: position.lng,
-          address: manualAddress
-        }
-      });
+      updateDraft({ location: { lat: position.lat, lng: position.lng, address: manualAddress } });
     }
-  }, [position]); // Removed isManualMode to avoid loops
+  }, [position]);
 
   const onMapClick = useCallback((e: google.maps.MapMouseEvent) => {
     if (e.latLng) {
-      const lat = e.latLng.lat();
-      const lng = e.latLng.lng();
-      setPosition({ lat, lng });
-      setAccuracy(null); // Reset accuracy when manually adjusting
-      setIsManualMode(false); // Reset manual mode on map click
-    }
-  }, []);
-
-  const onMarkerDragEnd = useCallback((e: google.maps.MapMouseEvent) => {
-    if (e.latLng) {
-      const lat = e.latLng.lat();
-      const lng = e.latLng.lng();
-      setPosition({ lat, lng });
+      setPosition({ lat: e.latLng.lat(), lng: e.latLng.lng() });
       setAccuracy(null);
       setIsManualMode(false);
     }
   }, []);
 
-  const onAutocompleteLoad = (autocompleteInstance: google.maps.places.Autocomplete) => {
-    setAutocomplete(autocompleteInstance);
-  };
+  const onMarkerDragEnd = useCallback((e: google.maps.MapMouseEvent) => {
+    if (e.latLng) {
+      setPosition({ lat: e.latLng.lat(), lng: e.latLng.lng() });
+      setAccuracy(null);
+      setIsManualMode(false);
+    }
+  }, []);
+
+  const onAutocompleteLoad = (autocompleteInstance: google.maps.places.Autocomplete) => setAutocomplete(autocompleteInstance);
 
   const onPlaceChanged = () => {
     if (autocomplete !== null) {
@@ -370,43 +334,25 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
         const components = place.address_components || [];
         const address = place.formatted_address || '';
         const estado = extractComponent(components, 'administrative_area_level_1');
-        const municipio = extractComponent(components, 'administrative_area_level_2') ||
-          extractComponent(components, 'locality');
+        const municipio = extractComponent(components, 'administrative_area_level_2') || extractComponent(components, 'locality');
         const localidad = extractComponent(components, 'locality');
-        const colonia = extractComponent(components, 'sublocality_level_1') ||
-          extractComponent(components, 'sublocality') ||
-          extractComponent(components, 'neighborhood');
+        const colonia = extractComponent(components, 'sublocality_level_1') || extractComponent(components, 'sublocality') || extractComponent(components, 'neighborhood');
         setPosition({ lat, lng });
         setAccuracy(null);
-        if (map) {
-          map.panTo({ lat, lng });
-          map.setZoom(17);
-        }
+        if (map) { map.panTo({ lat, lng }); map.setZoom(17); }
         setAddressDisplay(address);
         updateDraft({ location: { lat, lng, address, estado, municipio, localidad, colonia } });
         setIsManualMode(false);
-      } else {
-        console.log("No details available for input: '" + place.name + "'");
       }
     }
   };
 
   const toggleManualMode = () => {
     if (isManualMode) {
-      // Saving
       setAddressDisplay(manualAddress);
-      if (position) {
-        updateDraft({
-          location: {
-            lat: position.lat,
-            lng: position.lng,
-            address: manualAddress
-          }
-        });
-      }
+      if (position) updateDraft({ location: { lat: position.lat, lng: position.lng, address: manualAddress } });
       setIsManualMode(false);
     } else {
-      // Editing
       setManualAddress(addressDisplay);
       setIsManualMode(true);
     }
@@ -417,269 +363,42 @@ export const StepLocation: React.FC<Props> = ({ draft, updateDraft, onNext, onBa
     const lng = parseFloat(manualLng);
     if (!isNaN(lat) && !isNaN(lng)) {
       setPosition({ lat, lng });
-      if (map) {
-        map.panTo({ lat, lng });
-        map.setZoom(16);
-      }
+      if (map) { map.panTo({ lat, lng }); map.setZoom(16); }
       setGpsError(null);
     } else {
       setGpsError("Coordenadas inválidas. Verifica el formato numérico.");
     }
   };
 
-  if (loadError) {
-    return (
-      <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] relative bg-zinc-950 rounded-2xl overflow-hidden border border-red-900/50 items-center justify-center p-8 text-center">
-        <AlertCircle className="text-red-500 mb-4" size={48} />
-        <h3 className="text-xl font-bold text-white mb-2">Error de Infraestructura</h3>
-        <p className="text-zinc-400 max-w-md">
-          No se pudo cargar el servicio de mapas. Esto suele deberse a que la API Key de Google no está autorizada para este dominio o ha expirado.
-        </p>
-        <div className="mt-6 p-4 bg-zinc-900 rounded-lg border border-zinc-800 text-xs text-zinc-500 font-mono">
-          ErrorCode: RefererNotAllowedMapError (Potencial)
-        </div>
-      </div>
-    );
-  }
-
-  if (!isLoaded) {
-    return (
-      <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] relative bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800 items-center justify-center">
-        <Loader2 className="animate-spin text-red-700" size={48} />
-        <p className="text-zinc-400 mt-4">Cargando mapa...</p>
-      </div>
-    );
-  }
+  if (loadError) return <ErrorState />;
+  if (!isLoaded) return <LoadingState />;
 
   return (
     <div className="flex flex-col h-[calc(100vh-180px)] min-h-[500px] relative bg-zinc-950 rounded-2xl overflow-hidden border border-zinc-800">
-
-      {/* Search Bar & Controls Overlay */}
-      <div className="absolute top-4 left-4 right-4 z-[10] flex flex-col gap-2 pointer-events-none">
-
-        {/* Header Title */}
-        <div className="pointer-events-auto bg-zinc-900/90 backdrop-blur-md p-3 rounded-xl border border-zinc-800 shadow-2xl flex justify-between items-center mb-2">
-          <h2 className="text-md md:text-lg font-bold text-white flex items-center gap-2">
-            <MapPin size={18} className="text-red-700" />
-            <span className="text-red-600">
-              Paso 1: Ubicación
-            </span>
-          </h2>
-          <button
-            onClick={() => handleLocateUser()}
-            disabled={loadingGPS}
-            className="p-2 bg-zinc-800 border border-zinc-700 rounded-lg hover:bg-red-900/20 hover:border-red-700/50 text-zinc-300 hover:text-red-600 transition-all disabled:opacity-50"
-            title="Usar mi ubicación actual"
-          >
-            {loadingGPS ? <Loader2 size={18} className="animate-spin text-red-700" /> : <Crosshair size={18} />}
-          </button>
-        </div>
-
-        {/* GPS Error Message */}
-        {gpsError && (
-          <div className="pointer-events-auto bg-red-900/90 backdrop-blur-md p-3 rounded-xl border border-red-700 shadow-xl flex justify-between items-center mb-2 animate-in fade-in slide-in-from-top-2">
-            <span className="text-white text-xs flex items-center gap-2">
-              <X size={14} className="text-red-300" />
-              {gpsError}
-            </span>
-            <button onClick={() => setGpsError(null)} className="text-red-300 hover:text-white">
-              <X size={14} />
-            </button>
-          </div>
-        )}
-
-        {/* Search Input and Manual Coords Toggle */}
-        <div className="pointer-events-auto flex flex-col gap-2 mt-1">
-          <div className="flex gap-2 bg-zinc-900/80 p-1 rounded-xl border border-zinc-800/50 backdrop-blur-sm self-start shadow-xl">
-            <button
-              onClick={() => setIsManualCoordMode(false)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${!isManualCoordMode ? 'bg-red-800 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
-            >
-              Buscar Dirección
-            </button>
-            <button
-              onClick={() => setIsManualCoordMode(true)}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${isManualCoordMode ? 'bg-red-800 text-white shadow-lg' : 'text-zinc-400 hover:text-white hover:bg-zinc-800'}`}
-            >
-              Ingresar Coordenadas
-            </button>
-          </div>
-
-          {!isManualCoordMode ? (
-            <div className="relative flex items-center shadow-xl">
-              <div className="absolute left-3 text-zinc-400 z-10">
-                <Search size={16} />
-              </div>
-              <Autocomplete
-                onLoad={onAutocompleteLoad}
-                onPlaceChanged={onPlaceChanged}
-                className="w-full"
-              >
-                <input
-                  type="text"
-                  placeholder="Buscar calle, colonia o ciudad..."
-                  className="w-full bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 pl-10 pr-10 focus:ring-2 focus:ring-red-700 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
-                />
-              </Autocomplete>
-            </div>
-          ) : (
-            <div className="flex gap-2 shadow-xl">
-              <input
-                type="number"
-                step="any"
-                placeholder="Latitud (ej. 19.4326)"
-                value={manualLat}
-                onChange={(e) => setManualLat(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleManualCoordSubmit()}
-                className="flex-1 min-w-0 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 px-3 focus:ring-2 focus:ring-red-700 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
-              />
-              <input
-                type="number"
-                step="any"
-                placeholder="Longitud (ej. -99.1332)"
-                value={manualLng}
-                onChange={(e) => setManualLng(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleManualCoordSubmit()}
-                className="flex-1 min-w-0 bg-zinc-900/95 backdrop-blur-md border border-zinc-700 text-white text-sm rounded-xl py-3 px-3 focus:ring-2 focus:ring-red-700 focus:border-transparent outline-none transition-all placeholder:text-zinc-500"
-              />
-              <button
-                onClick={handleManualCoordSubmit}
-                disabled={!manualLat || !manualLng}
-                className="bg-zinc-800 border border-zinc-700 rounded-xl px-4 hover:bg-red-900/40 text-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shrink-0"
-                title="Ir a coordenadas"
-              >
-                <Navigation2 size={18} />
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+      <ControlsOverlay 
+        loadingGPS={loadingGPS} onLocate={() => handleLocateUser()} gpsError={gpsError} onDismissError={() => setGpsError(null)}
+        isManualCoordMode={isManualCoordMode} setIsManualCoordMode={setIsManualCoordMode}
+        onAutocompleteLoad={onAutocompleteLoad} onPlaceChanged={onPlaceChanged}
+        manualLat={manualLat} setManualLat={setManualLat} manualLng={manualLng} setManualLng={setManualLng} onManualCoordSubmit={handleManualCoordSubmit}
+      />
 
       <div className="flex-1 w-full h-full z-0 relative">
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={position || defaultCenter}
-          zoom={13}
-          options={mapOptions}
-          onLoad={onLoad}
-          onUnmount={onUnmount}
-          onClick={onMapClick}
-        >
+        <GoogleMap mapContainerStyle={mapContainerStyle} center={position || defaultCenter} zoom={13} options={mapOptions} onLoad={onLoad} onUnmount={onUnmount} onClick={onMapClick}>
           {position && (
             <>
-              <Marker
-                position={position}
-                draggable={true}
-                onDragEnd={onMarkerDragEnd}
-                animation={window.google.maps.Animation.DROP}
-              />
-              {accuracy && (
-                <Circle
-                  center={position}
-                  radius={accuracy}
-                  options={{
-                    fillColor: '#be185d',
-                    fillOpacity: 0.15,
-                    strokeColor: '#be185d',
-                    strokeOpacity: 0.3,
-                    strokeWeight: 1,
-                    clickable: false,
-                    editable: false,
-                    zIndex: 1,
-                  }}
-                />
-              )}
+              <Marker position={position} draggable={true} onDragEnd={onMarkerDragEnd} animation={window.google.maps.Animation.DROP} />
+              {accuracy && <Circle center={position} radius={accuracy} options={{ fillColor: '#be185d', fillOpacity: 0.15, strokeColor: '#be185d', strokeOpacity: 0.3, strokeWeight: 1, clickable: false, editable: false, zIndex: 1 }} />}
             </>
           )}
         </GoogleMap>
-        {/* Vignette Effect */}
         <div className="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.9)] z-[5]"></div>
       </div>
 
-      {/* Bottom Panel */}
-      <div className="p-4 md:p-6 bg-zinc-950 border-t border-zinc-900 z-[10]" aria-live="polite">
-        {position && (
-          <div className="mb-4 md:mb-6 bg-zinc-900 p-3 md:p-4 rounded-xl border border-zinc-800 flex items-start gap-4 animate-fade-in">
-            <div className={`mt-1 p-2 rounded-lg ${loadingAddress ? 'bg-zinc-800 text-zinc-500' : 'bg-red-900/20 text-red-700'}`}>
-              {loadingAddress ? <Loader2 className="animate-spin" size={16} /> : <MapPin size={16} />}
-            </div>
-
-            <div className="flex-1 min-w-0">
-              <div className="flex justify-between items-center mb-1">
-                <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">
-                  {isManualMode ? 'Editar Dirección Manualmente' : (
-                    <span className="flex items-center gap-2">
-                      {isCalibrating ? (
-                        <span className="flex items-center gap-1 text-red-600">
-                          <Loader2 size={10} className="animate-spin" />
-                          Calibrando Precisión...
-                        </span>
-                      ) : 'Dirección Detectada'}
-                      {accuracy && !isCalibrating && (
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded ${accuracy < 20 ? 'bg-green-900/40 text-green-400' : 'bg-yellow-900/40 text-yellow-500'}`}>
-                          Margen: ±{accuracy.toFixed(1)}m
-                        </span>
-                      )}
-                    </span>
-                  )}
-                </p>
-                {!loadingAddress && (
-                  <button
-                    onClick={toggleManualMode}
-                    className="text-zinc-500 hover:text-red-700 transition-colors p-1"
-                    title={isManualMode ? "Guardar dirección" : "Editar dirección manualmente"}
-                  >
-                    {isManualMode ? <Check size={14} /> : <Edit2 size={14} />}
-                  </button>
-                )}
-              </div>
-
-              {isManualMode ? (
-                <textarea
-                  value={manualAddress}
-                  onChange={(e) => setManualAddress(e.target.value)}
-                  className="w-full bg-zinc-950 border border-zinc-700 rounded-lg p-2 text-sm text-zinc-200 focus:ring-2 focus:ring-red-700 outline-none resize-none"
-                  rows={2}
-                  placeholder="Escribe la dirección exacta aquí..."
-                  autoFocus
-                />
-              ) : (
-                <p className={`text-xs md:text-sm ${loadingAddress ? 'text-zinc-600 italic' : 'text-zinc-200 line-clamp-2'}`}>
-                  {loadingAddress ? 'Obteniendo dirección...' : addressDisplay}
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        <div className="flex justify-between items-center">
-          {onBack && (
-            <button
-              onClick={onBack}
-              className="text-zinc-500 hover:text-white font-medium flex items-center gap-2 px-4 py-2 transition-colors uppercase text-xs tracking-widest"
-            >
-              <ChevronLeft size={14} />
-              Volver
-            </button>
-          )}
-          <div className={onBack ? '' : 'w-full flex justify-end'}>
-            <button
-              onClick={onNext}
-              disabled={!position || loadingAddress || (isManualMode && !manualAddress.trim())}
-              className="
-                group relative px-6 py-3 rounded-full font-bold text-white overflow-hidden text-xs md:text-sm
-                disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-red-900/20
-              "
-            >
-              <div className="absolute inset-0 bg-red-800 transition-all duration-300 group-hover:scale-105"></div>
-              <span className="relative flex items-center gap-2">
-                {loadingAddress ? 'Procesando...' : 'Confirmar Ubicación'}
-                <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
-              </span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <LocationBottomPanel 
+        position={position} loadingAddress={loadingAddress} isManualMode={isManualMode} isCalibrating={isCalibrating} accuracy={accuracy}
+        addressDisplay={addressDisplay} manualAddress={manualAddress} setManualAddress={setManualAddress} toggleManualMode={toggleManualMode}
+        onBack={onBack} onNext={onNext}
+      />
     </div>
   );
 };

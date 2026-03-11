@@ -1,280 +1,290 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { DenunciaDraft } from '../../types';
 import { ChevronRight, ChevronLeft, User, Mail, Users, Briefcase, HelpCircle } from 'lucide-react';
+
+// --- CONSTANTS ---
+const SUBJECT_TYPES = [
+  { id: 'NO_CONOCIMIENTO', label: 'No tengo conocimiento' },
+  { id: 'GOBIERNO', label: 'Gobierno' },
+  { id: 'EMPRESA', label: 'Empresa' },
+  { id: 'PARTICULAR', label: 'Particular' }
+] as const;
+
+type SubjectTypeId = typeof SUBJECT_TYPES[number]['id'];
 
 interface Props {
   draft: DenunciaDraft;
   updateDraft: (data: Partial<DenunciaDraft>) => void;
   onNext: () => void;
-  onBack?: () => void; // Added Back Handler
+  onBack?: () => void;
 }
 
-export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }) => {
-  const isValid = draft.isAnonymous || (draft.fullName.length > 3 && draft.email.includes('@'));
+// --- HELPERS ---
+const isValidEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
 
-  // Handler specifically for the toggle to prevent propagation issues
-  const handleToggle = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation(); // Critical to prevent form submit or other weirdness
+const isDraftValid = (draft: DenunciaDraft): boolean => {
+  if (draft.isAnonymous) return true;
+  return draft.fullName.trim().length > 3 && isValidEmail(draft.email);
+};
+
+// --- SUB-COMPONENTS ---
+const HeaderSection = () => (
+  <div className="mb-8 animate-fade-in">
+    <h2 className="text-3xl md:text-4xl font-bold mb-2">
+      <span className="text-red-600">Identidad del Denunciante</span>
+    </h2>
+    <p className="text-zinc-400">
+      Proporciona tus datos para dar seguimiento legal. Tu privacidad es nuestra prioridad.
+    </p>
+  </div>
+);
+
+interface InputFieldProps {
+  label: string;
+  icon?: React.ReactNode;
+  value: string | number;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  disabled?: boolean;
+  placeholder?: string;
+  type?: string;
+  max?: string;
+}
+
+const InputField = ({ label, icon, value, onChange, disabled, placeholder, type = "text", max }: InputFieldProps) => (
+  <div className="group">
+    <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">
+      {label}
+    </label>
+    <div className="relative">
+      {icon && (
+        <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-red-700 transition-colors">
+          {icon}
+        </div>
+      )}
+      <input
+        type={type}
+        value={value}
+        onChange={onChange}
+        disabled={disabled}
+        placeholder={placeholder}
+        max={max}
+        className={`w-full ${icon ? 'pl-12' : 'px-4'} pr-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-700 focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all font-mono disabled:bg-zinc-900/50 [color-scheme:dark]`}
+      />
+    </div>
+  </div>
+);
+
+const LegalSection = ({ draft, onChange }: { draft: DenunciaDraft, onChange: (field: keyof DenunciaDraft) => (e: React.ChangeEvent<any>) => void }) => (
+  <div className="mt-8 space-y-6">
+    <div className="space-y-2">
+      <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Domicilio Legal</label>
+      <input
+        type="text"
+        value={draft.domicilio || ''}
+        onChange={onChange('domicilio')}
+        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-red-700 outline-none"
+        placeholder="Calle, Número, Colonia, Ciudad..."
+      />
+    </div>
+
+    <div className="space-y-2">
+      <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Personas Autorizadas para Notificaciones</label>
+      <textarea
+        value={draft.personasAutorizadas || ''}
+        onChange={onChange('personasAutorizadas')}
+        className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-red-700 outline-none h-20 resize-none"
+        placeholder="Nombres completos de personas autorizadas..."
+      />
+      <p className="text-[10px] text-zinc-500 italic">Opcional: Nombres de familiares o abogados autorizados.</p>
+    </div>
+  </div>
+);
+
+const AccusedSection = ({ draft, updateDraft }: { draft: DenunciaDraft, updateDraft: (data: Partial<DenunciaDraft>) => void }) => (
+  <div className="space-y-3 mt-8 pt-4 border-t border-zinc-800">
+    <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest block">¿Quién o quiénes están realizando esta acción?</label>
+    <div className="grid grid-cols-2 gap-3">
+      {SUBJECT_TYPES.map((tipo) => (
+        <button
+          key={tipo.id}
+          type="button"
+          onClick={() => updateDraft({ denunciadoTipo: tipo.id as SubjectTypeId })}
+          className={`px-4 py-3 rounded-lg border text-xs font-bold transition-all ${
+            draft.denunciadoTipo === tipo.id ? 'bg-red-800 border-red-700 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'
+          }`}
+        >
+          {tipo.label}
+        </button>
+      ))}
+    </div>
+  </div>
+);
+
+const DemographicSection = ({ draft, onChange }: { draft: DenunciaDraft, onChange: (field: keyof DenunciaDraft) => (e: React.ChangeEvent<any>) => void }) => (
+  <div className="pt-8 border-t border-zinc-800 mt-8 animate-fade-in">
+    <h3 className="text-xl font-bold mb-6 text-zinc-300 flex items-center gap-2">
+      <Users size={20} className="text-red-700" />
+      Información Estadística <span className="text-xs font-normal text-zinc-500 bg-zinc-900 px-2 py-1 rounded-full border border-zinc-800 ml-2">OPCIONAL</span>
+    </h3>
+
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <InputField
+        label="Edad"
+        type="number"
+        value={draft.age || ''}
+        onChange={onChange('age')}
+        placeholder="EJ. 35"
+      />
+      
+      <div className="group">
+        <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">Género</label>
+        <select
+          value={draft.gender || ''}
+          onChange={onChange('gender')}
+          className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all appearance-none cursor-pointer py-4"
+        >
+          <option value="">Seleccionar...</option>
+          <option value="MALE">Masculino</option>
+          <option value="FEMALE">Femenino</option>
+          <option value="OTHER">Otro</option>
+          <option value="PREFER_NOT_TO_SAY">Prefiero no decir</option>
+        </select>
+      </div>
+
+      <InputField
+        label="Ocupación"
+        icon={<Briefcase size={18} />}
+        value={draft.occupation || ''}
+        onChange={onChange('occupation')}
+        placeholder="EJ. ABOGADO"
+      />
+
+      <div className="group">
+        <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">¿Cómo nos conociste?</label>
+        <div className="relative">
+          <HelpCircle className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-red-700 transition-colors" size={18} />
+          <select
+            value={draft.referralSource || ''}
+            onChange={onChange('referralSource')}
+            className="w-full pl-12 pr-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all appearance-none cursor-pointer"
+          >
+            <option value="">Seleccionar...</option>
+            <option value="SOCIAL_MEDIA">Redes Sociales</option>
+            <option value="FRIEND">Amigo / Familiar</option>
+            <option value="AD">Publicidad</option>
+            <option value="OTHER">Otro</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }) => {
+  const isValid = useMemo(() => isDraftValid(draft), [draft.isAnonymous, draft.fullName, draft.email]);
+
+  const toggleAnonymous = (e?: React.MouseEvent | React.KeyboardEvent) => {
+    e?.preventDefault();
+    e?.stopPropagation();
     updateDraft({ isAnonymous: !draft.isAnonymous });
   };
 
-  // Accessibility handler for keyboard toggle
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === ' ' || e.key === 'Enter') {
-      e.preventDefault();
-      updateDraft({ isAnonymous: !draft.isAnonymous });
-    }
-  }
+    if (e.key === ' ' || e.key === 'Enter') toggleAnonymous(e);
+  };
 
-  return (
-    <div className="p-8 md:p-12 h-full flex flex-col justify-center max-w-3xl mx-auto">
-      <div className="mb-8 animate-fade-in">
-        <h2 className="text-3xl md:text-4xl font-bold mb-2">
-          <span className="text-red-600">
-            Identidad del Denunciante
-          </span>
-        </h2>
-        <p className="text-zinc-400">
-          Proporciona tus datos para dar seguimiento legal. Tu privacidad es nuestra prioridad.
+  const handleTextChange = (field: keyof DenunciaDraft) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => updateDraft({ [field]: e.target.value });
+
+  const renderAnonymousSwitch = () => (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={draft.isAnonymous}
+      aria-label="Activar Denuncia Anónima"
+      className={`
+        w-full text-left relative p-6 rounded-xl border flex items-center justify-between cursor-pointer transition-all duration-300
+        focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2 focus:ring-offset-zinc-950
+        ${draft.isAnonymous ? 'bg-red-900/10 border-red-700/30 shadow-[0_0_15px_rgba(236,72,153,0.1)]' : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-700'}
+      `}
+      onClick={toggleAnonymous}
+      onKeyDown={handleKeyDown}
+    >
+      <div className="pr-4">
+        <h3 className={`font-bold text-lg transition-colors ${draft.isAnonymous ? 'text-red-600' : 'text-white'}`}>
+          Denuncia Anónima
+        </h3>
+        <p className="text-sm text-zinc-500 mt-1">
+          {draft.isAnonymous
+            ? "Protección de identidad activada. No se requerirán datos personales."
+            : "Sus datos no aparecerán en el documento público, pero son necesarios para notificaciones."}
         </p>
       </div>
 
+      <div className="flex-shrink-0">
+        <div className={`w-14 h-8 flex items-center rounded-full p-1 transition-all duration-300 ease-in-out shadow-inner ${draft.isAnonymous ? 'bg-red-700' : 'bg-zinc-700'}`}>
+          <div className={`bg-white w-6 h-6 rounded-full shadow-lg transform transition-transform duration-300 ease-in-out ${draft.isAnonymous ? 'translate-x-6' : 'translate-x-0'}`} />
+        </div>
+      </div>
+    </button>
+  );
+
+  const renderPersonalData = () => (
+    <div className="relative mt-8">
+      {draft.isAnonymous && <div className="absolute inset-0 z-10 backdrop-blur-[2px] bg-zinc-950/20 transition-all duration-500 rounded-xl" />}
+      
+      <div className={`space-y-6 transition-all duration-500 ${draft.isAnonymous ? 'opacity-40 grayscale' : 'opacity-100'}`}>
+        <InputField
+          label="Nombre Completo"
+          icon={<User size={20} />}
+          value={draft.fullName}
+          onChange={handleTextChange('fullName')}
+          disabled={draft.isAnonymous}
+          placeholder="EJ. JUAN PÉREZ HERNÁNDEZ"
+        />
+        <InputField
+          label="Correo Electrónico"
+          icon={<Mail size={20} />}
+          value={draft.email}
+          onChange={handleTextChange('email')}
+          disabled={draft.isAnonymous}
+          placeholder="CONTACTO@EJEMPLO.COM"
+          type="email"
+        />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="p-8 md:p-12 h-full flex flex-col justify-center max-w-3xl mx-auto">
+      <HeaderSection />
+
       <div className="space-y-8">
-        {/* Anonymous Switch Card - Completely Interactive */}
-        <button
-          type="button"
-          role="switch"
-          aria-checked={draft.isAnonymous}
-          aria-label="Activar Denuncia Anónima"
-          className={`
-            w-full text-left relative p-6 rounded-xl border flex items-center justify-between cursor-pointer transition-all duration-300
-            focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-2 focus:ring-offset-zinc-950
-            ${draft.isAnonymous
-              ? 'bg-red-900/10 border-red-700/30 shadow-[0_0_15px_rgba(236,72,153,0.1)]'
-              : 'bg-zinc-900/50 border-zinc-800 hover:border-zinc-700'}
-          `}
-          onClick={handleToggle}
-          onKeyDown={handleKeyDown}
-        >
-          <div className="pr-4">
-            <h3 className={`font-bold text-lg transition-colors ${draft.isAnonymous ? 'text-red-600' : 'text-white'}`}>
-              Denuncia Anónima
-            </h3>
-            <p className="text-sm text-zinc-500 mt-1">
-              {draft.isAnonymous
-                ? "Protección de identidad activada. No se requerirán datos personales."
-                : "Sus datos no aparecerán en el documento público, pero son necesarios para notificaciones."}
-            </p>
-          </div>
-
-          {/* Custom Switch Component */}
-          <div className="flex-shrink-0">
-            <div
-              className={`
-                    w-14 h-8 flex items-center rounded-full p-1 transition-all duration-300 ease-in-out shadow-inner
-                    ${draft.isAnonymous ? 'bg-red-700' : 'bg-zinc-700'}
-                `}
-            >
-              <div
-                className={`
-                    bg-white w-6 h-6 rounded-full shadow-lg transform transition-transform duration-300 ease-in-out
-                    ${draft.isAnonymous ? 'translate-x-6' : 'translate-x-0'}
-                  `}
-              />
-            </div>
-          </div>
-        </button>
-
-        {/* Form Fields Container */}
-        <div className="relative">
-          {/* Overlay to prevent interaction when anonymous */}
-          {draft.isAnonymous && (
-            <div className="absolute inset-0 z-10 backdrop-blur-[2px] bg-zinc-950/20 transition-all duration-500 rounded-xl" />
-          )}
-
-          <div className={`space-y-6 transition-all duration-500 ${draft.isAnonymous ? 'opacity-40 grayscale' : 'opacity-100'}`}>
-            <div className="group">
-              <label htmlFor="fullName" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">Nombre Completo</label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-red-700 transition-colors" size={20} />
-                <input
-                  id="fullName"
-                  type="text"
-                  value={draft.fullName}
-                  onChange={(e) => updateDraft({ fullName: e.target.value })}
-                  placeholder="EJ. JUAN PÉREZ HERNÁNDEZ"
-                  disabled={draft.isAnonymous}
-                  className="w-full pl-12 pr-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-700 focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all font-mono disabled:bg-zinc-900/50"
-                />
-              </div>
-            </div>
-
-            <div className="group">
-              <label htmlFor="email" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">Correo Electrónico</label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-red-700 transition-colors" size={20} />
-                <input
-                  id="email"
-                  type="email"
-                  value={draft.email}
-                  onChange={(e) => updateDraft({ email: e.target.value })}
-                  placeholder="CONTACTO@EJEMPLO.COM"
-                  disabled={draft.isAnonymous}
-                  className="w-full pl-12 pr-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-700 focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all font-mono disabled:bg-zinc-900/50"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+        {renderAnonymousSwitch()}
+        {renderPersonalData()}
       </div>
 
-      {/* New Legal Fields */}
-      {!draft.isAnonymous && (
-        <>
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Domicilio Legal</label>
-            <input
-              type="text"
-              value={draft.domicilio || ''}
-              onChange={(e) => updateDraft({ domicilio: e.target.value })}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-red-700 outline-none"
-              placeholder="Calle, Número, Colonia, Ciudad..."
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Personas Autorizadas para Notificaciones</label>
-            <textarea
-              value={draft.personasAutorizadas || ''}
-              onChange={(e) => updateDraft({ personasAutorizadas: e.target.value })}
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-4 py-3 text-white focus:ring-1 focus:ring-red-700 outline-none h-20 resize-none"
-              placeholder="Nombres completos de personas autorizadas..."
-            />
-            <p className="text-[10px] text-zinc-500 italic">Opcional: Nombres de familiares o abogados autorizados.</p>
-          </div>
-        </>
-      )}
-
-      {/* Denunciado Section */}
-      <div className="space-y-3 pt-4 border-t border-zinc-800">
-        <label className="text-xs font-bold text-zinc-500 uppercase tracking-widest block">¿Quién o quiénes están realizando esta acción?</label>
-        <div className="grid grid-cols-2 gap-3">
-          {[
-            { id: 'NO_CONOCIMIENTO', label: 'No tengo conocimiento' },
-            { id: 'GOBIERNO', label: 'Gobierno' },
-            { id: 'EMPRESA', label: 'Empresa' },
-            { id: 'PARTICULAR', label: 'Particular' }
-          ].map((tipo) => (
-            <button
-              key={tipo.id}
-              type="button"
-              onClick={() => updateDraft({ denunciadoTipo: tipo.id as any })}
-              className={`px-4 py-3 rounded-lg border text-xs font-bold transition-all ${draft.denunciadoTipo === tipo.id
-                ? 'bg-red-800 border-red-700 text-white'
-                : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:border-zinc-700'}`}
-            >
-              {tipo.label}
-            </button>
-          ))}
-        </div>
+      {!draft.isAnonymous && <LegalSection draft={draft} onChange={handleTextChange} />}
+      
+      <AccusedSection draft={draft} updateDraft={updateDraft} />
+      
+      <div className="pt-8 border-t border-zinc-800 mt-8 animate-fade-in">
+        <InputField
+          label="Fecha del Incidente *"
+          type="date"
+          value={draft.eventDate || ''}
+          onChange={handleTextChange('eventDate')}
+          max={new Date().toISOString().split('T')[0]}
+        />
+        <p className="text-xs text-zinc-600 mt-2">Fecha en que ocurrió o se detectó el hecho denunciado.</p>
       </div>
 
-      {/* Event Date */}
-      <div className="pt-8 border-t border-zinc-800 animate-fade-in">
-        <div className="group">
-          <label htmlFor="eventDate" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">
-            Fecha del Incidente <span className="text-red-700">*</span>
-          </label>
-          <p className="text-xs text-zinc-600 mb-3">Fecha en que ocurrió o se detectó el hecho denunciado.</p>
-          <input
-            id="eventDate"
-            type="date"
-            value={draft.eventDate || ''}
-            onChange={(e) => updateDraft({ eventDate: e.target.value })}
-            max={new Date().toISOString().split('T')[0]}
-            className="w-full px-4 py-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all font-mono [color-scheme:dark]"
-          />
-        </div>
-      </div>
-
-      {/* Market Research Section - Always Active */}
-
-      <div className="pt-8 border-t border-zinc-800 animate-fade-in">
-        <h3 className="text-xl font-bold mb-6 text-zinc-300 flex items-center gap-2">
-          <Users size={20} className="text-red-700" />
-          Información Estadística <span className="text-xs font-normal text-zinc-500 bg-zinc-900 px-2 py-1 rounded-full border border-zinc-800 ml-2">OPCIONAL</span>
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Age */}
-          <div className="group">
-            <label htmlFor="age" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">Edad</label>
-            <input
-              id="age"
-              type="number"
-              value={draft.age || ''}
-              onChange={(e) => updateDraft({ age: e.target.value })}
-              placeholder="EJ. 35"
-              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-700 focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all font-mono"
-            />
-          </div>
-
-          {/* Gender */}
-          <div className="group">
-            <label htmlFor="gender" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">Género</label>
-            <select
-              id="gender"
-              value={draft.gender || ''}
-              onChange={(e) => updateDraft({ gender: e.target.value as any })}
-              className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all appearance-none cursor-pointer"
-            >
-              <option value="">Seleccionar...</option>
-              <option value="MALE">Masculino</option>
-              <option value="FEMALE">Femenino</option>
-              <option value="OTHER">Otro</option>
-              <option value="PREFER_NOT_TO_SAY">Prefiero no decir</option>
-            </select>
-          </div>
-
-          {/* Occupation */}
-          <div className="group">
-            <label htmlFor="occupation" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">Ocupación</label>
-            <div className="relative">
-              <Briefcase className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-red-700 transition-colors" size={18} />
-              <input
-                id="occupation"
-                type="text"
-                value={draft.occupation || ''}
-                onChange={(e) => updateDraft({ occupation: e.target.value })}
-                placeholder="EJ. ABOGADO"
-                className="w-full pl-12 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white placeholder:text-zinc-700 focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all font-mono"
-              />
-            </div>
-          </div>
-
-          {/* Referral */}
-          <div className="group">
-            <label htmlFor="referral" className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2 group-focus-within:text-red-700 transition-colors">¿Cómo nos conociste?</label>
-            <div className="relative">
-              <HelpCircle className="absolute left-4 top-1/2 transform -translate-y-1/2 text-zinc-600 group-focus-within:text-red-700 transition-colors" size={18} />
-              <select
-                id="referral"
-                value={draft.referralSource || ''}
-                onChange={(e) => updateDraft({ referralSource: e.target.value as any })}
-                className="w-full pl-12 pr-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl text-white focus:ring-1 focus:ring-red-700 focus:border-red-700 outline-none transition-all appearance-none cursor-pointer"
-              >
-                <option value="">Seleccionar...</option>
-                <option value="SOCIAL_MEDIA">Redes Sociales</option>
-                <option value="FRIEND">Amigo / Familiar</option>
-                <option value="AD">Publicidad</option>
-                <option value="OTHER">Otro</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
+      <DemographicSection draft={draft} onChange={handleTextChange} />
 
       <div className="mt-12 flex justify-between items-center">
         {onBack ? (
@@ -282,8 +292,7 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
             onClick={onBack}
             className="text-zinc-500 hover:text-white font-medium flex items-center gap-2 px-4 py-2 transition-colors uppercase text-xs tracking-widest"
           >
-            <ChevronLeft size={16} />
-            Volver
+            <ChevronLeft size={16} /> Volver
           </button>
         ) : <div />}
 
@@ -296,10 +305,7 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
           <button
             onClick={onNext}
             disabled={!isValid}
-            className="
-                group relative px-8 py-4 rounded-full font-bold text-white overflow-hidden
-                disabled:opacity-50 disabled:cursor-not-allowed transition-all
-            "
+            className="group relative px-8 py-4 rounded-full font-bold text-white overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed transition-all"
           >
             <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-800 transition-all duration-300 group-hover:scale-105"></div>
             <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -313,3 +319,4 @@ export const StepInfo: React.FC<Props> = ({ draft, updateDraft, onNext, onBack }
     </div>
   );
 };
+
