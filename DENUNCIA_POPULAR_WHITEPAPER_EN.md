@@ -19,9 +19,9 @@ Environmental justice in Mexico is often hampered by:
 ## 3. Technical Architecture and Innovation Pillars
 
 ### A. Interface Layer and User Experience (UX)
-Built with **React 19** and **Tailwind CSS 4**, the application offers a fluid and responsive experience:
+Built with **React 19** and **Tailwind CSS 4**, the application offers a fluid and responsive experience, adhering strictly to **Clean Code** and **SOLID** design principles:
 - **Mobile-First Design:** Implementation of bottom sheets and touch gestures for native usability on mobile devices.
-- **Multi-step Wizard:** Guides the user through logical and structured fact-gathering, minimizing informant fatigue.
+- **Structured Multi-step Wizard:** Guides the user through logical fact-gathering, minimizing informant fatigue. The UI is highly modularized into single-responsibility subcomponents (SRP) to guarantee extreme scalability and maintainability.
 
 ### B. Advanced Geospatial Intelligence
 The integration with the **Google Maps API** has been elevated to an analytical level:
@@ -29,10 +29,12 @@ The integration with the **Google Maps API** has been elevated to an analytical 
 - **Hotspot Analysis:** Advanced SQL engines that automatically identify high-density areas of environmental crimes for efficient resource allocation.
 - **Manual Location Entry:** Allows for precise local descriptions ("in front of x place") while maintaining exact GPS coordinates.
 
-### C. Artificial Intelligence Engine (GenAI)
-Utilizing **Google Gemini**, the application implements **Automatic Semantic Tagging**:
-- Instant classification of reports by categories (Infrastructure, Lighting, Degradation, etc.).
-- Improved search and correlation of incidents through AI-generated metadata.
+### C. Artificial Intelligence Microservices Architecture (GenAI)
+Utilizing **Google Gemini**, the intelligence core has transcended from a monolithic block to an agile ecosystem of **specialized microservices**:
+- **Legal & Competency Analysis (Analysis Service):** Accurate determination of jurisdiction (Municipal, State, Federal) and automated semantic classification of reports.
+- **Conversational Assistant (Chat Service):** An empathetic interviewer guided by Chain-of-Thought reasoning to build objective narratives and detect missing evidentiary elements in real-time.
+- **Regulatory Validation (Legal Service):** Integration with Google Search Grounding to validate reports against federal sources and official Mexican laws (such as LGEEPA).
+- **Multimedia Enrichment (Media Service):** Generation of high-fidelity satellite imagery via Gemini 3 Pro and structured geographical context descriptions.
 
 ---
 
@@ -47,12 +49,12 @@ Following the **Governance-First** philosophy, v3.0 implements:
 ## 5. DevOps and Quality Assurance
 System robustness is guaranteed by a modern engineering pipeline:
 - **CI/CD with GitHub Actions:** Automated deployment and continuous integration testing.
-- **End-to-End (E2E) Testing with Playwright:** Automated simulations of the reporting flow to prevent regressions in the user interface.
+- **Modular End-to-End (E2E) Testing with Playwright:** Automated simulations of the reporting flow, refactored into isolated routines based on strict single-responsibility patterns to prevent visual and logic regressions ultra-efficiently.
 
 ---
 
 ## 6. Conclusion
-**Denuncia Popular v3.0** is not just a tool; it is a governance infrastructure. By structuring the chaos of environmental data through AI and geospatial logic, we empower citizens with a system that is, by design, transparent, secure, and highly effective for environmental protection.
+**Denuncia Popular v3.0** is not just a tool; it is a governance infrastructure. By structuring the chaos of environmental data through modular AI and geospatial logic, we empower citizens with a system that is, by design, transparent, secure, and highly effective for environmental protection.
 
 ---
 **Esoteria Intelligence Infrastructure**

@@ -19,9 +19,9 @@ La justicia ambiental en México a menudo se ve obstaculizada por:
 ## 3. Arquitectura Técnica y Pilares de Innovación
 
 ### A. Capa de Interfaz y Experiencia de Usuario (UX)
-Construida con **React 19** y **Tailwind CSS 4**, la aplicación ofrece una experiencia fluida y responsive:
+Construida con **React 19** y **Tailwind CSS 4**, la aplicación ofrece una experiencia fluida y responsive, sustentada en principios de **Clean Code** y diseño **SOLID**:
 - **Mobile-First Design:** Implementación de *bottom sheets* y gestos táctiles para una usabilidad nativa en dispositivos móviles.
-- **Wizard Multi-paso:** Guía al usuario a través de una captura de hechos lógica y estructurada, minimizando la fatiga del informante.
+- **Wizard Multi-paso Estructurado:** Guía al usuario a través de una captura de hechos lógica, minimizando la fatiga del informante. La interfaz de usuario está altamente modularizada en subcomponentes de responsabilidad única (Single Responsibility Principle) para garantizar escalabilidad extrema y mantenibilidad.
 
 ### B. Inteligencia Geoespacial Avanzada
 La integración con **Google Maps API** ha sido elevada a un nivel analítico:
@@ -29,10 +29,12 @@ La integración con **Google Maps API** ha sido elevada a un nivel analítico:
 - **Análisis de Hotspots (Puntos Críticos):** Motores SQL avanzados que identifican automáticamente áreas de alta densidad de delitos ambientales para la asignación eficiente de recursos.
 - **Entrada Manual de Ubicación:** Permite descripciones locales precisas ("frente a x lugar") manteniendo coordenadas GPS exactas.
 
-### C. Motor de Inteligencia Artificial (GenAI)
-Utilizando **Google Gemini**, la aplicación implementa **Etiquetado Semántico Automático**:
-- Clasificación instantánea de denuncias por categorías (Infraestructura, Alumbrado, Degradación, etc.).
-- Mejora de la búsqueda y correlación de incidentes mediante metadatos generados por IA.
+### C. Arquitectura de Microservicios de Inteligencia Artificial (GenAI)
+Utilizando **Google Gemini**, el núcleo de inteligencia trascendió de un bloque monolítico a un ecosistema ágil de **microservicios especializados**:
+- **Análisis Legal y Competencia (Analysis Service):** Determinación precisa de la jurisdicción (Municipal, Estatal, Federal) y clasificación semántica de denuncias.
+- **Asistente Conversacional (Chat Service):** Entrevistador empático guiado por Chain-of-Thought para construir narraciones objetivas y detectar elementos probatorios faltantes en tiempo real.
+- **Validación Normativa (Legal Service):** Integración con Google Search Grounding para validar la denuncia contra fuentes federales y leyes oficiales (como la LGEEPA).
+- **Enriquecimiento Multimedia (Media Service):** Generación de representaciones satelitales de alta fidelidad vía Gemini 3 Pro y descripción estructurada del entorno geográfico.
 
 ---
 
@@ -47,12 +49,12 @@ Siguiendo la filosofía de **Gobernanza Primero**, la v3.0 implementa:
 ## 5. DevOps y Aseguramiento de Calidad
 La robustez del sistema está garantizada por un pipeline de ingeniería moderna:
 - **CI/CD con GitHub Actions:** Despliegue automatizado y pruebas de integración continuas.
-- **Pruebas End-to-End (E2E) con Playwright:** Simulaciones automatizadas del flujo de denuncia para prevenir regresiones en la interfaz de usuario.
+- **Pruebas End-to-End (E2E) Modulares con Playwright:** Simulaciones automatizadas del flujo de denuncia, refactorizadas en rutinas aisladas basadas en responsabilidad única para prevenir regresiones visuales y lógicas de manera ultra-eficiente.
 
 ---
 
 ## 6. Conclusión
-**Denuncia Popular v3.0** no es solo una herramienta; es una infraestructura de gobernanza. Al estructurar el caos de los datos ambientales mediante IA y lógica geoespacial, empoderamos a la ciudadanía con un sistema que es, por diseño, transparente, seguro y altamente efectivo para la protección del medio ambiente.
+**Denuncia Popular v3.0** no es solo una herramienta; es una infraestructura de gobernanza. Al estructurar el caos de los datos ambientales mediante IA modular y lógica geoespacial, empoderamos a la ciudadanía con un sistema que es, por diseño, transparente, seguro y altamente efectivo para la protección del medio ambiente.
 
 ---
 **Esoteria Intelligence Infrastructure**
